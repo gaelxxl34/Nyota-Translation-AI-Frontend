@@ -2,7 +2,7 @@
   "name": "ntc-frontend",
   "private": true,
   "version": "1.0.0",
-  "description": "Nyota Translation Center - Frontend React application for French bulletin translation",
+  "description": "Nyota Translation Center - AI-powered frontend application that transforms French school bulletins into professional English report cards",
   "type": "module",
   "scripts": {
     "dev": "vite --host",
