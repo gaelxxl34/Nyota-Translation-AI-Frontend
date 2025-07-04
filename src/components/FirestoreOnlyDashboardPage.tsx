@@ -6,7 +6,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { collection, query, where, getDocs, getFirestore, doc, updateDoc } from 'firebase/firestore';
 import { useAuth } from '../AuthProvider';
 import Form6Template from './Form6Template';
+import Form4Template from './Form4Template';
 import FirestoreOnlyPDFDownloadButton from './FirestoreOnlyPDFDownloadButton';
+import Swal from 'sweetalert2';
 
 interface BulletinRecord {
   id: string;
@@ -16,6 +18,7 @@ interface BulletinRecord {
     uploadedAt: any;
     lastModified: any;
     status: string;
+    formType?: 'form4' | 'form6'; // Add form type to metadata
   };
   editedData: any;
   originalData: any;
@@ -32,6 +35,7 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadStage, setUploadStage] = useState<string>('');
+  const [selectedFormType, setSelectedFormType] = useState<'form4' | 'form6'>('form6'); // Add form type selection
   const db = getFirestore();
 
   // Load user's bulletins from Firestore ONLY
@@ -117,7 +121,9 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
     if (!selectedBulletin) return;
 
     try {
-      console.log('💾 Auto-saving field update to Firestore:', updatedData);
+      console.log('💾 Auto-saving field update to Firestore...');
+      console.log('📊 Updated data structure:', JSON.stringify(updatedData, null, 2));
+      console.log('📊 Summary values in updated data:', updatedData.summaryValues);
       
       // Update the bulletin document in Firestore
       const bulletinRef = doc(db, 'bulletins', selectedBulletin.id);
@@ -127,6 +133,8 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
         'metadata.lastModified': new Date(),
         'metadata.lastModifiedAt': new Date().toISOString()
       });
+
+      console.log('✅ Data saved to Firestore with summary values:', updatedData.summaryValues);
 
       // Update local state to reflect the change
       setSelectedBulletin(prev => prev ? {
@@ -168,6 +176,123 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
   const handlePDFError = (error: string) => {
     console.error('❌ PDF error:', error);
     setError(`Failed to generate PDF: ${error}`);
+  };
+
+  // Handle bulletin deletion with confirmation
+  const handleDeleteBulletin = async (bulletinId: string, studentName: string) => {
+    try {
+      // Show confirmation dialog
+      const confirmResult = await Swal.fire({
+        title: 'Delete Bulletin',
+        html: `
+          <div class="text-left">
+            <p class="mb-3">Are you sure you want to delete this bulletin?</p>
+            <div class="bg-gray-100 p-3 rounded">
+              <strong>Student:</strong> ${studentName || 'Unknown Student'}<br>
+              <strong>ID:</strong> ${bulletinId}
+            </div>
+            <p class="mt-3 text-red-600 font-medium">
+              ⚠️ This action cannot be reversed!
+            </p>
+          </div>
+        `,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'Yes, Delete It!',
+        cancelButtonText: 'Cancel',
+        focusCancel: true,
+        customClass: {
+          popup: 'text-sm'
+        }
+      });
+
+      if (!confirmResult.isConfirmed) {
+        console.log('🚫 Bulletin deletion cancelled by user');
+        return;
+      }
+
+      // Show loading state
+      Swal.fire({
+        title: 'Deleting Bulletin...',
+        text: 'Please wait while we delete the bulletin.',
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        showConfirmButton: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+
+      console.log('🗑️ Starting bulletin deletion:', bulletinId);
+
+      // Get Firebase ID token
+      const idToken = await currentUser?.getIdToken();
+      if (!idToken) {
+        throw new Error('Authentication token not available');
+      }
+
+      // Call backend delete API
+      const response = await fetch(`/api/bulletins/${bulletinId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${idToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        let errorMessage = 'Failed to delete bulletin';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch {
+          errorMessage = `Server error: ${response.status} ${response.statusText}`;
+        }
+        throw new Error(errorMessage);
+      }
+
+      const deleteResult = await response.json();
+      console.log('✅ Bulletin deleted successfully:', deleteResult);
+
+      // Close loading dialog
+      Swal.close();
+
+      // Show success message
+      await Swal.fire({
+        title: 'Deleted!',
+        text: 'The bulletin has been deleted successfully.',
+        icon: 'success',
+        timer: 2000,
+        showConfirmButton: false
+      });
+
+      // If the deleted bulletin was selected, clear selection
+      if (selectedBulletin?.id === bulletinId) {
+        setSelectedBulletin(null);
+        setIsEditing(false);
+      }
+
+      // Refresh the bulletins list
+      await loadUserBulletins();
+
+    } catch (error) {
+      console.error('❌ Failed to delete bulletin:', error);
+      
+      // Close any loading dialogs
+      Swal.close();
+      
+      // Show error message
+      await Swal.fire({
+        title: 'Deletion Failed',
+        text: error instanceof Error ? error.message : 'An unexpected error occurred',
+        icon: 'error',
+        confirmButtonText: 'OK'
+      });
+      
+      setError(`Failed to delete bulletin: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   };
 
   // Get display data for bulletin (edited data if available, otherwise original)
@@ -248,6 +373,9 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
       application: data.application || '',
       behaviour: data.behaviour || '',
       
+      // Summary values for editable cells (AGGREGATES MAXIMA, AGGREGATES, PERCENTAGE, POSITION, BEHAVIOUR rows)
+      summaryValues: data.summaryValues || {},
+      
       // Final results
       finalResultPercentage: data.finalResultPercentage || '',
       isPromoted: data.isPromoted || false,
@@ -296,6 +424,7 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
       // Create form data
       const formData = new FormData();
       formData.append('file', file);
+      formData.append('formType', selectedFormType); // Add form type to the upload
 
       console.log('📤 Uploading file:', file.name);
       console.log('📋 Form data created with file:', file.name, 'size:', file.size, 'type:', file.type);
@@ -498,6 +627,42 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
         {/* Upload Section */}
         <div className="mb-8 bg-white rounded-lg shadow-md p-6">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">📤 Upload New Bulletin</h2>
+          
+          {/* Form Type Selection */}
+          <div className="mb-6">
+            <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">Select Bulletin Type</h3>
+            <div className="flex space-x-4">
+              <button
+                onClick={() => setSelectedFormType('form4')}
+                className={`flex-1 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  selectedFormType === 'form4'
+                    ? 'bg-green-600 text-white shadow-lg transform scale-105'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200'
+                }`}
+              >
+                <div className="flex items-center justify-center space-x-2">
+                  <span>📋</span>
+                  <span>Form 4 Bulletin</span>
+                </div>
+                <div className="text-xs mt-1 opacity-75">4th Year Students</div>
+              </button>
+              <button
+                onClick={() => setSelectedFormType('form6')}
+                className={`flex-1 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  selectedFormType === 'form6'
+                    ? 'bg-blue-600 text-white shadow-lg transform scale-105'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200'
+                }`}
+              >
+                <div className="flex items-center justify-center space-x-2">
+                  <span>📄</span>
+                  <span>Form 6 Bulletin</span>
+                </div>
+                <div className="text-xs mt-1 opacity-75">Final Year Students</div>
+              </button>
+            </div>
+          </div>
+          
           <div 
             className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
               isUploading 
@@ -646,15 +811,53 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                         </p>
                       </div>
                       <div className="flex flex-col items-end space-y-2">
+                        {/* Form Type Badge */}
+                        <span className={`
+                          px-2 py-1 rounded-full text-xs font-medium
+                          ${(bulletin.metadata.formType || 'form6') === 'form4' 
+                            ? 'bg-green-100 text-green-800' 
+                            : 'bg-blue-100 text-blue-800'
+                          }
+                        `}>
+                          {(bulletin.metadata.formType || 'form6') === 'form4' ? 'Form 4' : 'Form 6'}
+                        </span>
                         <span className={`
                           px-2 py-1 rounded-full text-xs font-medium
                           ${bulletin.editedData
                             ? 'bg-orange-100 text-orange-800'
-                            : 'bg-green-100 text-green-800'
+                            : 'bg-gray-100 text-gray-800'
                           }
                         `}>
                           {bulletin.editedData ? 'Edited' : 'Original'}
                         </span>
+                        
+                        {/* Delete Button */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation(); // Prevent card selection when clicking delete
+                            handleDeleteBulletin(
+                              bulletin.id, 
+                              displayData?.studentName || bulletin.metadata.studentName || 'Unknown Student'
+                            );
+                          }}
+                          className="group flex items-center justify-center w-7 h-7 rounded-full bg-red-50 hover:bg-red-100 border border-red-200 hover:border-red-300 transition-all duration-200"
+                          title="Delete bulletin"
+                        >
+                          <svg 
+                            className="w-4 h-4 text-red-500 group-hover:text-red-600" 
+                            fill="none" 
+                            stroke="currentColor" 
+                            viewBox="0 0 24 24"
+                          >
+                            <path 
+                              strokeLinecap="round" 
+                              strokeLinejoin="round" 
+                              strokeWidth={2} 
+                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" 
+                            />
+                          </svg>
+                        </button>
+                        
                         {selectedBulletin?.id === bulletin.id && (
                           <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                         )}
@@ -672,9 +875,19 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
           <div className="bg-white rounded-lg shadow-md p-6">
             <div className="flex justify-between items-center mb-6">
               <div>
-                <h2 className="text-2xl font-bold text-gray-900">
-                  📄 {getBulletinDisplayData(selectedBulletin)?.studentName || 'Student Report Card'}
-                </h2>
+                <div className="flex items-center space-x-3">
+                  <h2 className="text-2xl font-bold text-gray-900">
+                    📄 {getBulletinDisplayData(selectedBulletin)?.studentName || 'Student Report Card'}
+                  </h2>
+                  {/* Form Type Badge */}
+                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                    (selectedBulletin.metadata.formType || 'form6') === 'form4' 
+                      ? 'bg-green-100 text-green-800' 
+                      : 'bg-blue-100 text-blue-800'
+                  }`}>
+                    {(selectedBulletin.metadata.formType || 'form6') === 'form4' ? 'Form 4' : 'Form 6'}
+                  </span>
+                </div>
                 <p className="text-gray-600 mt-1">
                   {getBulletinDisplayData(selectedBulletin)?.class} • {getBulletinDisplayData(selectedBulletin)?.school}
                 </p>
@@ -709,6 +922,19 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                   onSuccess={handlePDFSuccess}
                   onError={handlePDFError}
                 />
+                <button
+                  onClick={() => handleDeleteBulletin(
+                    selectedBulletin.id,
+                    getBulletinDisplayData(selectedBulletin)?.studentName || 'Student'
+                  )}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center space-x-2"
+                  title="Delete this bulletin"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                  <span>Delete</span>
+                </button>
               </div>
             </div>
 
@@ -751,11 +977,20 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                 </div>
               </div>
               <div className="p-4 bg-gray-50">
-                <Form6Template 
-                  data={transformDataForTemplate(getBulletinDisplayData(selectedBulletin))} 
-                  isEditable={isEditing}
-                  onDataChange={handleFieldUpdate}
-                />
+                {/* Conditional template rendering based on form type */}
+                {(selectedBulletin.metadata.formType || 'form6') === 'form4' ? (
+                  <Form4Template 
+                    data={transformDataForTemplate(getBulletinDisplayData(selectedBulletin))} 
+                    isEditable={isEditing}
+                    onDataChange={handleFieldUpdate}
+                  />
+                ) : (
+                  <Form6Template 
+                    data={transformDataForTemplate(getBulletinDisplayData(selectedBulletin))} 
+                    isEditable={isEditing}
+                    onDataChange={handleFieldUpdate}
+                  />
+                )}
                 {isEditing && (
                   <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
                     <p className="text-sm text-green-800">

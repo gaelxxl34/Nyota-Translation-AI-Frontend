@@ -1,12 +1,16 @@
 // Card-Only Page Component
-// Displays only the Form 6 bulletin template for PDF generation via Puppeteer
+// Displays the correct bulletin template (Form 4 or Form 6) for PDF generation via Puppeteer
 
 import React, { useEffect, useState } from 'react';
+import Form4Template from './Form4Template';
 import Form6Template from './Form6Template';
 import { sampleBulletinData } from '../utils/sampleData';
 
 // Use the same interface as Form6Template expects
 interface BulletinData {
+  // Form type selection
+  formType?: 'form4' | 'form6';
+  
   // Student Information
   province?: string;
   city?: string;
@@ -112,7 +116,12 @@ const CardOnlyPage: React.FC = () => {
         if (!hasMinimumData) {
           setStudentData(sampleBulletinData);
         } else {
-          setStudentData(normalizedData as BulletinData);
+          // Ensure formType is present with backward compatibility
+          const dataWithFormType = {
+            ...normalizedData,
+            formType: normalizedData.formType || 'form6' // Default to form6 for backward compatibility
+          } as BulletinData;
+          setStudentData(dataWithFormType);
         }
         setIsLoading(false);
         return true;
@@ -236,10 +245,28 @@ const CardOnlyPage: React.FC = () => {
     <div className="min-h-screen bg-white">
       {/* Container for the bulletin - this will be isolated by Puppeteer */}
       <div className="bulletin-container w-full min-h-screen flex items-center justify-center p-4">
-        <Form6Template 
-          data={studentData}
-          className="shadow-none border-none"
-        />
+        {(() => {
+          const formType = studentData.formType || 'form6';
+          console.log(`🎯 CardOnlyPage: Rendering template for formType: ${formType}`);
+          
+          if (formType === 'form4') {
+            console.log('📄 Using Form4Template');
+            return (
+              <Form4Template 
+                data={studentData}
+                className="shadow-none border-none"
+              />
+            );
+          } else {
+            console.log('📄 Using Form6Template (default)');
+            return (
+              <Form6Template 
+                data={studentData}
+                className="shadow-none border-none"
+              />
+            );
+          }
+        })()}
       </div>
     </div>
   );

@@ -61,7 +61,7 @@ const AppContent: React.FC = () => {
     // Allow authenticated users to access specific pages
     switch (currentPage) {
       case 'bulletin-template':
-        return <BulletinTemplatePage />;
+        return <BulletinTemplatePage onNavigate={setCurrentPage} />;
       case 'card-only':
         return <CardOnlyPage />;
       case 'dashboard':
@@ -80,7 +80,7 @@ const AppContent: React.FC = () => {
       case 'register':
         return <RegisterPage onNavigate={setCurrentPage} />;
       case 'bulletin-template':
-        return <BulletinTemplatePage />;
+        return <BulletinTemplatePage onNavigate={setCurrentPage} />;
       case 'card-only':
         return <CardOnlyPage />;
       case 'landing':

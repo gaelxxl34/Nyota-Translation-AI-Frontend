@@ -2,6 +2,7 @@
 // This file provides realistic sample data that matches our template structure
 
 export const sampleBulletinData = {
+  formType: "form6" as const, // Default to Form 6 for backward compatibility
   province: "KINSHASA",
   city: "KINSHASA",
   municipality: "GOMBE",
@@ -326,6 +327,7 @@ export const sampleBulletinData = {
   shouldRepeat: "",
   issueLocation: "KINSHASA",
   issueDate: "15/07/2024",
+  secondSittingDate: "10/09/2024",
   centerCode: "54321",
   verifierName: "MUTOMBO KABONGO Pierre",
   endorsementDate: "20/07/2024",

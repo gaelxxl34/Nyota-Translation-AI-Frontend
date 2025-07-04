@@ -1,6 +1,6 @@
-// Form6Template.tsx - A4 Report Card Template for Form 6 (6th Year) - NTC
+// Form4Template.tsx - A4 Report Card Template for Form 4 (4th Year) - NTC
 // Converts French school bulletins to English format with proper A4 sizing
-// Specifically designed for 6th Year Humanities Math-Physics class structure
+// Specifically designed for 4th Year Humanities Math-Physics class structure
 
 import React, { useMemo } from 'react';
 
@@ -26,7 +26,7 @@ interface SubjectGrade {
   };
   overallTotal: number | string;
   maxima?: Maxima; // Maxima for this subject
-  nationalExam?: {
+  secondSitting?: {
     marks: number | string;
     max: number | string;
   };
@@ -83,6 +83,8 @@ interface BulletinData {
       exam2?: string;
       total2?: string;
       overall?: string;
+      secondSittingMarks?: string;
+      secondSittingMax?: string;
     };
     aggregates?: {
       period1?: string;
@@ -94,6 +96,8 @@ interface BulletinData {
       exam2?: string;
       total2?: string;
       overall?: string;
+      secondSittingMarks?: string;
+      secondSittingMax?: string;
     };
     percentage?: {
       period1?: string;
@@ -139,19 +143,20 @@ interface BulletinData {
   shouldRepeat?: string;
   issueLocation?: string;
   issueDate?: string;
+  secondSittingDate?: string;
   centerCode?: string;
   verifierName?: string;
   endorsementDate?: string;
 }
 
-interface Form6TemplateProps {
+interface Form4TemplateProps {
   data?: BulletinData;
   className?: string;
   isEditable?: boolean;
   onDataChange?: (updatedData: BulletinData) => void;
 }
 
-const Form6Template: React.FC<Form6TemplateProps> = ({ 
+const Form4Template: React.FC<Form4TemplateProps> = ({ 
   data = {}, 
   className = '',
   isEditable = false,
@@ -336,7 +341,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
       return;
     }
     
-    console.log(`📝 Updating summary field: ${section}.${field} = "${value}"`);
+    console.log(`📝 Form4: Updating summary field: ${section}.${field} = "${value}"`);
     
     const newSummaryValues = { ...data.summaryValues };
     if (!newSummaryValues[section as keyof typeof newSummaryValues]) {
@@ -347,8 +352,8 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
     
     const updatedData = { ...data, summaryValues: newSummaryValues };
     
-    console.log(`📊 Updated summary values:`, newSummaryValues);
-    console.log(`📊 Full updated data structure includes summaryValues:`, !!updatedData.summaryValues);
+    console.log(`📊 Form4: Updated summary values:`, newSummaryValues);
+    console.log(`📊 Form4: Full updated data structure includes summaryValues:`, !!updatedData.summaryValues);
     
     onDataChange(updatedData);
   };
@@ -360,7 +365,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
     firstSemester: { period1: '', period2: '', exam: '', total: '' },
     secondSemester: { period3: '', period4: '', exam: '', total: '' },
     overallTotal: '',
-    nationalExam: { marks: '', max: '' }
+    secondSitting: { marks: '', max: '' }
   }));
 
   // Safe grade rendering function to handle both strings and numbers
@@ -504,14 +509,18 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
             if (prevInput) prevInput.focus();
           } else if (e.key.length === 1 && i < count - 1) {
             // Auto-focus next input when typing
-            setTimeout(() => {
-              const nextInput = e.currentTarget.nextElementSibling as HTMLInputElement;
-              if (nextInput) nextInput.focus();
-            }, 0);
+            const nextInput = e.currentTarget.nextElementSibling as HTMLInputElement;
+            if (nextInput) nextInput.focus();
           }
         }}
       />
     ));
+  };
+
+  // Update field function
+  const updateField = (field: string, value: string) => {
+    if (!onDataChange) return;
+    onDataChange({ ...data, [field]: value });
   };
 
   return (
@@ -756,7 +765,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
         {/* Report Card Header */}
         <div className="px-1 py-0.5 border-t border-black">
           <p className="text-xs font-semibold uppercase text-center">
-            REPORT CARD - {data.class || '6TH YEAR HUMANITIES MATH – PHYSICS'} | SCHOOL YEAR: <EditableField 
+            REPORT CARD - {data.class || '4TH YEAR HUMANITIES MATH – PHYSICS'} | SCHOOL YEAR: <EditableField 
               value={data.academicYear || ''} 
               isEditable={isEditable}
               placeholder="Enter academic year"
@@ -789,8 +798,8 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                   OVERALL TOTAL
                 </th>
                 <th rowSpan={3} className="border border-black px-0.5 py-0.5 bg-black w-1">&nbsp;</th>
-                <th rowSpan={2} colSpan={3} className="border border-black px-0.5 py-0.5 uppercase text-xs w-16 bg-white">
-                  NATIONAL EXAM
+                <th rowSpan={2} colSpan={2} className="border border-black px-0.5 py-0.5 uppercase text-xs w-14 bg-white">
+                  SECOND SITTING
                 </th>
               </tr>
               {/* Criteria Headers */}
@@ -820,18 +829,14 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                 <th className="border border-black px-0.5 py-0.5 text-xs bg-white">2<sup>nd</sup> P.</th>
                 <th className="border border-black px-0.5 py-0.5 text-xs bg-white">3<sup>rd</sup> P.</th>
                 <th className="border border-black px-0.5 py-0.5 text-xs bg-white">4<sup>th</sup> P.</th>
-                <th className="border border-black px-0.5 py-0.5 text-xs bg-white"></th>
-                <th className="border border-black px-0.5 py-0.5 text-[8px] bg-white">MARKS</th>
-                <th className="border border-black px-0.5 py-0.5 text-[8px] bg-white">MAX</th>
+                <th className="border border-black px-0.5 py-0.5 text-[8px] bg-white">%</th>
+                <th className="border border-black px-0.5 py-0.5 text-[8px] bg-white">SIGN. PROF</th>
               </tr>
             </thead>
             <tbody>
               {(() => {
                 let rowIndex = 0;
                 let isFirstMaxima = true;
-                let isSecondMaxima = false;
-                let hasStartedVerificationSection = false;
-                
                 const totalRows = subjectGroups.reduce((sum, group) => sum + group.subjects.length + 1, 0) + 6; // +1 for MAXIMA row per group, +6 for summary rows
                 
                 return subjectGroups.map((group, groupIndex) => {
@@ -855,95 +860,8 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                           <td rowSpan={totalRows} className="border-l border-r border-t border-b border-black px-1 py-1 bg-black w-1">
                             &nbsp;
                           </td>
-                          <td className="border border-black px-1 py-1 text-[8px] text-center bg-white">Total</td>
-                          <td className="border border-black px-1 py-1 text-xs bg-white"></td>
+                          <td className="border border-black px-1 py-1 text-[8px] text-center bg-white">&nbsp;</td>
                           <td className="border border-black px-1 py-1 text-xs bg-white">&nbsp;</td>
-                        </>
-                      )}
-                      {isSecondMaxima && !hasStartedVerificationSection && (
-                        <>
-                          <td colSpan={3} rowSpan={totalRows - rowIndex} className="px-2 py-2 text-xs align-top">
-                            <div className="space-y-2">
-                              <div className="font-bold text-xs">Verified</div>
-                              <div>Date: <EditableField 
-                                value={data.issueDate || ''} 
-                                isEditable={isEditable}
-                                placeholder="Enter issue date"
-                                field="issueDate"
-                                className="inline-block min-w-[80px]"
-                                onChange={(value) => {
-                                  if (onDataChange) {
-                                    onDataChange({ ...data, issueDate: value });
-                                  }
-                                }}
-                              /></div>
-                              
-                              <div className="pt-1">By the Head of Center</div>
-                              <div><EditableField 
-                                value={data.verifierName || ''} 
-                                isEditable={isEditable}
-                                placeholder="Enter verifier name"
-                                field="verifierName"
-                                className="inline-block min-w-[100px]"
-                                onChange={(value) => {
-                                  if (onDataChange) {
-                                    onDataChange({ ...data, verifierName: value });
-                                  }
-                                }}
-                              /></div>
-                              <div className="font-bold">(signed)</div>
-                              
-                              <div className="pt-2">
-                                <div className="font-bold">CENTER CODE:</div>
-                                <div className="flex justify-start mt-1">
-                                  {renderEditableCodeBoxes(
-                                    data.centerCode || '', 
-                                    5, 
-                                    isEditable, 
-                                    (value) => {
-                                      if (onDataChange) {
-                                        onDataChange({ ...data, centerCode: value });
-                                      }
-                                    }
-                                  )}
-                                </div>
-                              </div>
-                              
-                              <div className="pt-2">
-                                <div className="font-bold">FINAL RESULTS</div>
-                                <div className="mt-0.5">Passed (1)</div>
-                                <div>With <EditableField 
-                                  value={data.finalResultPercentage || ''} 
-                                  isEditable={isEditable}
-                                  placeholder="Enter percentage"
-                                  field="finalResultPercentage"
-                                  className="inline-block min-w-[16px]"
-                                  onChange={(value) => {
-                                    if (onDataChange) {
-                                      onDataChange({ ...data, finalResultPercentage: value });
-                                    }
-                                  }}
-                                /> %</div>
-                              </div>
-                              
-                              <div className="pt-2">
-                                <div>Endorsed by Head Teacher</div>
-                                <div>On <EditableField 
-                                  value={data.endorsementDate || ''} 
-                                  isEditable={isEditable}
-                                  placeholder="Enter endorsement date"
-                                  field="endorsementDate"
-                                  className="inline-block min-w-[80px]"
-                                  onChange={(value) => {
-                                    if (onDataChange) {
-                                      onDataChange({ ...data, endorsementDate: value });
-                                    }
-                                  }}
-                                /></div>
-                                <div className="mt-0.5 text-[10px]">School Stamp and Signature</div>
-                              </div>
-                            </div>
-                          </td>
                         </>
                       )}
                     </tr>
@@ -952,10 +870,6 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                   rowIndex++;
                   if (isFirstMaxima) { 
                     isFirstMaxima = false; 
-                    isSecondMaxima = true; 
-                  } else if (isSecondMaxima) { 
-                    isSecondMaxima = false; 
-                    hasStartedVerificationSection = true; 
                   }
                   
                   // Subject rows for this group
@@ -1066,13 +980,26 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                             isTableCell={true}
                           />
                         </td>
-                        {rowIndex === 1 && (
-                          <>
-                            <td className="border border-black px-0.5 py-0.5 text-[8px] text-center">%</td>
-                            <td className="border border-black px-0.5 py-0.5 text-xs">&nbsp;</td>
-                            <td className="border border-black px-0.5 py-0.5 text-xs">&nbsp;</td>
-                          </>
-                        )}
+                        <td className="border border-black px-0.5 py-0.5 text-xs text-center bg-white">
+                          <EditableField 
+                            value={subject.secondSitting?.marks || ''}
+                            onChange={(value) => updateSubjectField(originalSubjectIndex, 'secondSitting.marks', value)}
+                            isEditable={isEditable}
+                            placeholder=""
+                            field={`subject-${originalSubjectIndex}-secondSitting-marks`}
+                            isTableCell={true}
+                          />
+                        </td>
+                        <td className="border border-black px-0.5 py-0.5 text-xs text-center bg-white">
+                          <EditableField 
+                            value={subject.secondSitting?.max || ''}
+                            onChange={(value) => updateSubjectField(originalSubjectIndex, 'secondSitting.max', value)}
+                            isEditable={isEditable}
+                            placeholder=""
+                            field={`subject-${originalSubjectIndex}-secondSitting-max`}
+                            isTableCell={true}
+                          />
+                        </td>
                       </tr>
                     );
                     rowIndex++;
@@ -1172,6 +1099,26 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                     isEditable={isEditable}
                     placeholder="0"
                     field="aggregatesMaxima-overall"
+                    isTableCell={true}
+                  />
+                </td>
+                <td className="border border-black px-0.5 py-0.5 text-xs text-center">
+                  <EditableField 
+                    value={data.summaryValues?.aggregatesMaxima?.secondSittingMarks || ''}
+                    onChange={(value) => updateSummaryField('aggregatesMaxima', 'secondSittingMarks', value)}
+                    isEditable={isEditable}
+                    placeholder=""
+                    field="aggregatesMaxima-secondSittingMarks"
+                    isTableCell={true}
+                  />
+                </td>
+                <td className="border border-black px-0.5 py-0.5 text-xs text-center">
+                  <EditableField 
+                    value={data.summaryValues?.aggregatesMaxima?.secondSittingMax || ''}
+                    onChange={(value) => updateSummaryField('aggregatesMaxima', 'secondSittingMax', value)}
+                    isEditable={isEditable}
+                    placeholder=""
+                    field="aggregatesMaxima-secondSittingMax"
                     isTableCell={true}
                   />
                 </td>
@@ -1566,6 +1513,38 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
               </tr>
             </tbody>
           </table>
+          
+          {/* Second Sitting Text Block */}
+          <div className="relative">
+            <div className="absolute" style={{
+              right: '0px',
+              top: '-120px',
+              width: '100px',
+              textAlign: 'center'
+            }}>
+              <div className="text-[10px] leading-tight space-y-1 p-1">
+                <div>Passed (1)</div>
+                <div>Repeat (1)</div>
+                <div className="flex items-center">
+                  <span>Date:</span>
+                  <EditableField 
+                    value={data.secondSittingDate || ''} 
+                    isEditable={isEditable}
+                    placeholder=""
+                    field="secondSittingDate"
+                    className="text-[10px] min-w-0 flex-grow"
+                    onChange={(value) => {
+                      if (onDataChange) {
+                        onDataChange({ ...data, secondSittingDate: value });
+                      }
+                    }}
+                  />
+                </div>
+                <div>The Principal</div>
+                <div>Seal of School</div>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Footer with Totals & Signatures */}
@@ -1629,7 +1608,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
     </div>
   );
   } catch (error) {
-    console.error('🚨 Form6Template Error:', error);
+    console.error('🚨 Form4Template Error:', error);
     return (
       <div className="p-4 border border-red-300 bg-red-50 rounded-lg">
         <h3 className="text-red-800 font-semibold">Template Error</h3>
@@ -1643,4 +1622,4 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
   }
 };
 
-export default Form6Template;
+export default Form4Template;
