@@ -1,0 +1,776 @@
+// FIRESTORE-ONLY Dashboard Page
+// Displays user's bulletins from Firestore with real-time editing
+// No localStorage dependency - everything comes from and goes to Firestore
+
+import React, { useState, useEffect, useCallback } from 'react';
+import { collection, query, where, getDocs, getFirestore, doc, updateDoc } from 'firebase/firestore';
+import { useAuth } from '../AuthProvider';
+import Form6Template from './Form6Template';
+import FirestoreOnlyPDFDownloadButton from './FirestoreOnlyPDFDownloadButton';
+
+interface BulletinRecord {
+  id: string;
+  metadata: {
+    studentName: string;
+    fileName: string;
+    uploadedAt: any;
+    lastModified: any;
+    status: string;
+  };
+  editedData: any;
+  originalData: any;
+  userId: string;
+}
+
+const FirestoreOnlyDashboardPage: React.FC = () => {
+  const { currentUser } = useAuth();
+  const [bulletins, setBulletins] = useState<BulletinRecord[]>([]);
+  const [selectedBulletin, setSelectedBulletin] = useState<BulletinRecord | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadStage, setUploadStage] = useState<string>('');
+  const db = getFirestore();
+
+  // Load user's bulletins from Firestore ONLY
+  const loadUserBulletins = useCallback(async () => {
+    if (!currentUser) return;
+
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      console.log('📥 Loading bulletins from Firestore for user:', currentUser.uid);
+      console.log('🔥 Firestore instance:', db);
+      console.log('🔍 Query details: collection=bulletins, where=userId==', currentUser.uid);
+
+      // Simple query without orderBy to avoid composite index requirement
+      const bulletinsQuery = query(
+        collection(db, 'bulletins'),
+        where('userId', '==', currentUser.uid)
+      );
+
+      const querySnapshot = await getDocs(bulletinsQuery);
+      console.log('📊 Query result:', querySnapshot);
+      console.log('📊 Number of documents:', querySnapshot.size);
+      console.log('📊 Query empty:', querySnapshot.empty);
+
+      const bulletinsList: BulletinRecord[] = [];
+
+      if (querySnapshot.empty) {
+        console.log('📭 No bulletins found for user');
+      } else {
+        console.log('📄 Processing bulletins...');
+      }
+
+      querySnapshot.forEach((doc) => {
+        console.log('📄 Processing document:', doc.id, doc.data());
+        const data = doc.data();
+        bulletinsList.push({
+          id: doc.id,
+          metadata: data.metadata,
+          editedData: data.editedData,
+          originalData: data.originalData,
+          userId: data.userId,
+        });
+      });
+
+      // Sort bulletins by upload date (newest first) on client side
+      bulletinsList.sort((a, b) => {
+        const aDate = a.metadata?.uploadedAt?.toDate?.() || new Date(0);
+        const bDate = b.metadata?.uploadedAt?.toDate?.() || new Date(0);
+        return bDate.getTime() - aDate.getTime();
+      });
+
+      setBulletins(bulletinsList);
+      console.log('✅ Loaded bulletins from Firestore:', bulletinsList.length);
+      console.log('📊 Bulletins data:', bulletinsList);
+    } catch (err) {
+      console.error('❌ Failed to load bulletins:', err);
+      setError('Failed to load your bulletins. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [currentUser, db]);
+
+  // Load bulletins when user is available
+  useEffect(() => {
+    loadUserBulletins();
+  }, [loadUserBulletins]);
+
+  // Handle bulletin selection for viewing
+  const handleSelectBulletin = (bulletin: BulletinRecord) => {
+    setSelectedBulletin(bulletin);
+    setIsEditing(false);
+  };
+
+  // Handle editing mode
+  const handleStartEditing = (bulletin: BulletinRecord) => {
+    setSelectedBulletin(bulletin);
+    setIsEditing(true);
+  };
+
+  // Handle automatic field updates to Firestore
+  const handleFieldUpdate = async (updatedData: any) => {
+    if (!selectedBulletin) return;
+
+    try {
+      console.log('💾 Auto-saving field update to Firestore:', updatedData);
+      
+      // Update the bulletin document in Firestore
+      const bulletinRef = doc(db, 'bulletins', selectedBulletin.id);
+      
+      await updateDoc(bulletinRef, {
+        editedData: updatedData,
+        'metadata.lastModified': new Date(),
+        'metadata.lastModifiedAt': new Date().toISOString()
+      });
+
+      // Update local state to reflect the change
+      setSelectedBulletin(prev => prev ? {
+        ...prev,
+        editedData: updatedData,
+        metadata: {
+          ...prev.metadata,
+          lastModified: new Date()
+        }
+      } : null);
+
+      // Update the bulletins list to reflect the change
+      setBulletins(prev => prev.map(bulletin => 
+        bulletin.id === selectedBulletin.id 
+          ? {
+              ...bulletin,
+              editedData: updatedData,
+              metadata: {
+                ...bulletin.metadata,
+                lastModified: new Date()
+              }
+            }
+          : bulletin
+      ));
+
+      console.log('✅ Field auto-saved successfully');
+    } catch (error) {
+      console.error('❌ Auto-save error:', error);
+      setError(`Failed to save changes: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  };
+
+  // Handle PDF download success
+  const handlePDFSuccess = () => {
+    console.log('✅ PDF downloaded successfully');
+  };
+
+  // Handle PDF download error
+  const handlePDFError = (error: string) => {
+    console.error('❌ PDF error:', error);
+    setError(`Failed to generate PDF: ${error}`);
+  };
+
+  // Get display data for bulletin (edited data if available, otherwise original)
+  const getBulletinDisplayData = (bulletin: BulletinRecord) => {
+    return bulletin.editedData || bulletin.originalData;
+  };
+
+  // Transform Firestore data to Form6Template format
+  const transformDataForTemplate = (data: any) => {
+    if (!data) return {};
+
+    console.log('🔄 Transforming data for template:', data);
+
+    // Transform subjects to match Form6Template format
+    const transformedSubjects = data.subjects?.map((subject: any) => {
+      // Handle different possible data structures
+      const firstSemester = subject.firstSemester || subject.gradesSemester1 || {};
+      const secondSemester = subject.secondSemester || subject.gradesSemester2 || {};
+      
+      // Map individual grade fields to template format
+      const templateSubject = {
+        subject: subject.subject || subject.subjectName || 'Unknown Subject',
+        firstSemester: {
+          period1: firstSemester.period1 || firstSemester.journal1 || '',
+          period2: firstSemester.period2 || firstSemester.journal2 || '',
+          exam: firstSemester.exam || '',
+          total: firstSemester.total || ''
+        },
+        secondSemester: {
+          period3: secondSemester.period3 || secondSemester.journal1 || '',
+          period4: secondSemester.period4 || secondSemester.journal2 || '',
+          exam: secondSemester.exam || '',
+          total: secondSemester.total || ''
+        },
+        overallTotal: subject.overallTotal || subject.total || '',
+        maxima: subject.maxima || {
+          periodMaxima: 20,
+          examMaxima: 40,
+          totalMaxima: 80
+        },
+        nationalExam: subject.nationalExam || {
+          marks: '',
+          max: ''
+        }
+      };
+
+      console.log('📚 Transformed subject:', templateSubject);
+      return templateSubject;
+    }) || [];
+
+    const transformedData = {
+      // Basic info
+      province: data.province || '',
+      city: data.city || '',
+      municipality: data.municipality || '',
+      school: data.school || '',
+      schoolCode: data.schoolCode || '',
+      studentName: data.studentName || '',
+      gender: data.gender || '',
+      birthPlace: data.birthPlace || '',
+      birthDate: data.birthDate || '',
+      class: data.class || '',
+      permanentNumber: data.permanentNumber || '',
+      idNumber: data.idNumber || '',
+      academicYear: data.academicYear || '',
+      
+      // Subjects
+      subjects: transformedSubjects,
+      
+      // Totals
+      totalMarksOutOf: data.totalMarksOutOf || {},
+      totalMarksObtained: data.totalMarksObtained || {},
+      percentage: data.percentage || {},
+      position: data.position || '',
+      totalStudents: data.totalStudents || '',
+      
+      // Assessment
+      application: data.application || '',
+      behaviour: data.behaviour || '',
+      
+      // Final results
+      finalResultPercentage: data.finalResultPercentage || '',
+      isPromoted: data.isPromoted || false,
+      shouldRepeat: data.shouldRepeat || '',
+      issueLocation: data.issueLocation || '',
+      issueDate: data.issueDate || '',
+      centerCode: data.centerCode || '',
+      verifierName: data.verifierName || '',
+      endorsementDate: data.endorsementDate || ''
+    };
+
+    console.log('✅ Final transformed data:', transformedData);
+    return transformedData;
+  };
+
+  // Handle file upload
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp', 'application/pdf'];
+    if (!allowedTypes.includes(file.type)) {
+      setError('Please select a valid file type (PNG, JPG, JPEG, GIF, WEBP, PDF)');
+      return;
+    }
+
+    // Validate file size (max 10MB)
+    const maxSize = 10 * 1024 * 1024;
+    if (file.size > maxSize) {
+      setError('File size must be less than 10MB');
+      return;
+    }
+
+    try {
+      setIsUploading(true);
+      setError(null);
+      setUploadProgress(0);
+
+      // Get Firebase ID token
+      const idToken = await currentUser?.getIdToken();
+      if (!idToken) {
+        throw new Error('Authentication required');
+      }
+
+      // Create form data
+      const formData = new FormData();
+      formData.append('file', file);
+
+      console.log('📤 Uploading file:', file.name);
+      console.log('📋 Form data created with file:', file.name, 'size:', file.size, 'type:', file.type);
+      console.log('🔐 Using auth token length:', idToken.length);
+
+      // Simulate upload progress stages
+      const updateProgress = (stage: string, progress: number) => {
+        console.log(`📊 ${stage}: ${progress}%`);
+        setUploadProgress(progress);
+        setUploadStage(stage);
+      };
+
+      // Stage 1: Preparing upload (0-10%)
+      updateProgress('Preparing upload', 10);
+      await new Promise(resolve => setTimeout(resolve, 200));
+
+      // Stage 2: Uploading file (10-30%)
+      updateProgress('Uploading file', 30);
+      
+      // Upload to backend with timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minute timeout for processing
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${idToken}`,
+        },
+        body: formData,
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      // Stage 3: Processing response (30-50%)
+      updateProgress('Processing response', 50);
+
+      // Stage 3: Processing response (30-50%)
+      updateProgress('Processing response', 50);
+
+      console.log('📡 Response received:', response.status, response.statusText);
+      console.log('📡 Response headers:', Object.fromEntries(response.headers.entries()));
+
+      if (!response.ok) {
+        let errorMessage = 'Upload failed';
+        let responseText = '';
+        
+        try {
+          responseText = await response.text();
+          const errorData = JSON.parse(responseText);
+          errorMessage = errorData.error || errorMessage;
+          console.error('❌ Error response data:', errorData);
+        } catch (jsonError) {
+          // If response is not valid JSON, use status text
+          errorMessage = `Upload failed: ${response.status} ${response.statusText}`;
+          console.warn('Response is not valid JSON:', jsonError);
+          console.warn('Raw response text:', responseText);
+        }
+        throw new Error(errorMessage);
+      }
+
+      // Stage 4: Extracting data (50-70%)
+      updateProgress('Extracting text with AI', 70);
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      let result;
+      try {
+        const responseText = await response.text();
+        result = JSON.parse(responseText);
+        console.log('✅ Response JSON parsed successfully:', result);
+      } catch (jsonError) {
+        console.error('❌ Failed to parse JSON response:', jsonError);
+        throw new Error('Server returned invalid JSON response');
+      }
+
+      // Stage 5: Translating data (70-90%)
+      updateProgress('Translating to English', 90);
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      console.log('✅ Upload successful:', result);
+
+      // Stage 6: Saving to database (90-100%)
+      updateProgress('Saving to database', 100);
+      await new Promise(resolve => setTimeout(resolve, 300));
+
+      // Reset form
+      event.target.value = '';
+
+      // Refresh bulletins list
+      await loadUserBulletins();
+
+      // Show success message briefly
+      setTimeout(() => {
+        setUploadProgress(0);
+        setUploadStage('');
+      }, 2000);
+
+    } catch (error) {
+      console.error('❌ Upload error:', error);
+      
+      if (error instanceof Error && error.name === 'AbortError') {
+        setError('Upload timed out. Please try again with a smaller file.');
+      } else {
+        setError(error instanceof Error ? error.message : 'Upload failed');
+      }
+    } finally {
+      setIsUploading(false);
+      setUploadStage('');
+    }
+  };
+
+  // Handle drag and drop
+  const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+  };
+
+  const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    const files = event.dataTransfer.files;
+    if (files.length > 0) {
+      const file = files[0];
+      // Create a fake event to reuse the upload handler
+      const fakeEvent = {
+        target: {
+          files: [file],
+          value: ''
+        }
+      } as unknown as React.ChangeEvent<HTMLInputElement>;
+      handleFileUpload(fakeEvent);
+    }
+  };
+
+  if (!currentUser) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Please log in to view your bulletins</h2>
+          <p className="text-gray-600">You need to be authenticated to access your bulletins stored in Firestore.</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Navigation Header */}
+      <nav className="bg-white shadow-sm border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-4">
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-sm">N</span>
+              </div>
+              <h1 className="text-xl font-bold text-gray-900">Nyota Translation Center</h1>
+            </div>
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={() => window.location.href = '/backend-test'}
+                className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+              >
+                Backend Test
+              </button>
+              <button
+                onClick={() => window.location.href = '/bulletin-template'}
+                className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+              >
+                Template
+              </button>
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-gray-600">{currentUser.email}</span>
+                <button
+                  onClick={() => {
+                    import('../firebase').then(({ auth }) => {
+                      import('firebase/auth').then(({ signOut }) => {
+                        signOut(auth);
+                      });
+                    });
+                  }}
+                  className="px-3 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700"
+                >
+                  Sign Out
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">My Bulletins</h1>
+          <p className="text-gray-600 mt-2">
+            Upload French school bulletins, view and edit extracted data, then download English report cards.
+          </p>
+        </div>
+
+        {/* Upload Section */}
+        <div className="mb-8 bg-white rounded-lg shadow-md p-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">📤 Upload New Bulletin</h2>
+          <div 
+            className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+              isUploading 
+                ? 'border-blue-500 bg-blue-50' 
+                : 'border-gray-300 hover:border-blue-500'
+            }`}
+            onDragOver={handleDragOver}
+            onDrop={handleDrop}
+          >
+            {isUploading ? (
+              <div className="space-y-4">
+                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                </div>
+                <h3 className="text-lg font-medium text-gray-900">
+                  Processing Your Bulletin
+                </h3>
+                <p className="text-gray-600">
+                  {uploadStage || 'Preparing upload...'}
+                </p>
+                <div className="w-full max-w-md mx-auto">
+                  <div className="w-full bg-gray-200 rounded-full h-3">
+                    <div 
+                      className="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full transition-all duration-500 ease-out"
+                      style={{ width: `${uploadProgress}%` }}
+                    ></div>
+                  </div>
+                  <p className="text-sm text-gray-500 mt-2">
+                    {uploadProgress}% Complete
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  Drop your bulletin here
+                </h3>
+                <p className="text-gray-600 mb-4">
+                  Or click to browse and select a file
+                </p>
+                <input
+                  type="file"
+                  accept=".pdf,.png,.jpg,.jpeg,.gif,.webp"
+                  className="hidden"
+                  id="file-upload"
+                  onChange={handleFileUpload}
+                  disabled={isUploading}
+                />
+                <label
+                  htmlFor="file-upload"
+                  className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 cursor-pointer"
+                >
+                  Select File
+                </label>
+                <p className="text-sm text-gray-500 mt-2">
+                  Supports PDF, PNG, JPG, JPEG, GIF, WEBP (max 10MB)
+                </p>
+              </>
+            )}
+          </div>
+        </div>
+
+        {error && (
+          <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 15.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-red-800">Error</h3>
+                <p className="text-sm text-red-700 mt-1">{error}</p>
+              </div>
+              <div className="ml-auto">
+                <button
+                  onClick={() => setError(null)}
+                  className="text-red-400 hover:text-red-500"
+                >
+                  <span className="sr-only">Close</span>
+                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Bulletins List */}
+        <div className="mb-8 bg-white rounded-lg shadow-md p-6">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-semibold text-gray-900">📚 Your Bulletins</h2>
+            <span className="text-sm text-gray-500">
+              {bulletins.length} bulletin{bulletins.length !== 1 ? 's' : ''}
+            </span>
+          </div>
+          
+          {isLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              <span className="ml-2 text-gray-600">Loading from Firestore...</span>
+            </div>
+          ) : bulletins.length === 0 ? (
+            <div className="text-center py-12">
+              <svg className="mx-auto h-16 w-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <h3 className="mt-4 text-lg font-medium text-gray-900">No bulletins yet</h3>
+              <p className="mt-2 text-gray-500">Upload your first French school bulletin to get started.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {bulletins.map((bulletin) => {
+                const displayData = getBulletinDisplayData(bulletin);
+                return (
+                  <div
+                    key={bulletin.id}
+                    className={`
+                      border rounded-lg p-4 cursor-pointer transition-all duration-200 hover:shadow-md
+                      ${selectedBulletin?.id === bulletin.id
+                        ? 'border-blue-500 bg-blue-50 shadow-md'
+                        : 'border-gray-200 hover:border-gray-300'
+                      }
+                    `}
+                    onClick={() => handleSelectBulletin(bulletin)}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-gray-900 text-lg">
+                          {displayData?.studentName || bulletin.metadata.studentName || 'Unknown Student'}
+                        </h3>
+                        <p className="text-sm text-gray-600 mt-1">
+                          {displayData?.class || 'Unknown Class'} • {displayData?.school || 'Unknown School'}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-2">
+                          {bulletin.metadata.fileName || 'No filename'}
+                        </p>
+                        <p className="text-xs text-gray-400 mt-1">
+                          {bulletin.metadata.uploadedAt?.toDate?.()?.toLocaleDateString() || 'Unknown date'}
+                        </p>
+                      </div>
+                      <div className="flex flex-col items-end space-y-2">
+                        <span className={`
+                          px-2 py-1 rounded-full text-xs font-medium
+                          ${bulletin.editedData
+                            ? 'bg-orange-100 text-orange-800'
+                            : 'bg-green-100 text-green-800'
+                          }
+                        `}>
+                          {bulletin.editedData ? 'Edited' : 'Original'}
+                        </span>
+                        {selectedBulletin?.id === bulletin.id && (
+                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Selected Bulletin Display */}
+        {selectedBulletin && (
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">
+                  📄 {getBulletinDisplayData(selectedBulletin)?.studentName || 'Student Report Card'}
+                </h2>
+                <p className="text-gray-600 mt-1">
+                  {getBulletinDisplayData(selectedBulletin)?.class} • {getBulletinDisplayData(selectedBulletin)?.school}
+                </p>
+              </div>
+              <div className="flex items-center space-x-3">
+                {!isEditing && (
+                  <button
+                    onClick={() => handleStartEditing(selectedBulletin)}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center space-x-2"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                    <span>Edit</span>
+                  </button>
+                )}
+                {isEditing && (
+                  <button
+                    onClick={() => setIsEditing(false)}
+                    className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 flex items-center space-x-2"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                    <span>View</span>
+                  </button>
+                )}
+                <FirestoreOnlyPDFDownloadButton
+                  firestoreId={selectedBulletin.id}
+                  studentName={getBulletinDisplayData(selectedBulletin)?.studentName}
+                  onSuccess={handlePDFSuccess}
+                  onError={handlePDFError}
+                />
+              </div>
+            </div>
+
+            {/* Official Template View with Auto-Save Inline Editing */}
+            <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+              <div className="bg-blue-900 text-white p-4 flex justify-between items-center">
+                <h3 className="font-bold text-lg">
+                  {isEditing ? '✏️ Editing Report Card (Auto-Save)' : '📄 Official Report Card Template'}
+                </h3>
+                <div className="flex items-center space-x-2">
+                  {isEditing && (
+                    <div className="flex items-center space-x-2 text-sm text-blue-200">
+                      <svg className="w-4 h-4 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                      </svg>
+                      <span>Changes auto-saved</span>
+                    </div>
+                  )}
+                  <button
+                    onClick={() => setIsEditing(false)}
+                    className="px-3 py-1 bg-gray-600 hover:bg-gray-700 text-white text-sm rounded-md flex items-center space-x-1"
+                  >
+                    {isEditing ? (
+                      <>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span>Done Editing</span>
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                        <span>View Only</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+              <div className="p-4 bg-gray-50">
+                <Form6Template 
+                  data={transformDataForTemplate(getBulletinDisplayData(selectedBulletin))} 
+                  isEditable={isEditing}
+                  onDataChange={handleFieldUpdate}
+                />
+                {isEditing && (
+                  <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                    <p className="text-sm text-green-800">
+                      � <strong>Auto-Save Mode:</strong> Click on any field to edit it directly. 
+                      Changes are automatically saved to Firestore when you finish editing each field.
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default FirestoreOnlyDashboardPage;
