@@ -397,9 +397,9 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
     if (!file) return;
 
     // Validate file type
-    const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp', 'application/pdf'];
+    const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp']; // Removed PDF
     if (!allowedTypes.includes(file.type)) {
-      setError('Please select a valid file type (PNG, JPG, JPEG, GIF, WEBP, PDF)');
+      setError('Please select a valid file type (PNG, JPG, JPEG, GIF, WEBP)\nMiye Sipendi pdf pardon');
       return;
     }
 
@@ -585,23 +585,13 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                   className="w-8 h-8 rounded-lg object-cover"
                 />
               </div>
-              <h1 className="text-xl font-bold text-gray-900">Nyota Translation Center</h1>
+              {/* Hide the text on mobile, show on sm+ */}
+              <h1 className="hidden sm:block text-xl font-bold text-gray-900">Nyota Translation Center</h1>
             </div>
             <div className="flex items-center space-x-4">
-              <button
-                onClick={() => window.location.href = '/backend-test'}
-                className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-              >
-                Backend Test
-              </button>
-              <button
-                onClick={() => window.location.href = '/bulletin-template'}
-                className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-              >
-                Template
-              </button>
               <div className="flex items-center space-x-2">
-                <span className="text-sm text-gray-600">{currentUser.email}</span>
+                {/* Hide email on mobile, show on sm+ */}
+                <span className="hidden sm:inline text-sm text-gray-600">{currentUser.email}</span>
                 <button
                   onClick={() => {
                     import('../firebase').then(({ auth }) => {
@@ -620,27 +610,35 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
         </div>
       </nav>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">My Bulletins</h1>
-          <p className="text-gray-600 mt-2">
-            Upload French school bulletins, view and edit extracted data, then download English report cards.
-          </p>
+      <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-6 sm:py-8">
+        {/* Responsive Header & Template Button */}
+        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">My Bulletins</h1>
+            <p className="text-gray-600 mt-2 text-sm sm:text-base">
+              Upload French school bulletins, view and edit extracted data, then download English report cards.
+            </p>
+          </div>
+          <button
+            onClick={() => window.location.href = '/bulletin-template'}
+            className="w-full sm:w-auto px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium shadow transition-colors"
+          >
+            View Bulletin Template
+          </button>
         </div>
 
         {/* Upload Section */}
-        <div className="mb-8 bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">📤 Upload New Bulletin</h2>
-          
+        <div className="mb-8 bg-white rounded-lg shadow-md p-4 sm:p-6">
+          <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4">📤 Upload New Bulletin</h2>
           {/* Form Type Selection */}
           <div className="mb-6">
-            <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">Select Bulletin Type</h3>
-            <div className="flex space-x-4">
+            <h3 className="text-xs sm:text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">Select Bulletin Type</h3>
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
               <button
                 onClick={() => setSelectedFormType('form4')}
                 className={`flex-1 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
                   selectedFormType === 'form4'
-                    ? 'bg-green-600 text-white shadow-lg transform scale-105'
+                    ? 'bg-green-600 text-white shadow-lg scale-105'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200'
                 }`}
               >
@@ -654,7 +652,7 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                 onClick={() => setSelectedFormType('form6')}
                 className={`flex-1 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
                   selectedFormType === 'form6'
-                    ? 'bg-blue-600 text-white shadow-lg transform scale-105'
+                    ? 'bg-blue-600 text-white shadow-lg scale-105'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200'
                 }`}
               >
@@ -666,9 +664,8 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
               </button>
             </div>
           </div>
-          
           <div 
-            className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+            className={`border-2 border-dashed rounded-lg p-4 sm:p-6 text-center transition-colors ${
               isUploading 
                 ? 'border-blue-500 bg-blue-50' 
                 : 'border-gray-300 hover:border-blue-500'
@@ -714,7 +711,7 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                 </p>
                 <input
                   type="file"
-                  accept=".pdf,.png,.jpg,.jpeg,.gif,.webp"
+                  accept=".png,.jpg,.jpeg,.gif,.webp" // Removed .pdf
                   className="hidden"
                   id="file-upload"
                   onChange={handleFileUpload}
@@ -727,7 +724,7 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                   Select File
                 </label>
                 <p className="text-sm text-gray-500 mt-2">
-                  Supports PDF, PNG, JPG, JPEG, GIF, WEBP (max 10MB)
+                  Supports PNG, JPG, JPEG, GIF, WEBP (max 10MB)
                 </p>
               </>
             )}
@@ -735,7 +732,7 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
         </div>
 
         {error && (
-          <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4 text-sm sm:text-base">
             <div className="flex">
               <div className="flex-shrink-0">
                 <svg className="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -762,21 +759,20 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
         )}
 
         {/* Bulletins List */}
-        <div className="mb-8 bg-white rounded-lg shadow-md p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-semibold text-gray-900">📚 Your Bulletins</h2>
-            <span className="text-sm text-gray-500">
+        <div className="mb-8 bg-white rounded-lg shadow-md p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-2">
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-900">📚 Your Bulletins</h2>
+            <span className="text-xs sm:text-sm text-gray-500">
               {bulletins.length} bulletin{bulletins.length !== 1 ? 's' : ''}
             </span>
           </div>
-          
           {isLoading ? (
             <div className="flex items-center justify-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
               <span className="ml-2 text-gray-600">Loading from Firestore...</span>
             </div>
           ) : bulletins.length === 0 ? (
-            <div className="text-center py-12">
+            <div className="text-center py-8 sm:py-12">
               <svg className="mx-auto h-16 w-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
@@ -784,7 +780,7 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
               <p className="mt-2 text-gray-500">Upload your first French school bulletin to get started.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {bulletins.map((bulletin) => {
                 const displayData = getBulletinDisplayData(bulletin);
                 return (
@@ -876,15 +872,15 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
 
         {/* Selected Bulletin Display */}
         {selectedBulletin && (
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex justify-between items-center mb-6">
+          <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 overflow-x-auto">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-3">
               <div>
-                <div className="flex items-center space-x-3">
-                  <h2 className="text-2xl font-bold text-gray-900">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+                  <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
                     📄 {getBulletinDisplayData(selectedBulletin)?.studentName || 'Student Report Card'}
                   </h2>
                   {/* Form Type Badge */}
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                  <span className={`px-2 sm:px-3 py-1 rounded-full text-xs font-medium ${
                     (selectedBulletin.metadata.formType || 'form6') === 'form4' 
                       ? 'bg-green-100 text-green-800' 
                       : 'bg-blue-100 text-blue-800'
@@ -892,15 +888,15 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                     {(selectedBulletin.metadata.formType || 'form6') === 'form4' ? 'Form 4' : 'Form 6'}
                   </span>
                 </div>
-                <p className="text-gray-600 mt-1">
+                <p className="text-gray-600 mt-1 text-sm sm:text-base">
                   {getBulletinDisplayData(selectedBulletin)?.class} • {getBulletinDisplayData(selectedBulletin)?.school}
                 </p>
               </div>
-              <div className="flex items-center space-x-3">
+              <div className="flex flex-wrap gap-2 sm:gap-3 mt-3 sm:mt-0">
                 {!isEditing && (
                   <button
                     onClick={() => handleStartEditing(selectedBulletin)}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center space-x-2"
+                    className="w-full sm:w-auto px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center space-x-2"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -911,7 +907,7 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                 {isEditing && (
                   <button
                     onClick={() => setIsEditing(false)}
-                    className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 flex items-center space-x-2"
+                    className="w-full sm:w-auto px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 flex items-center space-x-2"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -920,18 +916,20 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                     <span>View</span>
                   </button>
                 )}
-                <FirestoreOnlyPDFDownloadButton
-                  firestoreId={selectedBulletin.id}
-                  studentName={getBulletinDisplayData(selectedBulletin)?.studentName}
-                  onSuccess={handlePDFSuccess}
-                  onError={handlePDFError}
-                />
+                <div className="w-full sm:w-auto">
+                  <FirestoreOnlyPDFDownloadButton
+                    firestoreId={selectedBulletin.id}
+                    studentName={getBulletinDisplayData(selectedBulletin)?.studentName}
+                    onSuccess={handlePDFSuccess}
+                    onError={handlePDFError}
+                  />
+                </div>
                 <button
                   onClick={() => handleDeleteBulletin(
                     selectedBulletin.id,
                     getBulletinDisplayData(selectedBulletin)?.studentName || 'Student'
                   )}
-                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center space-x-2"
+                  className="w-full sm:w-auto px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center space-x-2"
                   title="Delete this bulletin"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -941,16 +939,15 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                 </button>
               </div>
             </div>
-
             {/* Official Template View with Auto-Save Inline Editing */}
-            <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-              <div className="bg-blue-900 text-white p-4 flex justify-between items-center">
-                <h3 className="font-bold text-lg">
+            <div className="bg-white rounded-lg border border-gray-200 overflow-x-auto">
+              <div className="bg-blue-900 text-white p-3 sm:p-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+                <h3 className="font-bold text-base sm:text-lg">
                   {isEditing ? '✏️ Editing Report Card (Auto-Save)' : '📄 Official Report Card Template'}
                 </h3>
                 <div className="flex items-center space-x-2">
                   {isEditing && (
-                    <div className="flex items-center space-x-2 text-sm text-blue-200">
+                    <div className="flex items-center space-x-2 text-xs sm:text-sm text-blue-200">
                       <svg className="w-4 h-4 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                       </svg>
@@ -959,7 +956,7 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                   )}
                   <button
                     onClick={() => setIsEditing(false)}
-                    className="px-3 py-1 bg-gray-600 hover:bg-gray-700 text-white text-sm rounded-md flex items-center space-x-1"
+                    className="px-3 py-1 bg-gray-600 hover:bg-gray-700 text-white text-xs sm:text-sm rounded-md flex items-center space-x-1"
                   >
                     {isEditing ? (
                       <>
@@ -980,7 +977,7 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                   </button>
                 </div>
               </div>
-              <div className="p-4 bg-gray-50">
+              <div className="p-2 sm:p-4 bg-gray-50 overflow-x-auto">
                 {/* Conditional template rendering based on form type */}
                 {(selectedBulletin.metadata.formType || 'form6') === 'form4' ? (
                   <Form4Template 
@@ -996,9 +993,9 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                   />
                 )}
                 {isEditing && (
-                  <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-                    <p className="text-sm text-green-800">
-                      � <strong>Auto-Save Mode:</strong> Click on any field to edit it directly. 
+                  <div className="mt-4 p-3 sm:p-4 bg-green-50 border border-green-200 rounded-lg">
+                    <p className="text-xs sm:text-sm text-green-800">
+                      <strong>Auto-Save Mode:</strong> Click on any field to edit it directly. 
                       Changes are automatically saved to Firestore when you finish editing each field.
                     </p>
                   </div>

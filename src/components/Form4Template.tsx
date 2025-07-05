@@ -518,10 +518,10 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
   };
 
   // Update field function
-  const updateField = (field: string, value: string) => {
-    if (!onDataChange) return;
-    onDataChange({ ...data, [field]: value });
-  };
+  // const updateField = (field: string, value: string) => {
+  //   if (!onDataChange) return;
+  //   onDataChange({ ...data, [field]: value });
+  // };
 
   return (
     <div className={`bg-white ${className}`}>        {/* A4 Container with proper dimensions */}
