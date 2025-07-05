@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../AuthProvider';
 
 interface LoginPageProps {
-  onNavigate: (page: 'landing' | 'login' | 'register' | 'dashboard') => void;
+  onNavigate: (page: 'landing' | 'login' | 'register' | 'dashboard' | 'forgot-password') => void;
 }
 
 const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
@@ -35,10 +35,11 @@ const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
     try {
       setIsSubmitting(true);
       await login(formData.email, formData.password);
-      // If successful, user will be automatically redirected to dashboard via App.tsx
-      onNavigate('dashboard');
+      // Don't manually navigate - let the AuthAwareRouter handle it
+      // This prevents navigation on failed login attempts
     } catch (error) {
       // Error is handled by AuthProvider and displayed via error state
+      // Stay on login page to show error message
       console.error('Login failed:', error);
     } finally {
       setIsSubmitting(false);
@@ -54,9 +55,11 @@ const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
             onClick={() => onNavigate('landing')}
             className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
           >
-            <div className="w-8 h-8 bg-gradient-to-r from-primary-600 to-secondary-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">N</span>
-            </div>
+            <img
+              src="/icon.png"
+              alt="Nyota Translation Center Logo"
+              className="w-8 h-8 rounded-lg object-cover"
+            />
             <span className="text-xl font-heading font-bold text-gray-900">
               Nyota Translation Center
             </span>
@@ -144,9 +147,14 @@ const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
               </div>
 
               <div className="text-sm">
-                <a href="#" className="font-medium text-primary-600 hover:text-primary-500">
+                <button
+                  type="button"
+                  onClick={() => onNavigate('forgot-password')}
+                  className="font-medium text-primary-600 hover:text-primary-500"
+                  disabled={isSubmitting}
+                >
                   Forgot your password?
-                </a>
+                </button>
               </div>
             </div>
 

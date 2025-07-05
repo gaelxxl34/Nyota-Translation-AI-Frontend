@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../AuthProvider';
 
 interface RegisterPageProps {
-  onNavigate: (page: 'landing' | 'login' | 'register' | 'dashboard') => void;
+  onNavigate: (page: 'landing' | 'login' | 'register' | 'dashboard' | 'terms' | 'privacy') => void;
 }
 
 const RegisterPage: React.FC<RegisterPageProps> = ({ onNavigate }) => {
@@ -72,9 +72,11 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onNavigate }) => {
             onClick={() => onNavigate('landing')}
             className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
           >
-            <div className="w-8 h-8 bg-gradient-to-r from-primary-600 to-secondary-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">N</span>
-            </div>
+            <img
+              src="/icon.png"
+              alt="Nyota Translation Center Logo"
+              className="w-8 h-8 rounded-lg object-cover"
+            />
             <span className="text-xl font-heading font-bold text-gray-900">
               Nyota Translation Center
             </span>
@@ -199,11 +201,19 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onNavigate }) => {
               />
               <label htmlFor="terms" className="ml-2 block text-sm text-gray-900">
                 I agree to the{' '}
-                <a href="#" className="text-primary-600 hover:text-primary-500">
+                <a
+                  href="#"
+                  className="text-primary-600 hover:text-primary-500 underline cursor-pointer"
+                  onClick={e => { e.preventDefault(); onNavigate && onNavigate('terms'); }}
+                >
                   Terms and Conditions
                 </a>{' '}
                 and{' '}
-                <a href="#" className="text-primary-600 hover:text-primary-500">
+                <a
+                  href="#"
+                  className="text-primary-600 hover:text-primary-500 underline cursor-pointer"
+                  onClick={e => { e.preventDefault(); onNavigate && onNavigate('privacy'); }}
+                >
                   Privacy Policy
                 </a>
               </label>

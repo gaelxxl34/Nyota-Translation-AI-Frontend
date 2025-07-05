@@ -9,7 +9,8 @@ import {
   signOut,
   onAuthStateChanged,
   updateProfile,
-  type AuthError
+  type AuthError,
+  sendPasswordResetEmail
 } from 'firebase/auth';
 import { auth } from './firebase';
 
@@ -30,6 +31,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   error: string | null;
   clearError: () => void;
+  sendPasswordReset: (email: string) => Promise<void>;
 }
 
 // Create authentication context
@@ -156,6 +158,32 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  // Send password reset email
+  const sendPasswordReset = async (email: string): Promise<void> => {
+    try {
+      setError(null);
+      setLoading(true);
+      await sendPasswordResetEmail(auth, email);
+      console.log('✅ Password reset email sent:', email);
+    } catch (err) {
+      const authError = err as AuthError;
+      console.error('🚨 Password reset failed:', authError.message);
+      switch (authError.code) {
+        case 'auth/user-not-found':
+          setError('No account found with this email.');
+          break;
+        case 'auth/invalid-email':
+          setError('Please enter a valid email address.');
+          break;
+        default:
+          setError('Failed to send reset link. Please try again.');
+      }
+      throw authError;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Listen for authentication state changes
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -214,7 +242,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     register,
     logout,
     error,
-    clearError
+    clearError,
+    sendPasswordReset
   };
 
   return (

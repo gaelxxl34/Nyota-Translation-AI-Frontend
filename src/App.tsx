@@ -1,7 +1,7 @@
 // Main App Component for Nyota Translation Center (NTC)
 // Handles routing and main application shell
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { AuthProvider, useAuth } from './AuthProvider';
 import LandingPage from './components/LandingPage';
 import LoginPage from './components/LoginPage';
@@ -9,43 +9,119 @@ import RegisterPage from './components/RegisterPage';
 import FirestoreOnlyDashboardPage from './components/FirestoreOnlyDashboardPage';
 import BulletinTemplatePage from './components/BulletinTemplatePage';
 import CardOnlyPage from './components/CardOnlyPage';
+import TermsAndConditionsPage from './components/TermsAndConditionsPage';
+import PrivacyPolicyPage from './components/PrivacyPolicyPage';
+import ForgotPasswordPage from './components/ForgotPasswordPage';
 
 // Simple page routing state
-type PageType = 'landing' | 'login' | 'register' | 'dashboard' | 'bulletin-template' | 'card-only';
+/**
+ * PageType: All valid page keys for navigation and routing
+ */
+type PageType =
+  | 'landing'
+  | 'login'
+  | 'register'
+  | 'dashboard'
+  | 'bulletin-template'
+  | 'card-only'
+  | 'terms'
+  | 'privacy'
+  | 'forgot-password';
 
-// Main app content component (inside AuthProvider)
-const AppContent: React.FC = () => {
-  const [currentPage, setCurrentPage] = useState<PageType>(() => {
-    // Initialize page based on URL path
-    const path = window.location.pathname;
-    if (path === '/card-only') return 'card-only';
-    if (path === '/bulletin-template') return 'bulletin-template';
-    if (path === '/login') return 'login';
-    if (path === '/register') return 'register';
-    if (path === '/dashboard') return 'dashboard';
-    return 'landing';
-  });
+/**
+ * Navigation function type for all pages
+ */
+type NavigateToPage = (page: PageType) => void;
+
+// Helper function to get page from pathname
+const getPageFromPath = (pathname: string): PageType => {
+  if (pathname === '/card-only') return 'card-only';
+  if (pathname === '/bulletin-template') return 'bulletin-template';
+  if (pathname === '/login') return 'login';
+  if (pathname === '/register') return 'register';
+  if (pathname === '/dashboard') return 'dashboard';
+  if (pathname === '/terms') return 'terms';
+  if (pathname === '/privacy') return 'privacy';
+  if (pathname === '/forgot-password') return 'forgot-password';
+  return 'landing';
+};
+
+// Helper function to get path from page
+const getPathFromPage = (page: PageType): string => {
+  const paths = {
+    'landing': '/',
+    'login': '/login',
+    'register': '/register',
+    'dashboard': '/dashboard',
+    'bulletin-template': '/bulletin-template',
+    'card-only': '/card-only',
+    'terms': '/terms',
+    'privacy': '/privacy',
+    'forgot-password': '/forgot-password',
+  };
+  return paths[page] || '/';
+};
+
+// Auth-aware routing component
+const AuthAwareRouter: React.FC = () => {
   const { currentUser, loading } = useAuth();
+  const [currentPage, setCurrentPage] = useState<PageType>(() => {
+    return getPageFromPath(window.location.pathname);
+  });
+  
+  // Keep track of auth state to handle auth changes without losing page state
+  const previousAuthState = useRef<boolean | null>(null);
+  const isAuthenticated = !!currentUser;
 
-  // Update URL when page changes
-  React.useEffect(() => {
-    const paths = {
-      'landing': '/',
-      'login': '/login',
-      'register': '/register',
-      'dashboard': '/dashboard',
-      'bulletin-template': '/bulletin-template',
-      'card-only': '/card-only'
+  // Handle browser navigation (back/forward buttons, direct URL access)
+  useEffect(() => {
+    const handlePopState = () => {
+      const newPage = getPageFromPath(window.location.pathname);
+      setCurrentPage(newPage);
     };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  // Handle auth state changes intelligently
+  useEffect(() => {
+    // Skip on initial load
+    if (previousAuthState.current === null) {
+      previousAuthState.current = isAuthenticated;
+      return;
+    }
+
+    // Only handle auth state changes after initial load
+    if (previousAuthState.current !== isAuthenticated) {
+      if (isAuthenticated) {
+        // User just logged in - redirect to dashboard if on auth pages
+        if (['login', 'register', 'forgot-password'].includes(currentPage)) {
+          navigateToPage('dashboard');
+        }
+      } else {
+        // User just logged out - redirect to landing if on protected pages
+        if (['dashboard'].includes(currentPage)) {
+          navigateToPage('landing');
+        }
+      }
+      previousAuthState.current = isAuthenticated;
+    }
+  }, [isAuthenticated, currentPage]);
+
+  // Navigation function that properly updates both state and URL
+  const navigateToPage: NavigateToPage = (page) => {
+    const newPath = getPathFromPage(page);
     
-    const newPath = paths[currentPage] || '/';
     if (window.location.pathname !== newPath) {
       window.history.pushState({}, '', newPath);
     }
-  }, [currentPage]);
+    
+    setCurrentPage(page);
+  };
 
-  // Show loading spinner while checking auth state
-  if (loading) {
+  // Show loading spinner only on initial auth check
+  if (loading && previousAuthState.current === null) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -56,36 +132,47 @@ const AppContent: React.FC = () => {
     );
   }
 
-  // If user is authenticated, show appropriate page
-  if (currentUser) {
-    // Allow authenticated users to access specific pages
-    switch (currentPage) {
-      case 'bulletin-template':
-        return <BulletinTemplatePage onNavigate={setCurrentPage} />;
-      case 'card-only':
-        return <CardOnlyPage />;
-      case 'dashboard':
-        return <FirestoreOnlyDashboardPage />;
-      default:
-        // For any other page, redirect to dashboard
-        return <FirestoreOnlyDashboardPage />;
-    }
+  // Route protection logic
+  const isProtectedRoute = (page: PageType): boolean => {
+    return ['dashboard'].includes(page);
+  };
+
+  const isAuthRoute = (page: PageType): boolean => {
+    return ['login', 'register', 'forgot-password'].includes(page);
+  };
+
+  // Handle protected routes
+  if (isProtectedRoute(currentPage) && !isAuthenticated) {
+    return <LoginPage onNavigate={navigateToPage} />;
   }
 
-  // If user is not authenticated, show public pages
+  // Handle auth routes when already authenticated
+  if (isAuthRoute(currentPage) && isAuthenticated) {
+    return <FirestoreOnlyDashboardPage />;
+  }
+
+  // Render the appropriate page
   const renderCurrentPage = () => {
     switch (currentPage) {
       case 'login':
-        return <LoginPage onNavigate={setCurrentPage} />;
+        return <LoginPage onNavigate={navigateToPage} />;
       case 'register':
-        return <RegisterPage onNavigate={setCurrentPage} />;
+        return <RegisterPage onNavigate={navigateToPage} />;
+      case 'dashboard':
+        return <FirestoreOnlyDashboardPage />;
       case 'bulletin-template':
-        return <BulletinTemplatePage onNavigate={setCurrentPage} />;
+        return <BulletinTemplatePage onNavigate={navigateToPage} />;
       case 'card-only':
         return <CardOnlyPage />;
+      case 'terms':
+        return <TermsAndConditionsPage />;
+      case 'privacy':
+        return <PrivacyPolicyPage />;
+      case 'forgot-password':
+        return <ForgotPasswordPage onNavigate={navigateToPage} />;
       case 'landing':
       default:
-        return <LandingPage onNavigate={setCurrentPage} />;
+        return <LandingPage onNavigate={navigateToPage} />;
     }
   };
 
@@ -100,9 +187,12 @@ const AppContent: React.FC = () => {
 const App: React.FC = () => {
   return (
     <AuthProvider>
-      <AppContent />
+      <AuthAwareRouter />
     </AuthProvider>
   );
 };
+
+// Export PageType and NavigateToPage for use in other components
+export type { PageType, NavigateToPage };
 
 export default App;

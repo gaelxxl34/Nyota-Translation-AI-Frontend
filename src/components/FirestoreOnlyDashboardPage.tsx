@@ -579,7 +579,11 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-3">
               <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">N</span>
+                <img
+                  src="/icon.png"
+                  alt="Nyota Translation Center Logo"
+                  className="w-8 h-8 rounded-lg object-cover"
+                />
               </div>
               <h1 className="text-xl font-bold text-gray-900">Nyota Translation Center</h1>
             </div>

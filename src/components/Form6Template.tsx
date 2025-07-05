@@ -1606,8 +1606,8 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
               </div>
             </div>
             
-            {/* Legal Notice Section */}
-            <div className="space-y-2 pt-2">
+            {/* Legal Notice Section with Stamp */}
+            <div className="relative space-y-2 pt-2">
               <div>
                 <p className="text-xs text-left font-medium">NOTE: This report card is invalid if altered or modified.</p>
               </div>
@@ -1616,6 +1616,15 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                 <p className="text-xs font-bold italic text-gray-700">
                   Reproduction of this report is strictly prohibited and punishable by law
                 </p>
+              </div>
+              
+              {/* Stamp Image - Positioned at right corner */}
+              <div className="absolute top-0 right-0 -mt-2">
+                <img 
+                  src="/stamp.png" 
+                  alt="School Stamp" 
+                  className="w-16 h-16 opacity-70"
+                />
               </div>
             </div>
           </div>
