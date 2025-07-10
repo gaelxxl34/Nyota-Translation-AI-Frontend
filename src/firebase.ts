@@ -7,15 +7,15 @@ import { getFirestore } from 'firebase/firestore';
 import { getAnalytics } from 'firebase/analytics';
 
 // Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+// Using environment variables for better security and deployment flexibility
 const firebaseConfig = {
-  apiKey: "AIzaSyDRPc_RVdYxhXysqql-jeHC4V0w_N8aOXo",
-  authDomain: "ntc-app-7ac7e.firebaseapp.com",
-  projectId: "ntc-app-7ac7e",
-  storageBucket: "ntc-app-7ac7e.firebasestorage.app",
-  messagingSenderId: "580867573863",
-  appId: "1:580867573863:web:f146130f87fe313b54acc2",
-  measurementId: "G-9W9LKKVGST"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyDRPc_RVdYxhXysqql-jeHC4V0w_N8aOXo",
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "ntc-app-7ac7e.firebaseapp.com",
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "ntc-app-7ac7e",
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "ntc-app-7ac7e.firebasestorage.app",
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "580867573863",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:580867573863:web:f146130f87fe313b54acc2",
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || "G-9W9LKKVGST"
 };
 
 // Initialize Firebase

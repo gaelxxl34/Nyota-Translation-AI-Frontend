@@ -49,9 +49,11 @@ const FirestoreOnlyPDFDownloadButton: React.FC<FirestoreOnlyPDFDownloadButtonPro
 
       // Send ONLY the Firestore ID to backend - no localStorage data
       const backendUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+      const frontendUrl = import.meta.env.VITE_FRONTEND_URL || 'http://localhost:5173';
       
       console.log('🔗 Backend URL:', backendUrl);
-      console.log('📤 Sending ONLY Firestore ID - no localStorage dependency');
+      console.log('� Frontend URL:', frontendUrl);
+      console.log('�📤 Sending ONLY Firestore ID - no localStorage dependency');
       
       const response = await fetch(`${backendUrl}/api/export-pdf`, {
         method: 'POST',
@@ -60,7 +62,7 @@ const FirestoreOnlyPDFDownloadButton: React.FC<FirestoreOnlyPDFDownloadButtonPro
         },
         body: JSON.stringify({
           firestoreId: firestoreId, // ONLY send Firestore ID
-          frontendUrl: 'http://localhost:5173',
+          frontendUrl: frontendUrl,
           waitSelector: '#bulletin-template',
           pdfOptions: {
             format: 'A4',
