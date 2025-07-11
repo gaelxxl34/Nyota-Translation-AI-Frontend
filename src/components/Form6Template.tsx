@@ -326,6 +326,8 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
     
     target[fields[fields.length - 1]] = value;
     
+    console.log(`📝 Form6Template: Updated subject ${subjectIndex}, field ${fieldPath} = "${value}"`);
+    
     onDataChange({ ...data, subjects: newSubjects });
   };
 
@@ -564,22 +566,23 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
         <div 
           id="bulletin-template"
           data-testid="bulletin-template"
-          className="mx-auto bg-white shadow-lg overflow-hidden print:shadow-none"
+          className="mx-auto bg-white shadow-lg print:shadow-none"
           style={{
             width: '210mm',
-            height: '297mm',
-            minHeight: '297mm',
+            minHeight: isEditable ? 'auto' : '297mm',
+            height: isEditable ? 'auto' : '297mm',
             maxWidth: '210mm',
             fontSize: '6pt',
             lineHeight: '1.0',
-            fontFamily: 'Arial, sans-serif'
+            fontFamily: 'Arial, sans-serif',
+            overflow: isEditable ? 'visible' : 'hidden'
           }}
         >
         {/* Outer table wrapper for guaranteed PDF borders */}
-        <table className="w-full border-2 border-black print:border-black print:border-1 border-collapse" style={{minHeight: '297mm'}}>
+        <table className="w-full border-2 border-black print:border-black print:border-1 border-collapse" style={{minHeight: isEditable ? 'auto' : '297mm'}}>
           <tbody>
             <tr>
-              <td className="p-0 align-top" style={{minHeight: '297mm'}}>
+              <td className="p-0 align-top" style={{minHeight: isEditable ? 'auto' : '297mm'}}>
                 {/* All content wrapped in table cell */}
         {/* Header with Logos and Titles */}
         <div className="flex items-center justify-between p-1 border-b border-gray-300">

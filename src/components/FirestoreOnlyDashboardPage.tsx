@@ -333,6 +333,10 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
           examMaxima: 40,
           totalMaxima: 80
         },
+        secondSitting: subject.secondSitting || {
+          marks: '',
+          max: ''
+        },
         nationalExam: subject.nationalExam || {
           marks: '',
           max: ''
