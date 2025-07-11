@@ -70,12 +70,12 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onNavigate }) => {
         <div className="flex justify-center mb-6">
           <button
             onClick={() => onNavigate('landing')}
-            className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
+            className="flex items-center space-x-3 hover:opacity-80 transition-opacity"
           >
             <img
-              src="/icon.png"
+              src="/log.PNG"
               alt="Nyota Translation Center Logo"
-              className="w-8 h-8 rounded-lg object-cover"
+              className="h-12 w-auto rounded-lg shadow-md"
             />
             <span className="text-xl font-heading font-bold text-gray-900">
               Nyota Translation Center

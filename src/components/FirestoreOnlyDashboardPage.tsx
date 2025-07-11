@@ -578,13 +578,11 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                <img
-                  src="/icon.png"
-                  alt="Nyota Translation Center Logo"
-                  className="w-8 h-8 rounded-lg object-cover"
-                />
-              </div>
+              <img
+                src="/log.PNG"
+                alt="Nyota Translation Center Logo"
+                className="h-10 w-auto rounded-lg shadow-md"
+              />
               {/* Hide the text on mobile, show on sm+ */}
               <h1 className="hidden sm:block text-xl font-bold text-gray-900">Nyota Translation Center</h1>
             </div>

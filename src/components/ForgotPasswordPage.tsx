@@ -28,11 +28,11 @@ const ForgotPasswordPage: React.FC<{ onNavigate: NavigateToPage }> = ({ onNaviga
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 via-white to-secondary-50">
       <div className="w-full max-w-md bg-white rounded-xl shadow-lg p-8 border border-gray-100">
-        <div className="flex flex-row items-center mb-6 w-full gap-3">
+        <div className="flex flex-row items-center mb-6 w-full gap-4">
           <img
-            src="/icon.png"
+            src="/log.PNG"
             alt="Nyota Translation Center Logo"
-            className="w-10 h-10 rounded-lg object-cover"
+            className="h-14 w-auto rounded-lg shadow-md"
           />
           <h1 className="text-2xl font-bold text-gray-900 leading-tight">Nyota Translation Center</h1>
         </div>

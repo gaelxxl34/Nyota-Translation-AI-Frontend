@@ -5,11 +5,11 @@ import React from "react";
  */
 const PrivacyPolicyPage: React.FC = () => (
   <div className="max-w-2xl mx-auto p-8">
-    <div className="flex flex-row items-center gap-3 mb-6">
+    <div className="flex flex-row items-center gap-4 mb-6">
       <img
-        src="/icon.png"
+        src="/log.PNG"
         alt="Nyota Translation Center Logo"
-        className="w-8 h-8 rounded-lg object-cover"
+        className="h-12 w-auto rounded-lg shadow-md"
       />
       <h1 className="text-2xl font-bold text-gray-900 leading-tight">Privacy Policy</h1>
     </div>

@@ -358,6 +358,156 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
     onDataChange(updatedData);
   };
 
+  // Sort subjects by maxima values (same logic as backend)
+  const sortSubjectsByMaxima = (subjects: SubjectGrade[]) => {
+    if (!subjects || !Array.isArray(subjects)) {
+      return subjects;
+    }
+
+    return subjects.sort((a, b) => {
+      // Get the maximum maxima value for each subject
+      const getMaxMaxima = (subject: SubjectGrade) => {
+        if (!subject.maxima) return 0;
+        
+        const { periodMaxima, examMaxima, totalMaxima } = subject.maxima;
+        
+        // Use totalMaxima if available, otherwise use the highest of period/exam maxima
+        if (totalMaxima !== null && totalMaxima !== undefined) {
+          return totalMaxima;
+        }
+        
+        const maxPeriod = periodMaxima || 0;
+        const maxExam = examMaxima || 0;
+        
+        return Math.max(maxPeriod, maxExam);
+      };
+
+      const maximaA = getMaxMaxima(a);
+      const maximaB = getMaxMaxima(b);
+
+      // Sort by maxima values (ascending: lower values first)
+      if (maximaA !== maximaB) {
+        return maximaA - maximaB;
+      }
+
+      // If maxima are equal, sort alphabetically by subject name
+      const subjectA = a.subject || '';
+      const subjectB = b.subject || '';
+      return subjectA.localeCompare(subjectB);
+    });
+  };
+
+  // Sort subjects before grouping (memoized for performance)
+  const sortedSubjects = useMemo(() => {
+    return sortSubjectsByMaxima([...(data.subjects || [])]);
+  }, [data.subjects]);
+
+  // Group subjects by their maxima values (memoized for performance)
+  const subjectGroups = useMemo(() => {
+    const groupSubjectsByMaxima = (subjects: SubjectGrade[]) => {
+      const maximaMap = new Map<string, { maxima: Maxima; subjects: SubjectGrade[] }>();
+
+      subjects.forEach(subject => {
+        // Skip subjects without maxima (empty template subjects)
+        if (!subject.maxima) {
+          return;
+        }
+        
+        const maxima = subject.maxima;
+        const key = `${maxima.periodMaxima}-${maxima.examMaxima}-${maxima.totalMaxima}`;
+        
+        if (!maximaMap.has(key)) {
+          maximaMap.set(key, { maxima, subjects: [] });
+        }
+        maximaMap.get(key)!.subjects.push(subject);
+      });
+
+      // If no subjects with maxima, return empty template group for display
+      if (maximaMap.size === 0) {
+        return [{
+          maxima: { periodMaxima: 20, examMaxima: 40, totalMaxima: 80 },
+          subjects: subjects.slice(0, 10) // Show first 10 empty subjects for template
+        }];
+      }
+
+      // Convert map to array and sort by total maxima (ascending - smallest first)
+      return Array.from(maximaMap.values()).sort((a, b) => a.maxima.totalMaxima - b.maxima.totalMaxima);
+    };
+    
+    return groupSubjectsByMaxima(sortedSubjects);
+  }, [sortedSubjects]);
+
+  // Helper function to update maxima values for a specific group
+  const updateMaximaField = (groupIndex: number, field: string, value: string) => {
+    if (!onDataChange) return;
+    
+    const newSubjects = [...(data.subjects || [])];
+    const numericValue = value === '' ? 0 : parseInt(value) || 0;
+    
+    // Get the current subject groups to find which subjects belong to this group
+    const sortedSubjects = sortSubjectsByMaxima([...newSubjects]);
+    const currentGroups = (() => {
+      const groupSubjectsByMaxima = (subjects: SubjectGrade[]) => {
+        const maximaMap = new Map<string, { maxima: Maxima; subjects: SubjectGrade[] }>();
+
+        subjects.forEach(subject => {
+          if (!subject.maxima) return;
+          
+          const maxima = subject.maxima;
+          const key = `${maxima.periodMaxima}-${maxima.examMaxima}-${maxima.totalMaxima}`;
+          
+          if (!maximaMap.has(key)) {
+            maximaMap.set(key, { maxima, subjects: [] });
+          }
+          maximaMap.get(key)!.subjects.push(subject);
+        });
+
+        if (maximaMap.size === 0) {
+          return [{
+            maxima: { periodMaxima: 20, examMaxima: 40, totalMaxima: 80 },
+            subjects: subjects.slice(0, 10)
+          }];
+        }
+
+        return Array.from(maximaMap.values()).sort((a, b) => a.maxima.totalMaxima - b.maxima.totalMaxima);
+      };
+      
+      return groupSubjectsByMaxima(sortedSubjects);
+    })();
+    
+    if (!currentGroups[groupIndex]) return;
+    
+    const group = currentGroups[groupIndex];
+    
+    // Update all subjects in this group with the new maxima value
+    group.subjects.forEach((subject: SubjectGrade) => {
+      const originalSubjectIndex = newSubjects.findIndex(s => s === subject);
+      if (originalSubjectIndex !== -1 && newSubjects[originalSubjectIndex]) {
+        if (!newSubjects[originalSubjectIndex].maxima) {
+          newSubjects[originalSubjectIndex].maxima = {
+            periodMaxima: 0,
+            examMaxima: 0,
+            totalMaxima: 0
+          };
+        }
+        
+        switch (field) {
+          case 'periodMaxima':
+            newSubjects[originalSubjectIndex].maxima!.periodMaxima = numericValue;
+            break;
+          case 'examMaxima':
+            newSubjects[originalSubjectIndex].maxima!.examMaxima = numericValue;
+            break;
+          case 'totalMaxima':
+            newSubjects[originalSubjectIndex].maxima!.totalMaxima = numericValue;
+            break;
+        }
+      }
+    });
+    
+    onDataChange({ ...data, subjects: newSubjects });
+  };
+
   try {
   // Default subject rows if no data provided (for template display)
   const defaultSubjects: SubjectGrade[] = Array.from({ length: 15 }, () => ({
@@ -431,7 +581,7 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
 
   // Sort subjects before grouping (memoized for performance)
   const sortedSubjects = useMemo(() => {
-    return sortSubjectsByMaxima([...subjects]);
+    return sortSubjectsByMaxima([...(data.subjects || [])]);
   }, [subjects]);
 
   // Group subjects by their maxima values (memoized for performance)
@@ -846,15 +996,100 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
                   groupRows.push(
                     <tr key={`maxima-${groupIndex}`} className="bg-gray-100 print:bg-gray-200">
                       <td className="border border-black px-0.5 py-0.5 text-xs font-bold bg-white">MAXIMA</td>
-                      <td className="border border-black px-0.5 py-0.5 text-xs text-center font-bold bg-white">{group.maxima.periodMaxima}</td>
-                      <td className="border border-black px-0.5 py-0.5 text-xs text-center font-bold bg-white">{group.maxima.periodMaxima}</td>
-                      <td className="border border-black px-0.5 py-0.5 text-xs text-center font-bold bg-white">{group.maxima.examMaxima}</td>
-                      <td className="border border-black px-0.5 py-0.5 text-xs text-center font-bold bg-white">{group.maxima.totalMaxima}</td>
-                      <td className="border border-black px-0.5 py-0.5 text-xs text-center font-bold bg-white">{group.maxima.periodMaxima}</td>
-                      <td className="border border-black px-0.5 py-0.5 text-xs text-center font-bold bg-white">{group.maxima.periodMaxima}</td>
-                      <td className="border border-black px-0.5 py-0.5 text-xs text-center font-bold bg-white">{group.maxima.examMaxima}</td>
-                      <td className="border border-black px-0.5 py-0.5 text-xs text-center font-bold bg-white">{group.maxima.totalMaxima}</td>
-                      <td className="border border-black px-0.5 py-0.5 text-xs text-center font-bold bg-white">{group.maxima.totalMaxima * 2}</td>
+                      <td className="border border-black px-0.5 py-0.5 text-xs text-center font-bold bg-white">
+                        <EditableField 
+                          value={group.maxima.periodMaxima}
+                          onChange={(value) => updateMaximaField(groupIndex, 'periodMaxima', value)}
+                          isEditable={isEditable}
+                          placeholder=""
+                          field={`maxima-${groupIndex}-period1`}
+                          isTableCell={true}
+                        />
+                      </td>
+                      <td className="border border-black px-0.5 py-0.5 text-xs text-center font-bold bg-white">
+                        <EditableField 
+                          value={group.maxima.periodMaxima}
+                          onChange={(value) => updateMaximaField(groupIndex, 'periodMaxima', value)}
+                          isEditable={isEditable}
+                          placeholder=""
+                          field={`maxima-${groupIndex}-period2`}
+                          isTableCell={true}
+                        />
+                      </td>
+                      <td className="border border-black px-0.5 py-0.5 text-xs text-center font-bold bg-white">
+                        <EditableField 
+                          value={group.maxima.examMaxima}
+                          onChange={(value) => updateMaximaField(groupIndex, 'examMaxima', value)}
+                          isEditable={isEditable}
+                          placeholder=""
+                          field={`maxima-${groupIndex}-exam1`}
+                          isTableCell={true}
+                        />
+                      </td>
+                      <td className="border border-black px-0.5 py-0.5 text-xs text-center font-bold bg-white">
+                        <EditableField 
+                          value={group.maxima.totalMaxima}
+                          onChange={(value) => updateMaximaField(groupIndex, 'totalMaxima', value)}
+                          isEditable={isEditable}
+                          placeholder=""
+                          field={`maxima-${groupIndex}-total1`}
+                          isTableCell={true}
+                        />
+                      </td>
+                      <td className="border border-black px-0.5 py-0.5 text-xs text-center font-bold bg-white">
+                        <EditableField 
+                          value={group.maxima.periodMaxima}
+                          onChange={(value) => updateMaximaField(groupIndex, 'periodMaxima', value)}
+                          isEditable={isEditable}
+                          placeholder=""
+                          field={`maxima-${groupIndex}-period3`}
+                          isTableCell={true}
+                        />
+                      </td>
+                      <td className="border border-black px-0.5 py-0.5 text-xs text-center font-bold bg-white">
+                        <EditableField 
+                          value={group.maxima.periodMaxima}
+                          onChange={(value) => updateMaximaField(groupIndex, 'periodMaxima', value)}
+                          isEditable={isEditable}
+                          placeholder=""
+                          field={`maxima-${groupIndex}-period4`}
+                          isTableCell={true}
+                        />
+                      </td>
+                      <td className="border border-black px-0.5 py-0.5 text-xs text-center font-bold bg-white">
+                        <EditableField 
+                          value={group.maxima.examMaxima}
+                          onChange={(value) => updateMaximaField(groupIndex, 'examMaxima', value)}
+                          isEditable={isEditable}
+                          placeholder=""
+                          field={`maxima-${groupIndex}-exam2`}
+                          isTableCell={true}
+                        />
+                      </td>
+                      <td className="border border-black px-0.5 py-0.5 text-xs text-center font-bold bg-white">
+                        <EditableField 
+                          value={group.maxima.totalMaxima}
+                          onChange={(value) => updateMaximaField(groupIndex, 'totalMaxima', value)}
+                          isEditable={isEditable}
+                          placeholder=""
+                          field={`maxima-${groupIndex}-total2`}
+                          isTableCell={true}
+                        />
+                      </td>
+                      <td className="border border-black px-0.5 py-0.5 text-xs text-center font-bold bg-white">
+                        <EditableField 
+                          value={group.maxima.totalMaxima * 2}
+                          onChange={(value) => {
+                            // Overall total is calculated as totalMaxima * 2, so we update totalMaxima 
+                            const newTotalMaxima = Math.round((parseInt(value) || 0) / 2);
+                            updateMaximaField(groupIndex, 'totalMaxima', newTotalMaxima.toString());
+                          }}
+                          isEditable={isEditable}
+                          placeholder=""
+                          field={`maxima-${groupIndex}-overall`}
+                          isTableCell={true}
+                        />
+                      </td>
                       {isFirstMaxima && (
                         <>
                           <td rowSpan={totalRows} className="border-l border-r border-t border-b border-black px-1 py-1 bg-black w-1">
@@ -895,7 +1130,7 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
                             value={subject.firstSemester.period1}
                             onChange={(value) => updateSubjectField(originalSubjectIndex, 'firstSemester.period1', value)}
                             isEditable={isEditable}
-                            placeholder="0"
+                            placeholder=""
                             field={`subject-${originalSubjectIndex}-period1`}
                             isTableCell={true}
                           />
@@ -905,7 +1140,7 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
                             value={subject.firstSemester.period2}
                             onChange={(value) => updateSubjectField(originalSubjectIndex, 'firstSemester.period2', value)}
                             isEditable={isEditable}
-                            placeholder="0"
+                            placeholder=""
                             field={`subject-${originalSubjectIndex}-period2`}
                             isTableCell={true}
                           />
@@ -915,7 +1150,7 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
                             value={subject.firstSemester.exam}
                             onChange={(value) => updateSubjectField(originalSubjectIndex, 'firstSemester.exam', value)}
                             isEditable={isEditable}
-                            placeholder="0"
+                            placeholder=""
                             field={`subject-${originalSubjectIndex}-exam1`}
                             isTableCell={true}
                           />
@@ -925,7 +1160,7 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
                             value={subject.firstSemester.total}
                             onChange={(value) => updateSubjectField(originalSubjectIndex, 'firstSemester.total', value)}
                             isEditable={isEditable}
-                            placeholder="0"
+                            placeholder=""
                             field={`subject-${originalSubjectIndex}-total1`}
                             isTableCell={true}
                           />
@@ -935,7 +1170,7 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
                             value={subject.secondSemester.period3}
                             onChange={(value) => updateSubjectField(originalSubjectIndex, 'secondSemester.period3', value)}
                             isEditable={isEditable}
-                            placeholder="0"
+                            placeholder=""
                             field={`subject-${originalSubjectIndex}-period3`}
                             isTableCell={true}
                           />
@@ -945,7 +1180,7 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
                             value={subject.secondSemester.period4}
                             onChange={(value) => updateSubjectField(originalSubjectIndex, 'secondSemester.period4', value)}
                             isEditable={isEditable}
-                            placeholder="0"
+                            placeholder=""
                             field={`subject-${originalSubjectIndex}-period4`}
                             isTableCell={true}
                           />
@@ -955,7 +1190,7 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
                             value={subject.secondSemester.exam}
                             onChange={(value) => updateSubjectField(originalSubjectIndex, 'secondSemester.exam', value)}
                             isEditable={isEditable}
-                            placeholder="0"
+                            placeholder=""
                             field={`subject-${originalSubjectIndex}-exam2`}
                             isTableCell={true}
                           />
@@ -965,7 +1200,7 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
                             value={subject.secondSemester.total}
                             onChange={(value) => updateSubjectField(originalSubjectIndex, 'secondSemester.total', value)}
                             isEditable={isEditable}
-                            placeholder="0"
+                            placeholder=""
                             field={`subject-${originalSubjectIndex}-total2`}
                             isTableCell={true}
                           />
@@ -975,7 +1210,7 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
                             value={subject.overallTotal}
                             onChange={(value) => updateSubjectField(originalSubjectIndex, 'overallTotal', value)}
                             isEditable={isEditable}
-                            placeholder="0"
+                            placeholder=""
                             field={`subject-${originalSubjectIndex}-overall`}
                             isTableCell={true}
                           />
@@ -1017,7 +1252,7 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
                     value={data.summaryValues?.aggregatesMaxima?.period1 || ''}
                     onChange={(value) => updateSummaryField('aggregatesMaxima', 'period1', value)}
                     isEditable={isEditable}
-                    placeholder="0"
+                    placeholder=""
                     field="aggregatesMaxima-period1"
                     isTableCell={true}
                   />
@@ -1027,7 +1262,7 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
                     value={data.summaryValues?.aggregatesMaxima?.period2 || ''}
                     onChange={(value) => updateSummaryField('aggregatesMaxima', 'period2', value)}
                     isEditable={isEditable}
-                    placeholder="0"
+                    placeholder=""
                     field="aggregatesMaxima-period2"
                     isTableCell={true}
                   />
@@ -1037,7 +1272,7 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
                     value={data.summaryValues?.aggregatesMaxima?.exam1 || ''}
                     onChange={(value) => updateSummaryField('aggregatesMaxima', 'exam1', value)}
                     isEditable={isEditable}
-                    placeholder="0"
+                    placeholder=""
                     field="aggregatesMaxima-exam1"
                     isTableCell={true}
                   />
@@ -1047,7 +1282,7 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
                     value={data.summaryValues?.aggregatesMaxima?.total1 || renderGrade(data.totalMarksOutOf?.firstSemester)}
                     onChange={(value) => updateSummaryField('aggregatesMaxima', 'total1', value)}
                     isEditable={isEditable}
-                    placeholder="0"
+                    placeholder=""
                     field="aggregatesMaxima-total1"
                     isTableCell={true}
                   />
@@ -1057,7 +1292,7 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
                     value={data.summaryValues?.aggregatesMaxima?.period3 || ''}
                     onChange={(value) => updateSummaryField('aggregatesMaxima', 'period3', value)}
                     isEditable={isEditable}
-                    placeholder="0"
+                    placeholder=""
                     field="aggregatesMaxima-period3"
                     isTableCell={true}
                   />
@@ -1067,7 +1302,7 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
                     value={data.summaryValues?.aggregatesMaxima?.period4 || ''}
                     onChange={(value) => updateSummaryField('aggregatesMaxima', 'period4', value)}
                     isEditable={isEditable}
-                    placeholder="0"
+                    placeholder=""
                     field="aggregatesMaxima-period4"
                     isTableCell={true}
                   />
@@ -1077,7 +1312,7 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
                     value={data.summaryValues?.aggregatesMaxima?.exam2 || ''}
                     onChange={(value) => updateSummaryField('aggregatesMaxima', 'exam2', value)}
                     isEditable={isEditable}
-                    placeholder="0"
+                    placeholder=""
                     field="aggregatesMaxima-exam2"
                     isTableCell={true}
                   />
@@ -1087,7 +1322,7 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
                     value={data.summaryValues?.aggregatesMaxima?.total2 || renderGrade(data.totalMarksOutOf?.secondSemester)}
                     onChange={(value) => updateSummaryField('aggregatesMaxima', 'total2', value)}
                     isEditable={isEditable}
-                    placeholder="0"
+                    placeholder=""
                     field="aggregatesMaxima-total2"
                     isTableCell={true}
                   />
@@ -1097,7 +1332,7 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
                     value={data.summaryValues?.aggregatesMaxima?.overall || ''}
                     onChange={(value) => updateSummaryField('aggregatesMaxima', 'overall', value)}
                     isEditable={isEditable}
-                    placeholder="0"
+                    placeholder=""
                     field="aggregatesMaxima-overall"
                     isTableCell={true}
                   />
@@ -1131,7 +1366,7 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
                     value={data.summaryValues?.aggregates?.period1 || ''}
                     onChange={(value) => updateSummaryField('aggregates', 'period1', value)}
                     isEditable={isEditable}
-                    placeholder="0"
+                    placeholder=""
                     field="aggregates-period1"
                     isTableCell={true}
                   />
@@ -1141,7 +1376,7 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
                     value={data.summaryValues?.aggregates?.period2 || ''}
                     onChange={(value) => updateSummaryField('aggregates', 'period2', value)}
                     isEditable={isEditable}
-                    placeholder="0"
+                    placeholder=""
                     field="aggregates-period2"
                     isTableCell={true}
                   />
@@ -1151,7 +1386,7 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
                     value={data.summaryValues?.aggregates?.exam1 || ''}
                     onChange={(value) => updateSummaryField('aggregates', 'exam1', value)}
                     isEditable={isEditable}
-                    placeholder="0"
+                    placeholder=""
                     field="aggregates-exam1"
                     isTableCell={true}
                   />
@@ -1161,7 +1396,7 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
                     value={data.summaryValues?.aggregates?.total1 || renderGrade(data.totalMarksObtained?.firstSemester)}
                     onChange={(value) => updateSummaryField('aggregates', 'total1', value)}
                     isEditable={isEditable}
-                    placeholder="0"
+                    placeholder=""
                     field="aggregates-total1"
                     isTableCell={true}
                   />
@@ -1171,7 +1406,7 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
                     value={data.summaryValues?.aggregates?.period3 || ''}
                     onChange={(value) => updateSummaryField('aggregates', 'period3', value)}
                     isEditable={isEditable}
-                    placeholder="0"
+                    placeholder=""
                     field="aggregates-period3"
                     isTableCell={true}
                   />
@@ -1181,7 +1416,7 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
                     value={data.summaryValues?.aggregates?.period4 || ''}
                     onChange={(value) => updateSummaryField('aggregates', 'period4', value)}
                     isEditable={isEditable}
-                    placeholder="0"
+                    placeholder=""
                     field="aggregates-period4"
                     isTableCell={true}
                   />
@@ -1191,7 +1426,7 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
                     value={data.summaryValues?.aggregates?.exam2 || ''}
                     onChange={(value) => updateSummaryField('aggregates', 'exam2', value)}
                     isEditable={isEditable}
-                    placeholder="0"
+                    placeholder=""
                     field="aggregates-exam2"
                     isTableCell={true}
                   />
@@ -1201,7 +1436,7 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
                     value={data.summaryValues?.aggregates?.total2 || renderGrade(data.totalMarksObtained?.secondSemester)}
                     onChange={(value) => updateSummaryField('aggregates', 'total2', value)}
                     isEditable={isEditable}
-                    placeholder="0"
+                    placeholder=""
                     field="aggregates-total2"
                     isTableCell={true}
                   />
@@ -1211,7 +1446,7 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
                     value={data.summaryValues?.aggregates?.overall || ''}
                     onChange={(value) => updateSummaryField('aggregates', 'overall', value)}
                     isEditable={isEditable}
-                    placeholder="0"
+                    placeholder=""
                     field="aggregates-overall"
                     isTableCell={true}
                   />
@@ -1225,7 +1460,7 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
                     value={data.summaryValues?.percentage?.period1 || ''}
                     onChange={(value) => updateSummaryField('percentage', 'period1', value)}
                     isEditable={isEditable}
-                    placeholder="0"
+                    placeholder=""
                     field="percentage-period1"
                     isTableCell={true}
                   />
@@ -1235,7 +1470,7 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
                     value={data.summaryValues?.percentage?.period2 || ''}
                     onChange={(value) => updateSummaryField('percentage', 'period2', value)}
                     isEditable={isEditable}
-                    placeholder="0"
+                    placeholder=""
                     field="percentage-period2"
                     isTableCell={true}
                   />
@@ -1245,7 +1480,7 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
                     value={data.summaryValues?.percentage?.exam1 || ''}
                     onChange={(value) => updateSummaryField('percentage', 'exam1', value)}
                     isEditable={isEditable}
-                    placeholder="0"
+                    placeholder=""
                     field="percentage-exam1"
                     isTableCell={true}
                   />
@@ -1255,7 +1490,7 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
                     value={data.summaryValues?.percentage?.total1 || renderGrade(data.percentage?.firstSemester)}
                     onChange={(value) => updateSummaryField('percentage', 'total1', value)}
                     isEditable={isEditable}
-                    placeholder="0"
+                    placeholder=""
                     field="percentage-total1"
                     isTableCell={true}
                   />
@@ -1265,7 +1500,7 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
                     value={data.summaryValues?.percentage?.period3 || ''}
                     onChange={(value) => updateSummaryField('percentage', 'period3', value)}
                     isEditable={isEditable}
-                    placeholder="0"
+                    placeholder=""
                     field="percentage-period3"
                     isTableCell={true}
                   />
@@ -1275,7 +1510,7 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
                     value={data.summaryValues?.percentage?.period4 || ''}
                     onChange={(value) => updateSummaryField('percentage', 'period4', value)}
                     isEditable={isEditable}
-                    placeholder="0"
+                    placeholder=""
                     field="percentage-period4"
                     isTableCell={true}
                   />
@@ -1285,7 +1520,7 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
                     value={data.summaryValues?.percentage?.exam2 || ''}
                     onChange={(value) => updateSummaryField('percentage', 'exam2', value)}
                     isEditable={isEditable}
-                    placeholder="0"
+                    placeholder=""
                     field="percentage-exam2"
                     isTableCell={true}
                   />
@@ -1295,7 +1530,7 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
                     value={data.summaryValues?.percentage?.total2 || renderGrade(data.percentage?.secondSemester)}
                     onChange={(value) => updateSummaryField('percentage', 'total2', value)}
                     isEditable={isEditable}
-                    placeholder="0"
+                    placeholder=""
                     field="percentage-total2"
                     isTableCell={true}
                   />
@@ -1305,7 +1540,7 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
                     value={data.summaryValues?.percentage?.overall || ''}
                     onChange={(value) => updateSummaryField('percentage', 'overall', value)}
                     isEditable={isEditable}
-                    placeholder="0"
+                    placeholder=""
                     field="percentage-overall"
                     isTableCell={true}
                   />
@@ -1319,7 +1554,7 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
                     value={data.summaryValues?.position?.period1 || ''}
                     onChange={(value) => updateSummaryField('position', 'period1', value)}
                     isEditable={isEditable}
-                    placeholder="0"
+                    placeholder=""
                     field="position-period1"
                     isTableCell={true}
                   />
@@ -1329,7 +1564,7 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
                     value={data.summaryValues?.position?.period2 || ''}
                     onChange={(value) => updateSummaryField('position', 'period2', value)}
                     isEditable={isEditable}
-                    placeholder="0"
+                    placeholder=""
                     field="position-period2"
                     isTableCell={true}
                   />
@@ -1339,7 +1574,7 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
                     value={data.summaryValues?.position?.exam1 || ''}
                     onChange={(value) => updateSummaryField('position', 'exam1', value)}
                     isEditable={isEditable}
-                    placeholder="0"
+                    placeholder=""
                     field="position-exam1"
                     isTableCell={true}
                   />
@@ -1359,7 +1594,7 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
                     value={data.summaryValues?.position?.period3 || ''}
                     onChange={(value) => updateSummaryField('position', 'period3', value)}
                     isEditable={isEditable}
-                    placeholder="0"
+                    placeholder=""
                     field="position-period3"
                     isTableCell={true}
                   />
@@ -1369,7 +1604,7 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
                     value={data.summaryValues?.position?.period4 || ''}
                     onChange={(value) => updateSummaryField('position', 'period4', value)}
                     isEditable={isEditable}
-                    placeholder="0"
+                    placeholder=""
                     field="position-period4"
                     isTableCell={true}
                   />
@@ -1379,7 +1614,7 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
                     value={data.summaryValues?.position?.exam2 || ''}
                     onChange={(value) => updateSummaryField('position', 'exam2', value)}
                     isEditable={isEditable}
-                    placeholder="0"
+                    placeholder=""
                     field="position-exam2"
                     isTableCell={true}
                   />
@@ -1399,7 +1634,7 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
                     value={data.summaryValues?.position?.overall || ''}
                     onChange={(value) => updateSummaryField('position', 'overall', value)}
                     isEditable={isEditable}
-                    placeholder="0"
+                    placeholder=""
                     field="position-overall"
                     isTableCell={true}
                   />
@@ -1577,16 +1812,24 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
                     <p className="text-xs font-bold">School stamp</p>
                   </div>
                 </div>
-                <div className="text-center">
-                  <div className="h-8 flex items-end">
+                <div className="text-center relative">
+                  <div className="h-8 flex items-end justify-center relative z-10">
                     <p className="text-xs font-bold">Head teacher name and signature</p>
+                  </div>
+                  {/* Stamp Image - Positioned exactly over the head teacher text */}
+                  <div className="absolute inset-0 flex items-center justify-center z-20">
+                    <img 
+                      src="/stamp.png" 
+                      alt="School Stamp" 
+                      className="w-32 h-32 opacity-80"
+                    />
                   </div>
                 </div>
               </div>
             </div>
             
-            {/* Legal Notice Section with Stamp */}
-            <div className="relative space-y-2 pt-2">
+            {/* Legal Notice Section */}
+            <div className="space-y-2 pt-2">
               <div>
                 <p className="text-xs text-left font-medium">NOTE: This report card is invalid if altered or modified.</p>
               </div>
@@ -1595,15 +1838,6 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
                 <p className="text-xs font-bold italic text-gray-700">
                   Reproduction of this report is strictly prohibited and punishable by law
                 </p>
-              </div>
-              
-              {/* Stamp Image - Positioned at right corner */}
-              <div className="absolute top-0 right-0 -mt-2">
-                <img 
-                  src="/stamp.png" 
-                  alt="School Stamp" 
-                  className="w-16 h-16 opacity-70"
-                />
               </div>
             </div>
           </div>

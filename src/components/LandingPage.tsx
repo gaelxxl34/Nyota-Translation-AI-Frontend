@@ -13,14 +13,12 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
       {/* Navigation Header */}
       <nav className="container mx-auto px-4 sm:px-6 py-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-gradient-to-r from-primary-600 to-secondary-600 rounded-lg flex items-center justify-center">
-              <img
-                src="/icon.png"
-                alt="Nyota Translation Center Logo"
-                className="w-8 h-8 rounded-lg object-cover"
-              />
-            </div>
+          <div className="flex items-center space-x-3">
+            <img
+              src="/log.PNG"
+              alt="Nyota Translation Center Logo"
+              className="h-12 w-auto rounded-lg shadow-md"
+            />
             <h1 className="text-xl font-heading font-bold text-gray-900">
               Nyota Translation Center
             </h1>
