@@ -398,44 +398,9 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
   };
 
   // Sort subjects before grouping (memoized for performance)
-  const sortedSubjects = useMemo(() => {
-    return sortSubjectsByMaxima([...(data.subjects || [])]);
-  }, [data.subjects]);
-
-  // Group subjects by their maxima values (memoized for performance)
-  const subjectGroups = useMemo(() => {
-    const groupSubjectsByMaxima = (subjects: SubjectGrade[]) => {
-      const maximaMap = new Map<string, { maxima: Maxima; subjects: SubjectGrade[] }>();
-
-      subjects.forEach(subject => {
-        // Skip subjects without maxima (empty template subjects)
-        if (!subject.maxima) {
-          return;
-        }
-        
-        const maxima = subject.maxima;
-        const key = `${maxima.periodMaxima}-${maxima.examMaxima}-${maxima.totalMaxima}`;
-        
-        if (!maximaMap.has(key)) {
-          maximaMap.set(key, { maxima, subjects: [] });
-        }
-        maximaMap.get(key)!.subjects.push(subject);
-      });
-
-      // If no subjects with maxima, return empty template group for display
-      if (maximaMap.size === 0) {
-        return [{
-          maxima: { periodMaxima: 20, examMaxima: 40, totalMaxima: 80 },
-          subjects: subjects.slice(0, 10) // Show first 10 empty subjects for template
-        }];
-      }
-
-      // Convert map to array and sort by total maxima (ascending - smallest first)
-      return Array.from(maximaMap.values()).sort((a, b) => a.maxima.totalMaxima - b.maxima.totalMaxima);
-    };
-    
-    return groupSubjectsByMaxima(sortedSubjects);
-  }, [sortedSubjects]);
+  // const sortedSubjects = useMemo(() => {
+  //   return sortSubjectsByMaxima([...(data.subjects || [])]);
+  // }, [data.subjects]);
 
   // Helper function to update maxima values for a specific group
   const updateMaximaField = (groupIndex: number, field: string, value: string) => {
