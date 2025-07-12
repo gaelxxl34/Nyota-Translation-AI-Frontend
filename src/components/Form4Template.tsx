@@ -2,7 +2,7 @@
 // Converts French school bulletins to English format with proper A4 sizing
 // Specifically designed for 4th Year Humanities Math-Physics class structure
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 
 interface Maxima {
   periodMaxima: number; // e.g., 10 for religion, 40 for physics
@@ -310,6 +310,27 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
     );
   };
 
+  // Helper functions for automatic calculations
+  const calculateFirstSemesterTotal = (subject: any) => {
+    const period1 = parseFloat(subject.firstSemester?.period1 || '0') || 0;
+    const period2 = parseFloat(subject.firstSemester?.period2 || '0') || 0;
+    const exam = parseFloat(subject.firstSemester?.exam || '0') || 0;
+    return period1 + period2 + exam;
+  };
+
+  const calculateSecondSemesterTotal = (subject: any) => {
+    const period3 = parseFloat(subject.secondSemester?.period3 || '0') || 0;
+    const period4 = parseFloat(subject.secondSemester?.period4 || '0') || 0;
+    const exam = parseFloat(subject.secondSemester?.exam || '0') || 0;
+    return period3 + period4 + exam;
+  };
+
+  const calculateOverallTotal = (subject: any) => {
+    const firstTotal = calculateFirstSemesterTotal(subject);
+    const secondTotal = calculateSecondSemesterTotal(subject);
+    return firstTotal + secondTotal;
+  };
+
   // Helper function to update subject data
   const updateSubjectField = (subjectIndex: number, fieldPath: string, value: string) => {
     if (!onDataChange) return;
@@ -335,6 +356,20 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
     }
     
     target[fields[fields.length - 1]] = value;
+    
+    // Automatically calculate totals after updating period or exam values
+    if (fieldPath.includes('period1') || fieldPath.includes('period2') || fieldPath.includes('firstSemester.exam')) {
+      subject.firstSemester.total = calculateFirstSemesterTotal(subject);
+    }
+    
+    if (fieldPath.includes('period3') || fieldPath.includes('period4') || fieldPath.includes('secondSemester.exam')) {
+      subject.secondSemester.total = calculateSecondSemesterTotal(subject);
+    }
+    
+    // Always recalculate overall total when any semester values change
+    if (fieldPath.includes('period') || fieldPath.includes('exam')) {
+      subject.overallTotal = calculateOverallTotal(subject);
+    }
     
     console.log(`📝 Form4Template: Updated subject ${subjectIndex}, field ${fieldPath} = "${value}"`);
     console.log('Subject after update:', JSON.stringify(subject, null, 2));
@@ -512,6 +547,40 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
   };
 
   const subjects = data.subjects || defaultSubjects;
+  
+  // Drag and drop state
+  const [draggedGroupIndex, setDraggedGroupIndex] = useState<number | null>(null);
+
+  // Drag handlers
+  const handleDragStart = (e: React.DragEvent, groupIndex: number) => {
+    setDraggedGroupIndex(groupIndex);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', groupIndex.toString());
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDrop = (e: React.DragEvent, targetGroupIndex: number) => {
+    e.preventDefault();
+    
+    if (draggedGroupIndex === null || draggedGroupIndex === targetGroupIndex) {
+      setDraggedGroupIndex(null);
+      return;
+    }
+
+    console.log(`🔄 Dragging group ${draggedGroupIndex} to position ${targetGroupIndex}`);
+    
+    // Move the group
+    moveMaximaGroup(draggedGroupIndex, targetGroupIndex);
+    setDraggedGroupIndex(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedGroupIndex(null);
+  };
 
   // Sort subjects by maxima values (same logic as backend)
   const sortSubjectsByMaxima = (subjects: SubjectGrade[]) => {
@@ -592,6 +661,123 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
     return groupSubjectsByMaxima(sortedSubjects);
   }, [sortedSubjects]);
 
+  // MAXIMA Group Management Functions
+  const addMaximaGroup = (newMaxima: Maxima = { periodMaxima: 20, examMaxima: 40, totalMaxima: 80 }) => {
+    if (!onDataChange) return;
+    
+    const newSubjects = [...(data.subjects || [])];
+    
+    // Add a new empty subject with the new maxima values
+    const newSubject: SubjectGrade = {
+      subject: '',
+      firstSemester: { period1: '', period2: '', exam: '', total: '' },
+      secondSemester: { period3: '', period4: '', exam: '', total: '' },
+      overallTotal: '',
+      secondSitting: { marks: '', max: '' },
+      maxima: newMaxima
+    };
+    
+    newSubjects.push(newSubject);
+    onDataChange({ ...data, subjects: newSubjects });
+    console.log('📝 Added new MAXIMA group:', newMaxima);
+  };
+
+  const addSubjectToGroup = (groupIndex: number) => {
+    if (!onDataChange) return;
+    
+    const currentGroups = subjectGroups;
+    if (groupIndex < 0 || groupIndex >= currentGroups.length) return;
+    
+    const targetGroup = currentGroups[groupIndex];
+    const newSubjects = [...(data.subjects || [])];
+    
+    // Create a new subject with the same maxima as the group
+    const newSubject: SubjectGrade = {
+      subject: '',
+      firstSemester: { period1: '', period2: '', exam: '', total: '' },
+      secondSemester: { period3: '', period4: '', exam: '', total: '' },
+      overallTotal: '',
+      secondSitting: { marks: '', max: '' },
+      maxima: { ...targetGroup.maxima }
+    };
+    
+    newSubjects.push(newSubject);
+    onDataChange({ ...data, subjects: newSubjects });
+    console.log('📝 Added new subject to group:', groupIndex);
+  };
+
+  const deleteSubject = (subjectIndex: number) => {
+    if (!onDataChange) return;
+    
+    const currentSubjects = [...(data.subjects || [])];
+    if (subjectIndex < 0 || subjectIndex >= currentSubjects.length) return;
+    
+    const subject = currentSubjects[subjectIndex];
+    const subjectName = subject.subject || 'Unnamed Subject';
+    
+    // Confirm deletion
+    if (!confirm(`Are you sure you want to delete "${subjectName}"?`)) {
+      return;
+    }
+    
+    // Remove the subject at the specified index
+    currentSubjects.splice(subjectIndex, 1);
+    
+    onDataChange({ ...data, subjects: currentSubjects });
+    console.log('🗑️ Deleted subject:', subjectName, 'at index:', subjectIndex);
+  };
+
+  const addCustomMaximaGroup = () => {
+    const periodMaxima = prompt('Enter Period Maxima (e.g., 20):');
+    const examMaxima = prompt('Enter Exam Maxima (e.g., 40):');
+    const totalMaxima = prompt('Enter Total Maxima (e.g., 80):');
+    
+    if (periodMaxima && examMaxima && totalMaxima) {
+      const newMaxima: Maxima = {
+        periodMaxima: parseInt(periodMaxima) || 20,
+        examMaxima: parseInt(examMaxima) || 40,
+        totalMaxima: parseInt(totalMaxima) || 80
+      };
+      addMaximaGroup(newMaxima);
+    }
+  };
+
+  const deleteMaximaGroup = (groupIndex: number) => {
+    if (!onDataChange) return;
+    
+    const currentGroups = subjectGroups;
+    if (groupIndex < 0 || groupIndex >= currentGroups.length) return;
+    
+    const groupToDelete = currentGroups[groupIndex];
+    const newSubjects = (data.subjects || []).filter(subject => 
+      !groupToDelete.subjects.includes(subject)
+    );
+    
+    onDataChange({ ...data, subjects: newSubjects });
+    console.log('🗑️ Deleted MAXIMA group at index:', groupIndex);
+  };
+
+  const moveMaximaGroup = (fromIndex: number, toIndex: number) => {
+    if (!onDataChange) return;
+    
+    const currentGroups = [...subjectGroups];
+    if (fromIndex < 0 || fromIndex >= currentGroups.length || 
+        toIndex < 0 || toIndex >= currentGroups.length) return;
+    
+    // Reorder the groups
+    const [movedGroup] = currentGroups.splice(fromIndex, 1);
+    currentGroups.splice(toIndex, 0, movedGroup);
+    
+    // Reconstruct subjects array in new order
+    const newSubjects: SubjectGrade[] = [];
+    currentGroups.forEach(group => {
+      newSubjects.push(...group.subjects);
+    });
+    
+    onDataChange({ ...data, subjects: newSubjects });
+    console.log(`🔄 Moved MAXIMA group from ${fromIndex} to ${toIndex}`);
+  };
+
   // Render ID number boxes
   const renderIdBoxes = () => {
     const idString = data.idNumber || '';
@@ -640,11 +826,7 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
     ));
   };
 
-  // Update field function
-  // const updateField = (field: string, value: string) => {
-  //   if (!onDataChange) return;
-  //   onDataChange({ ...data, [field]: value });
-  // };
+
 
   return (
     <div className={`bg-white ${className}`}>        {/* A4 Container with proper dimensions */}
@@ -905,6 +1087,28 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
 
         {/* Grades Table */}
         <div className="print:break-inside-avoid">
+          {/* MAXIMA Group Controls */}
+          {isEditable && (
+            <div className="mb-2 flex justify-start space-x-2">
+              <button
+                onClick={() => addMaximaGroup()}
+                className="px-3 py-1 bg-green-500 hover:bg-green-600 text-white text-xs rounded flex items-center space-x-1"
+                title="Add new MAXIMA group with default values (20/40/80)"
+              >
+                <span>+</span>
+                <span>Add MAXIMA Group</span>
+              </button>
+              <button
+                onClick={addCustomMaximaGroup}
+                className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white text-xs rounded flex items-center space-x-1"
+                title="Add new MAXIMA group with custom values"
+              >
+                <span>⚙</span>
+                <span>Custom MAXIMA</span>
+              </button>
+            </div>
+          )}
+          
           <table className="table-fixed w-full border-collapse text-xs">
             <thead>
               {/* Semester Group Headers */}
@@ -968,8 +1172,57 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
                   
                   // MAXIMA row for this group
                   groupRows.push(
-                    <tr key={`maxima-${groupIndex}`} className="bg-gray-100 print:bg-gray-200">
-                      <td className="border border-black px-0.5 py-0.5 text-xs font-bold bg-white">MAXIMA</td>
+                    <tr 
+                      key={`maxima-${groupIndex}`} 
+                      className={`bg-gray-100 print:bg-gray-200 ${isEditable ? 'cursor-move' : ''} ${draggedGroupIndex === groupIndex ? 'opacity-50' : ''}`}
+                      draggable={isEditable}
+                      onDragStart={(e) => handleDragStart(e, groupIndex)}
+                      onDragOver={handleDragOver}
+                      onDrop={(e) => handleDrop(e, groupIndex)}
+                      onDragEnd={handleDragEnd}
+                    >
+                      <td className="border border-black px-0.5 py-0.5 text-xs font-bold bg-white relative">
+                        <div className="flex items-center justify-between">
+                          <span className="flex items-center">
+                            {isEditable && (
+                              <span className="mr-1 text-gray-400" title="Drag to reorder">⋮⋮</span>
+                            )}
+                            MAXIMA
+                          </span>
+                          {isEditable && (
+                            <div className="flex items-center space-x-1 ml-2">
+                              {/* Move Up Button */}
+                              {groupIndex > 0 && (
+                                <button
+                                  onClick={() => moveMaximaGroup(groupIndex, groupIndex - 1)}
+                                  className="w-4 h-4 bg-blue-500 hover:bg-blue-600 text-white rounded text-[8px] flex items-center justify-center"
+                                  title="Move up"
+                                >
+                                  ↑
+                                </button>
+                              )}
+                              {/* Move Down Button */}
+                              {groupIndex < subjectGroups.length - 1 && (
+                                <button
+                                  onClick={() => moveMaximaGroup(groupIndex, groupIndex + 1)}
+                                  className="w-4 h-4 bg-blue-500 hover:bg-blue-600 text-white rounded text-[8px] flex items-center justify-center"
+                                  title="Move down"
+                                >
+                                  ↓
+                                </button>
+                              )}
+                              {/* Delete Button */}
+                              <button
+                                onClick={() => deleteMaximaGroup(groupIndex)}
+                                className="w-4 h-4 bg-red-500 hover:bg-red-600 text-white rounded text-[8px] flex items-center justify-center"
+                                title="Delete group"
+                              >
+                                ×
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </td>
                       <td className="border border-black px-0.5 py-0.5 text-xs text-center font-bold bg-white">
                         <EditableField 
                           value={group.maxima.periodMaxima}
@@ -1089,15 +1342,26 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
                     groupRows.push(
                       <tr key={`subject-${groupIndex}-${subjectIndex}`}>
                         <td className="border border-black px-0.5 py-0.5 text-xs bg-white text-left">
-                          <EditableField 
-                            value={subject.subject}
-                            onChange={(value) => updateSubjectField(originalSubjectIndex, 'subject', value)}
-                            isEditable={isEditable}
-                            placeholder="Subject name"
-                            field={`subject-${originalSubjectIndex}-name`}
-                            isTableCell={true}
-                            className="text-left"
-                          />
+                          <div className="flex items-center justify-between">
+                            <EditableField 
+                              value={subject.subject}
+                              onChange={(value) => updateSubjectField(originalSubjectIndex, 'subject', value)}
+                              isEditable={isEditable}
+                              placeholder="Subject name"
+                              field={`subject-${originalSubjectIndex}-name`}
+                              isTableCell={true}
+                              className="text-left flex-grow"
+                            />
+                            {isEditable && (
+                              <button
+                                onClick={() => deleteSubject(originalSubjectIndex)}
+                                className="ml-2 w-4 h-4 bg-red-500 hover:bg-red-600 text-white rounded text-[8px] flex items-center justify-center flex-shrink-0"
+                                title="Delete subject"
+                              >
+                                ×
+                              </button>
+                            )}
+                          </div>
                         </td>
                         <td className="border border-black px-0.5 py-0.5 text-xs text-center bg-white">
                           <EditableField 
@@ -1131,9 +1395,9 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
                         </td>
                         <td className="border border-black px-0.5 py-0.5 text-xs text-center bg-white">
                           <EditableField 
-                            value={subject.firstSemester.total}
-                            onChange={(value) => updateSubjectField(originalSubjectIndex, 'firstSemester.total', value)}
-                            isEditable={isEditable}
+                            value={calculateFirstSemesterTotal(subject)}
+                            onChange={() => {}} // Non-editable - calculated automatically
+                            isEditable={false} // Always non-editable since it's calculated
                             placeholder=""
                             field={`subject-${originalSubjectIndex}-total1`}
                             isTableCell={true}
@@ -1171,9 +1435,9 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
                         </td>
                         <td className="border border-black px-0.5 py-0.5 text-xs text-center bg-white">
                           <EditableField 
-                            value={subject.secondSemester.total}
-                            onChange={(value) => updateSubjectField(originalSubjectIndex, 'secondSemester.total', value)}
-                            isEditable={isEditable}
+                            value={calculateSecondSemesterTotal(subject)}
+                            onChange={() => {}} // Non-editable - calculated automatically
+                            isEditable={false} // Always non-editable since it's calculated
                             placeholder=""
                             field={`subject-${originalSubjectIndex}-total2`}
                             isTableCell={true}
@@ -1181,9 +1445,9 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
                         </td>
                         <td className="border border-black px-0.5 py-0.5 text-xs text-center bg-white">
                           <EditableField 
-                            value={subject.overallTotal}
-                            onChange={(value) => updateSubjectField(originalSubjectIndex, 'overallTotal', value)}
-                            isEditable={isEditable}
+                            value={calculateOverallTotal(subject)}
+                            onChange={() => {}} // Non-editable - calculated automatically
+                            isEditable={false} // Always non-editable since it's calculated
                             placeholder=""
                             field={`subject-${originalSubjectIndex}-overall`}
                             isTableCell={true}
@@ -1213,6 +1477,26 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
                     );
                     rowIndex++;
                   });
+
+                  // Add Subject button row for this group (only in edit mode)
+                  if (isEditable) {
+                    groupRows.push(
+                      <tr key={`add-subject-${groupIndex}`} className="bg-gray-50 print:hidden">
+                        <td className="border border-black px-0.5 py-0.5 text-xs bg-white">
+                          <button
+                            onClick={() => addSubjectToGroup(groupIndex)}
+                            className="w-full px-2 py-1 bg-green-100 hover:bg-green-200 text-green-700 text-xs rounded border border-green-300 flex items-center justify-center space-x-1"
+                            title={`Add new subject to MAXIMA group ${groupIndex + 1}`}
+                          >
+                            <span>+</span>
+                            <span>Add Subject</span>
+                          </button>
+                        </td>
+                        <td colSpan={11} className="border border-black bg-gray-50"></td>
+                      </tr>
+                    );
+                    rowIndex++;
+                  }
                   
                   return groupRows;
                 }).flat();
@@ -1437,7 +1721,7 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
                     placeholder=""
                     field="percentage-period1"
                     isTableCell={true}
-                  />
+                                   />
                 </td>
                 <td className="border border-black px-0.5 py-0.5 text-xs text-center">
                   <EditableField 
@@ -1767,7 +2051,34 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
               
               <div className="flex justify-between items-center">
                 <p className="text-xs">The student is promoted to the next class (1)</p>
-                <p className="text-xs">Issued at: {data.issueLocation || '............'} on: {data.issueDate || '................'}</p>
+                <p className="text-xs flex items-center">
+                  Issued at: 
+                  <EditableField 
+                    value={data.issueLocation || ''} 
+                    isEditable={isEditable}
+                    placeholder="Enter location"
+                    field="issueLocation"
+                    className="mx-1"
+                    onChange={(value) => {
+                      if (onDataChange) {
+                        onDataChange({ ...data, issueLocation: value });
+                      }
+                    }}
+                  />
+                  on: 
+                  <EditableField 
+                    value={data.issueDate || ''} 
+                    isEditable={isEditable}
+                    placeholder="DD/MM/YYYY"
+                    field="issueDate"
+                    className="ml-1"
+                    onChange={(value) => {
+                      if (onDataChange) {
+                        onDataChange({ ...data, issueDate: value });
+                      }
+                    }}
+                  />
+                </p>
               </div>
               
               <p className="text-xs">The student should repeat: {data.shouldRepeat || '........................'} (1)</p>
