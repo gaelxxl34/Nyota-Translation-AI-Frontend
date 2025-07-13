@@ -613,20 +613,14 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
       </nav>
 
       <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-6 sm:py-8">
-        {/* Responsive Header & Template Button */}
-        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        {/* Responsive Header */}
+        <div className="mb-8">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">My Bulletins</h1>
             <p className="text-gray-600 mt-2 text-sm sm:text-base">
               Upload French school bulletins, view and edit extracted data, then download English report cards.
             </p>
           </div>
-          <button
-            onClick={() => window.location.href = '/bulletin-template'}
-            className="w-full sm:w-auto px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium shadow transition-colors"
-          >
-            View Bulletin Template
-          </button>
         </div>
 
         {/* Upload Section */}

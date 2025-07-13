@@ -7,7 +7,6 @@ import LandingPage from './components/LandingPage';
 import LoginPage from './components/LoginPage';
 import RegisterPage from './components/RegisterPage';
 import FirestoreOnlyDashboardPage from './components/FirestoreOnlyDashboardPage';
-import BulletinTemplatePage from './components/BulletinTemplatePage';
 import CardOnlyPage from './components/CardOnlyPage';
 import TermsAndConditionsPage from './components/TermsAndConditionsPage';
 import PrivacyPolicyPage from './components/PrivacyPolicyPage';
@@ -22,7 +21,6 @@ type PageType =
   | 'login'
   | 'register'
   | 'dashboard'
-  | 'bulletin-template'
   | 'card-only'
   | 'terms'
   | 'privacy'
@@ -36,7 +34,6 @@ type NavigateToPage = (page: PageType) => void;
 // Helper function to get page from pathname
 const getPageFromPath = (pathname: string): PageType => {
   if (pathname === '/card-only') return 'card-only';
-  if (pathname === '/bulletin-template') return 'bulletin-template';
   if (pathname === '/login') return 'login';
   if (pathname === '/register') return 'register';
   if (pathname === '/dashboard') return 'dashboard';
@@ -53,7 +50,6 @@ const getPathFromPage = (page: PageType): string => {
     'login': '/login',
     'register': '/register',
     'dashboard': '/dashboard',
-    'bulletin-template': '/bulletin-template',
     'card-only': '/card-only',
     'terms': '/terms',
     'privacy': '/privacy',
@@ -160,8 +156,6 @@ const AuthAwareRouter: React.FC = () => {
         return <RegisterPage onNavigate={navigateToPage} />;
       case 'dashboard':
         return <FirestoreOnlyDashboardPage />;
-      case 'bulletin-template':
-        return <BulletinTemplatePage onNavigate={navigateToPage} />;
       case 'card-only':
         return <CardOnlyPage />;
       case 'terms':
