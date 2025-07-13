@@ -47,73 +47,120 @@ const FirestoreOnlyPDFDownloadButton: React.FC<FirestoreOnlyPDFDownloadButtonPro
       console.log('🔥 Using Firestore ID:', firestoreId);
       console.log('👤 User:', currentUser.uid);
 
-      // Send ONLY the Firestore ID to backend - no localStorage data
-      const backendUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
-      const frontendUrl = import.meta.env.VITE_FRONTEND_URL || 'http://localhost:5173';
+      // Smart backend URL detection with fallbacks
+      const isProduction = window.location.hostname !== 'localhost';
+      const currentProtocol = window.location.protocol;
+      const currentHostname = window.location.hostname;
       
-      console.log('🔗 Backend URL:', backendUrl);
-      console.log('� Frontend URL:', frontendUrl);
-      console.log('�📤 Sending ONLY Firestore ID - no localStorage dependency');
+      let backendUrls: string[] = [];
       
-      const response = await fetch(`${backendUrl}/api/export-pdf`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          firestoreId: firestoreId, // ONLY send Firestore ID
-          frontendUrl: frontendUrl,
-          waitSelector: '#bulletin-template',
-          pdfOptions: {
-            format: 'A4',
-            printBackground: true,
-            margin: {
-              top: '10mm',
-              bottom: '10mm',
-              left: '10mm',
-              right: '10mm'
-            }
-          }
-        })
-      });
-
-      console.log('📡 Response status:', response.status);
-      console.log('📡 Response headers:', response.headers);
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('❌ Backend error response:', errorText);
-        throw new Error(`PDF generation failed: ${response.status} ${response.statusText} - ${errorText}`);
+      if (import.meta.env.VITE_API_BASE_URL) {
+        // Use environment variable if set
+        backendUrls.push(import.meta.env.VITE_API_BASE_URL);
+      } else if (isProduction) {
+        // Production fallbacks in order of preference
+        backendUrls = [
+          `${currentProtocol}//${currentHostname}`,           // Same domain, backend will handle /api routing
+          `${currentProtocol}//${currentHostname}:3001`,      // Same domain with port 3001
+          `https://api.${currentHostname}`,                   // Subdomain approach
+          `http://${currentHostname}:3001`                    // HTTP fallback (less secure)
+        ];
+      } else {
+        // Local development
+        backendUrls = ['http://localhost:3001'];
       }
 
-      // Get the PDF blob
-      const pdfBlob = await response.blob();
+      const frontendUrl = import.meta.env.VITE_FRONTEND_URL || 
+        (isProduction ? `${currentProtocol}//${currentHostname}` : 'http://localhost:5173');
       
-      // Create download link
-      const url = window.URL.createObjectURL(pdfBlob);
-      const link = document.createElement('a');
-      link.href = url;
-      
-      // Use student name from props or fallback
-      const fileName = studentName 
-        ? `${studentName.replace(/\s+/g, '_')}_Report_Card.pdf`
-        : 'Report_Card.pdf';
-      
-      link.download = fileName;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-      // Clean up object URL
-      window.URL.revokeObjectURL(url);
-      
-      console.log('✅ PDF downloaded successfully:', fileName);
-      
-      // Show success feedback
-      setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 3000);
-      
-      onSuccess?.();
+      console.log('🌍 Environment Detection:');
+      console.log('  - isProduction:', isProduction);
+      console.log('  - currentProtocol:', currentProtocol);
+      console.log('  - currentHostname:', currentHostname);
+      console.log('🔗 Backend URLs to try:', backendUrls);
+      console.log('🌐 Frontend URL:', frontendUrl);
+      console.log('📤 Sending ONLY Firestore ID - no localStorage dependency');
+
+      // Try each backend URL until one works
+      let lastError: Error | null = null;
+      for (let i = 0; i < backendUrls.length; i++) {
+        const backendUrl = backendUrls[i];
+        console.log(`🔄 Trying backend URL ${i + 1}/${backendUrls.length}:`, backendUrl);
+        
+        try {
+          const response = await fetch(`${backendUrl}/api/export-pdf`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              firestoreId: firestoreId, // ONLY send Firestore ID
+              frontendUrl: frontendUrl,
+              waitSelector: '#bulletin-template',
+              pdfOptions: {
+                format: 'A4',
+                printBackground: true,
+                margin: {
+                  top: '10mm',
+                  bottom: '10mm',
+                  left: '10mm',
+                  right: '10mm'
+                }
+              }
+            })
+          });
+
+          console.log(`📡 Response from ${backendUrl}:`, response.status);
+
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.warn(`❌ Backend ${backendUrl} failed:`, response.status, errorText);
+            throw new Error(`${response.status} ${response.statusText}`);
+          }
+
+          // Success! Get the PDF blob
+          const pdfBlob = await response.blob();
+          
+          // Create download link
+          const url = window.URL.createObjectURL(pdfBlob);
+          const link = document.createElement('a');
+          link.href = url;
+          
+          // Use student name from props or fallback
+          const fileName = studentName 
+            ? `${studentName.replace(/\s+/g, '_')}_Report_Card.pdf`
+            : 'Report_Card.pdf';
+          
+          link.download = fileName;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          
+          // Clean up object URL
+          window.URL.revokeObjectURL(url);
+          
+          console.log(`✅ PDF downloaded successfully from ${backendUrl}:`, fileName);
+          
+          // Show success feedback
+          setShowSuccess(true);
+          setTimeout(() => setShowSuccess(false), 3000);
+          
+          onSuccess?.();
+          return; // Exit the loop on success
+          
+        } catch (fetchError) {
+          lastError = fetchError instanceof Error ? fetchError : new Error(String(fetchError));
+          console.warn(`❌ Failed to connect to ${backendUrl}:`, lastError.message);
+          
+          // If this is the last URL to try, we'll throw the error below
+          if (i === backendUrls.length - 1) {
+            console.error('❌ All backend URLs failed');
+          }
+        }
+      }
+
+      // If we get here, all backend URLs failed
+      throw lastError || new Error('All backend URLs failed to respond');
       
     } catch (error) {
       console.error('❌ PDF generation error:', error);
