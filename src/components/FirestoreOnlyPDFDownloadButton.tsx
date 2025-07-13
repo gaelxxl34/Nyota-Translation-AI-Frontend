@@ -52,11 +52,20 @@ const FirestoreOnlyPDFDownloadButton: React.FC<FirestoreOnlyPDFDownloadButtonPro
       const currentProtocol = window.location.protocol;
       const currentHostname = window.location.hostname;
       
+      // Debug environment variables
+      const envApiUrl = import.meta.env.VITE_API_BASE_URL;
+      const envFrontendUrl = import.meta.env.VITE_FRONTEND_URL;
+      
+      console.log('🔧 Environment Variables Debug:');
+      console.log('  - VITE_API_BASE_URL:', envApiUrl);
+      console.log('  - VITE_FRONTEND_URL:', envFrontendUrl);
+      console.log('  - All env vars:', import.meta.env);
+      
       let backendUrls: string[] = [];
       
-      if (import.meta.env.VITE_API_BASE_URL) {
-        // Use environment variable if set
-        backendUrls.push(import.meta.env.VITE_API_BASE_URL);
+      if (envApiUrl && envApiUrl !== 'https://your-backend-domain.com') {
+        // Use environment variable if set and not placeholder
+        backendUrls.push(envApiUrl);
       } else if (isProduction) {
         // Production fallbacks in order of preference
         backendUrls = [
@@ -70,8 +79,9 @@ const FirestoreOnlyPDFDownloadButton: React.FC<FirestoreOnlyPDFDownloadButtonPro
         backendUrls = ['http://localhost:3001'];
       }
 
-      const frontendUrl = import.meta.env.VITE_FRONTEND_URL || 
-        (isProduction ? `${currentProtocol}//${currentHostname}` : 'http://localhost:5173');
+      const frontendUrl = (envFrontendUrl && envFrontendUrl !== 'https://your-frontend-domain.com') 
+        ? envFrontendUrl 
+        : (isProduction ? `${currentProtocol}//${currentHostname}` : 'http://localhost:5173');
       
       console.log('🌍 Environment Detection:');
       console.log('  - isProduction:', isProduction);
