@@ -28,70 +28,221 @@ body {
   min-height: 100vh;
 }
 
-/* Custom component styles */
-.btn-primary {
-  @apply bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2;
+/* State Diploma landing page preview styles */
+.state-diploma-landing-preview {
+  transform-origin: top center;
+  margin-bottom: -30px; /* Compensate for the scaling effect */
+  overflow: visible;
 }
 
-.btn-secondary {
-  @apply bg-white hover:bg-gray-50 text-primary-600 font-medium py-2 px-4 rounded-lg border border-primary-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2;
+/* Handle the container better */
+.state-diploma-landing-preview > div {
+  padding-top: 5px;
+  padding-bottom: 5px;
 }
 
-.form-input {
-  @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors duration-200;
+.state-diploma-landing-preview h1,
+.state-diploma-landing-preview h2,
+.state-diploma-landing-preview h3 {
+  font-size: 1.62em !important;
+  margin-top: 0.2em !important;
+  margin-bottom: 0.2em !important;
 }
 
-.form-label {
-  @apply block text-sm font-medium text-gray-700 mb-1;
+.state-diploma-landing-preview p,
+.state-diploma-landing-preview span {
+  font-size: 0.99em !important;
+  line-height: 1.3 !important;
 }
 
-/* Print styles for bulletin template */
+/* Specifically target the main certificate text */
+.state-diploma-landing-preview div[style*="mainTextStyle"] {
+  font-size: 1.3em !important;
+  line-height: 1.3 !important;
+  margin-top: 0 !important;
+  margin-bottom: 0.2em !important;
+}
+
+/* WE THE UNDERSIGNED and other uppercase paragraphs */
+.state-diploma-landing-preview p {
+  font-size: 0.99em !important;
+  line-height: 1.3 !important;
+  margin-top: 0.1em !important;
+  margin-bottom: 0.1em !important;
+}
+
+/* Specific State Diploma elements */
+.state-diploma-landing-preview div[style*="infoFieldStyle"] {
+  font-size: 0.75em !important;
+  padding: 0 !important;
+  height: 20px !important;
+  margin-bottom: 0 !important;
+  margin-top: 0 !important;
+}
+
+/* Target the student name specifically */
+.state-diploma-landing-preview div[style*="infoFieldStyle"]:not([style*="width"]):not([style*="flex"]) {
+  font-size: 0.8em !important;
+}
+
+/* Targeted size reductions for specific elements */
+.state-diploma-landing-preview div[style*="signatureBoxStyle"] {
+  font-size: 0.55em !important;
+  transform: scale(0.8);
+  transform-origin: center;
+  margin-top: -8px;
+  height: auto !important;
+}
+
+/* Signature lines and photo placeholders */
+.state-diploma-landing-preview div[style*="signatureLineStyle"],
+.state-diploma-landing-preview div[style*="photoPlaceholderStyle"] {
+  transform: scale(0.6);
+  transform-origin: center;
+  margin: 0 !important;
+}
+
+/* Target signature text directly */
+.state-diploma-landing-preview div[style*="signatureBoxStyle"] {
+  font-size: 0.75em !important;
+  line-height: 1.3 !important;
+}
+
+/* Specifically target the text nodes in signature boxes */
+.state-diploma-landing-preview div[style*="signatureBoxStyle"] br {
+  display: inline;
+  content: " ";
+  margin-right: 0;
+}
+
+/* Number boxes */
+.state-diploma-landing-preview div[style*="numberBoxStyle"],
+.state-diploma-landing-preview div[style*="serialBoxStyle"],
+.state-diploma-landing-preview div[style*="dateBoxStyle"],
+.state-diploma-landing-preview div[style*="resultBoxStyle"] {
+  font-size: 0.65em !important;
+  transform: scale(0.8) !important;
+  transform-origin: center;
+  margin: 0 !important;
+}
+
+/* Target date boxes specifically */
+.state-diploma-landing-preview div[style*="dateBoxStyle"] {
+  font-size: 0.65em !important;
+  width: 16px !important;
+  height: 16px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Target result boxes specifically */
+.state-diploma-landing-preview div[style*="resultBoxStyle"] {
+  font-size: 0.65em !important;
+  width: 18px !important;
+  height: 18px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Smaller sections and options */
+.state-diploma-landing-preview div[style*="infoFieldStyle"][style*="width: '180px'"] {
+  font-size: 0.6em !important;
+}
+
+/* Percentage text */
+.state-diploma-landing-preview div[style*="infoFieldStyle"][style*="flex: 1"] {
+  font-size: 0.6em !important;
+}
+
+/* Main heading and title */
+.state-diploma-landing-preview div[style*="textAlign: 'center'"] h1,
+.state-diploma-landing-preview div[style*="text-align: center"] h1 {
+  font-size: 0.9em !important;
+  margin-top: 0 !important;
+  margin-bottom: 0.1em !important;
+}
+
+/* Adjust the signature section */
+.state-diploma-landing-preview div[style*="flex: 1"] {
+  padding: 1px !important;
+}
+
+/* Tighten up the main container padding */
+.state-diploma-landing-preview > div > div {
+  padding: 8px !important;
+}
+
+/* Component styles */
+@layer components {
+  .btn-primary {
+    @apply bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2;
+  }
+  
+  .btn-secondary {
+    @apply bg-white hover:bg-gray-50 text-primary-600 font-medium py-2 px-4 rounded-lg border border-primary-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2;
+  }
+  
+  .form-input {
+    @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors duration-200;
+  }
+  
+  .form-label {
+    @apply block text-sm font-medium text-gray-700 mb-1;
+  }
+}
+
+/* Font Configuration */
+.font-heading {
+  font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* PDF Mode */
+.pdf-mode {
+  background-color: white !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  max-width: none !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Print Styles */
 @media print {
-  @page {
-    size: A4;
-    margin: 0.5in;
-  }
-  
   body {
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
-  
-  /* Hide everything except the template when printing */
-  .print\\:hide {
-    display: none !important;
-  }
-  
-  /* Ensure the template prints properly with A4 dimensions */
-  #bulletin-template {
-    width: 210mm !important;
-    height: 297mm !important;
-    min-height: 297mm !important;
-    max-width: 210mm !important;
-    break-inside: avoid;
-    page-break-inside: avoid;
+    background-color: white !important;
     margin: 0 !important;
     padding: 0 !important;
   }
   
-  /* Print-specific font sizes */
-  #bulletin-template table {
-    font-size: 8pt !important;
-    line-height: 1.1 !important;
+  .pdf-mode {
+    padding: 0 !important;
+    margin: 0 !important;
   }
   
-  /* Ensure borders print */
-  #bulletin-template td,
-  #bulletin-template th {
-    border: 1px solid #000 !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
+  /* Hide elements that shouldn't be printed */
+  nav, header, footer, button, .no-print {
+    display: none !important;
+  }
+}
+
+/* Mobile Specific Styles for State Diploma */
+@media (max-width: 640px) {
+  /* Reduce headings size on mobile for State Diploma */
+  .state-diploma-landing-preview h1,
+  .state-diploma-landing-preview h2,
+  .state-diploma-landing-preview h3 {
+    font-size: 0.85em !important;
   }
   
-  /* Ensure black backgrounds print */
-  #bulletin-template .bg-black {
-    background-color: #000 !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
+  /* Reduce main text size on mobile for State Diploma */
+  .state-diploma-landing-preview div[style*="mainTextStyle"] {
+    font-size: 0.9em !important;
+  }
+  
+  /* Adjust centered headings specifically for State Diploma */
+  .state-diploma-landing-preview div[style*="textAlign: 'center'"] h1,
+  .state-diploma-landing-preview div[style*="text-align: center"] h1,
+  .state-diploma-landing-preview div[style*="text-align: center"] h2 {
+    font-size: 0.75em !important;
   }
 }

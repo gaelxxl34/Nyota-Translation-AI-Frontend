@@ -1,15 +1,19 @@
 // Login Page Component for NTC
-// Login form with Firebase Authentication integration
+// Login form with Firebase Authentication integration and i18n support
 
 import React, { useState } from 'react';
 import { useAuth } from '../AuthProvider';
+import { useTranslation } from 'react-i18next';
+import AuthNavigation from './AuthNavigation';
+import type { NavigateToPage } from '../App';
 
 interface LoginPageProps {
-  onNavigate: (page: 'landing' | 'login' | 'register' | 'dashboard' | 'forgot-password') => void;
+  onNavigate: NavigateToPage;
 }
 
 const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
   const { login, error, clearError, loading } = useAuth();
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -47,35 +51,23 @@ const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        {/* Header */}
-        <div className="flex justify-center mb-6">
-          <button
-            onClick={() => onNavigate('landing')}
-            className="flex items-center space-x-3 hover:opacity-80 transition-opacity"
-          >
-            <img
-              src="/log.PNG"
-              alt="Nyota Translation Center Logo"
-              className="h-12 w-auto rounded-lg shadow-md"
-            />
-            <span className="text-xl font-heading font-bold text-gray-900">
-              Nyota Translation Center
-            </span>
-          </button>
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50">
+      {/* Navigation Header */}
+      <AuthNavigation onNavigate={onNavigate} />
+      
+      {/* Main Content */}
+      <div className="flex flex-col justify-center py-8 sm:px-6 lg:px-8">
+        <div className="sm:mx-auto sm:w-full sm:max-w-md">
+          <h2 className="text-center text-3xl font-heading font-bold text-gray-900">
+            {t('auth.login.title')}
+          </h2>
+          <p className="mt-2 text-center text-sm text-gray-600">
+            {t('auth.login.subtitle')}
+          </p>
         </div>
-        
-        <h2 className="text-center text-3xl font-heading font-bold text-gray-900">
-          Welcome back
-        </h2>
-        <p className="mt-2 text-center text-sm text-gray-600">
-          Sign in to your account to continue
-        </p>
-      </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow-xl rounded-lg sm:px-10">
+        <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+          <div className="bg-white py-8 px-4 shadow-2xl rounded-xl border border-gray-100 sm:px-10">
           {/* Error Message */}
           {error && (
             <div className="mb-6 bg-red-50 border border-red-200 rounded-md p-4">
@@ -96,7 +88,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
             {/* Email Field */}
             <div>
               <label htmlFor="email" className="form-label">
-                Email address
+                {t('auth.login.emailLabel')}
               </label>
               <input
                 id="email"
@@ -107,7 +99,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
                 value={formData.email}
                 onChange={handleInputChange}
                 className="form-input"
-                placeholder="Enter your email"
+                placeholder={t('auth.login.emailPlaceholder')}
                 disabled={isSubmitting}
               />
             </div>
@@ -115,7 +107,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
             {/* Password Field */}
             <div>
               <label htmlFor="password" className="form-label">
-                Password
+                {t('auth.login.passwordLabel')}
               </label>
               <input
                 id="password"
@@ -126,7 +118,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
                 value={formData.password}
                 onChange={handleInputChange}
                 className="form-input"
-                placeholder="Enter your password"
+                placeholder={t('auth.login.passwordPlaceholder')}
                 disabled={isSubmitting}
               />
             </div>
@@ -142,7 +134,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
                   disabled={isSubmitting}
                 />
                 <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
-                  Remember me
+                  {t('auth.login.rememberMe')}
                 </label>
               </div>
 
@@ -153,7 +145,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
                   className="font-medium text-primary-600 hover:text-primary-500"
                   disabled={isSubmitting}
                 >
-                  Forgot your password?
+                  {t('auth.login.forgotPassword')}
                 </button>
               </div>
             </div>
@@ -171,10 +163,10 @@ const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    Signing in...
+                    {t('auth.login.signingIn')}
                   </>
                 ) : (
-                  'Sign in'
+                  t('auth.login.signInButton')
                 )}
               </button>
             </div>
@@ -187,7 +179,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
                 <div className="w-full border-t border-gray-300" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">Don't have an account?</span>
+                <span className="px-2 bg-white text-gray-500">{t('auth.login.noAccount')}</span>
               </div>
             </div>
 
@@ -198,9 +190,9 @@ const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
                 disabled={isSubmitting}
                 className="w-full btn-secondary text-center justify-center"
               >
-                Create new account
+                {t('auth.login.createAccount')}
               </button>
-            </div>
+            </div>            </div>
           </div>
         </div>
       </div>

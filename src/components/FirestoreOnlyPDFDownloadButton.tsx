@@ -43,23 +43,18 @@ const FirestoreOnlyPDFDownloadButton: React.FC<FirestoreOnlyPDFDownloadButtonPro
     try {
       setIsGenerating(true);
 
-      console.log('🔄 Starting FIRESTORE-ONLY PDF generation...');
-      console.log('🔥 Using Firestore ID:', firestoreId);
-      console.log('👤 User:', currentUser.uid);
+
 
       // Smart backend URL detection with fallbacks
       const isProduction = window.location.hostname !== 'localhost';
       const currentProtocol = window.location.protocol;
       const currentHostname = window.location.hostname;
       
-      // Debug environment variables
+      // Environment variable configuration
       const envApiUrl = import.meta.env.VITE_API_BASE_URL;
       const envFrontendUrl = import.meta.env.VITE_FRONTEND_URL;
       
-      console.log('🔧 Environment Variables Debug:');
-      console.log('  - VITE_API_BASE_URL:', envApiUrl);
-      console.log('  - VITE_FRONTEND_URL:', envFrontendUrl);
-      console.log('  - All env vars:', import.meta.env);
+
       
       let backendUrls: string[] = [];
       
@@ -83,19 +78,13 @@ const FirestoreOnlyPDFDownloadButton: React.FC<FirestoreOnlyPDFDownloadButtonPro
         ? envFrontendUrl 
         : (isProduction ? `${currentProtocol}//${currentHostname}` : 'http://localhost:5173');
       
-      console.log('🌍 Environment Detection:');
-      console.log('  - isProduction:', isProduction);
-      console.log('  - currentProtocol:', currentProtocol);
-      console.log('  - currentHostname:', currentHostname);
-      console.log('🔗 Backend URLs to try:', backendUrls);
-      console.log('🌐 Frontend URL:', frontendUrl);
-      console.log('📤 Sending ONLY Firestore ID - no localStorage dependency');
+
 
       // Try each backend URL until one works
       let lastError: Error | null = null;
       for (let i = 0; i < backendUrls.length; i++) {
         const backendUrl = backendUrls[i];
-        console.log(`🔄 Trying backend URL ${i + 1}/${backendUrls.length}:`, backendUrl);
+
         
         try {
           const response = await fetch(`${backendUrl}/api/export-pdf`, {
@@ -120,7 +109,7 @@ const FirestoreOnlyPDFDownloadButton: React.FC<FirestoreOnlyPDFDownloadButtonPro
             })
           });
 
-          console.log(`📡 Response from ${backendUrl}:`, response.status);
+
 
           if (!response.ok) {
             const errorText = await response.text();
@@ -149,7 +138,7 @@ const FirestoreOnlyPDFDownloadButton: React.FC<FirestoreOnlyPDFDownloadButtonPro
           // Clean up object URL
           window.URL.revokeObjectURL(url);
           
-          console.log(`✅ PDF downloaded successfully from ${backendUrl}:`, fileName);
+
           
           // Show success feedback
           setShowSuccess(true);

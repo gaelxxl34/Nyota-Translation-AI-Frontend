@@ -1,0 +1,298 @@
+{
+  "navigation": {
+    "login": "Login",
+    "getStarted": "Get Started",
+    "brandName": "Nyota Translation Center"
+  },
+  "hero": {
+    "title": "Transform French",
+    "titleHighlight": "School Bulletins",
+    "titleContinue": "Into English Reports",
+    "subtitle": "Upload your French school bulletin and get an instant, professionally translated English report card powered by advanced AI technology.",
+    "startTranslation": "Start Translation",
+    "alreadyHaveAccount": "Already have an account?"
+  },
+  "features": {
+    "sectionTitle": "Why Choose Nyota Translation Center?",
+    "sectionSubtitle": "Experience the fastest and most accurate way to translate your French school bulletins into professional English reports.",
+    "easyUpload": {
+      "title": "Easy Upload",
+      "description": "Simply upload your French bulletin as an image or PDF file"
+    },
+    "aiPowered": {
+      "title": "AI-Powered Translation",
+      "description": "Advanced AI extracts and translates content with high accuracy"
+    },
+    "professionalReport": {
+      "title": "Professional Report",
+      "description": "Get a clean, formatted English report card ready to use"
+    },
+    "trust": {
+      "badge": "Academically Incubated Project",
+      "title": "Backed by Academic Excellence",
+      "description": "Nyota Translation Center is an incubated project by the International University of East Africa (IUEA), ensuring the highest standards of innovation and reliability in educational translation technology.",
+      "indicators": {
+        "academic": "Academic Excellence",
+        "innovation": "Advanced Innovation",
+        "reliable": "Proven Reliability"
+      },
+      "iuea": {
+        "name": "IUEA",
+        "subtitle": "International University of East Africa"
+      },
+      "partnership": "This academic incubation provides rigorous oversight and validation, ensuring our technology meets the highest academic standards while delivering cutting-edge translation solutions for your educational success."
+    }
+  },
+  "speed": {
+    "sectionTitle": "Lightning Fast Results",
+    "sectionSubtitle": "See how Nyota compares to traditional translation services",
+    "traditional": "Traditional Services",
+    "nyota": "Nyota Translation Center",
+    "timeTraditional": "2-3 weeks",
+    "timeNyota": "5 minutes",
+    "accuracy": "99.5% accurate translations",
+    "availability": "Available 24/7"
+  },
+  "howItWorks": {
+    "sectionTitle": "How It Works",
+    "sectionSubtitle": "Get your translated report card in just 4 simple steps",
+    "steps": {
+      "upload": {
+        "title": "Upload Bulletin",
+        "description": "Upload your French school bulletin as PDF or image"
+      },
+      "extract": {
+        "title": "AI Auto-Extract",
+        "description": "Our AI automatically extracts all relevant information"
+      },
+      "review": {
+        "title": "Review & Correct",
+        "description": "Review the extracted data and make any corrections"
+      },
+      "download": {
+        "title": "Download PDF",
+        "description": "Download your professionally formatted English report"
+      }
+    }
+  },
+  "templates": {
+    "sectionTitle": "Choose Your Template",
+    "sectionSubtitle": "Preview the professional English report cards that our AI will generate from your French bulletins",
+    "featured": "Most Popular",
+    "useTemplate": "Use This Template",
+    "fullPreview": "See Full Preview",
+    "navigation": {
+      "previous": "Previous template",
+      "next": "Next template",
+      "goToSlide": "Go to slide"
+    },
+    "pauseAutoplay": "Pause Auto-play",
+    "resumeAutoplay": "Resume Auto-play",
+    "chooseTemplate": "Choose Template Type",
+    "previewOptions": "Preview Options",
+    "showPreview": "Show Preview",
+    "hidePreview": "Hide Preview",
+    "currentlyShowing": "Currently showing:",
+    "templatePreview": "Template Preview",
+    "form4": {
+      "title": "Form 4 Template",
+      "subtitle": "Perfect for secondary school students in their 4th year"
+    },
+    "form6": {
+      "title": "Form 6 Template",
+      "subtitle": "Ideal for final year students and A-level certificates"
+    },
+    "stateDiploma": {
+      "title": "State Diploma",
+      "subtitle": "Official government-issued certificates and diplomas"
+    },
+    "status": {
+      "printReady": "A4 Print Ready",
+      "printReadyMobile": "Print Ready",
+      "officialTemplate": "Official Template"
+    }
+  },
+  "pricing": {
+    "sectionTitle": "Simple, Transparent Pricing",
+    "sectionSubtitle": "Pay per bulletin with no hidden fees or monthly subscriptions",
+    "mostPopular": "Most Popular",
+    "perBulletin": "per bulletin",
+    "noSubscription": "No subscription required • Pay as you go",
+    "whatsIncluded": "What's included:",
+    "features": {
+      "aiExtraction": "AI-powered extraction and translation",
+      "editableReview": "Editable in-browser review interface",
+      "instantDownload": "Instant PDF download",
+      "multipleFormats": "Multiple template formats available",
+      "secureProcessing": "Secure and private processing"
+    },
+    "startTranslation": "Start Translation",
+    "securePayment": "Secure payment processing with multiple options"
+  },
+  "speedComparison": {
+    "badge": "Speed Comparison",
+    "title": "Manual vs AI-Powered Translation",
+    "subtitle": "See the dramatic difference between outdated manual translation methods and Nyota's cutting-edge AI technology",
+    "traditional": {
+      "label": "Traditional Manual Translation",
+      "method": "Outdated manual typing approach",
+      "unit": "days",
+      "description": "Typical timeframe for manual translation services",
+      "processTitle": "Manual Process Steps",
+      "step1": "Manual data entry and typing",
+      "step2": "Human translation (prone to errors)",
+      "step3": "Multiple review cycles",
+      "step4": "Final formatting and delivery",
+      "start": "Day 1",
+      "end": "Day 21+"
+    },
+    "nyota": {
+      "label": "Nyota AI Translation",
+      "method": "Advanced AI-powered automation",
+      "unit": "minutes",
+      "description": "Instant AI-powered translation and formatting",
+      "processTitle": "AI Process Steps",
+      "step1": "Upload document (any format)",
+      "step2": "AI extraction and translation",
+      "step3": "Instant formatted output",
+      "start": "Upload",
+      "end": "Complete"
+    },
+    "impact": {
+      "title": "The Transformation Impact",
+      "subtitle": "Discover how Nyota revolutionizes the translation experience",
+      "timeSaved": "Time Saved",
+      "fasterProcess": "Faster Process",
+      "accuracy": "AI Accuracy",
+      "availability": "Always Available",
+      "revolutionize": "Revolutionizing Education Translation"
+    }
+  },
+  "footer": {
+    "description": "Transform French school bulletins into professional English reports with AI-powered accuracy and speed.",
+    "quickLinks": "Quick Links",
+    "connect": "Connect With Us",
+    "links": {
+      "about": "About",
+      "features": "Features", 
+      "pricing": "Pricing",
+      "privacy": "Privacy Policy",
+      "terms": "Terms of Service"
+    },
+    "contact": {
+      "email": "Email",
+      "phone": "Phone"
+    },
+    "copyright": "© 2025 Nyota Innovations. All rights reserved.",
+    "incubatedBy": "Incubated by IUEA Innovation Hub"
+  },
+  "trustIndicators": {
+    "title": "Trusted by families worldwide",
+    "badges": {
+      "secure": "Secure & Private",
+      "fast": "Fast Processing",
+      "accurate": "High Accuracy"
+    },
+    "poweredBy": "Powered by Nyota Innovations"
+  },
+  "auth": {
+    "login": {
+      "title": "Welcome back",
+      "subtitle": "Sign in to your account to continue",
+      "emailLabel": "Email address",
+      "emailPlaceholder": "Enter your email",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "Enter your password",
+      "rememberMe": "Remember me",
+      "forgotPassword": "Forgot your password?",
+      "signInButton": "Sign in",
+      "signingIn": "Signing in...",
+      "noAccount": "Don't have an account?",
+      "createAccount": "Create new account"
+    },
+    "register": {
+      "title": "Create your account",
+      "subtitle": "Join NTC to start translating bulletins",
+      "nameLabel": "Full name",
+      "namePlaceholder": "Enter your full name",
+      "emailLabel": "Email address",
+      "emailPlaceholder": "Enter your email",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "Create a password",
+      "passwordHint": "Must be at least 6 characters long",
+      "confirmPasswordLabel": "Confirm password",
+      "confirmPasswordPlaceholder": "Confirm your password",
+      "termsText": "I agree to the",
+      "termsLink": "Terms and Conditions",
+      "and": "and",
+      "privacyLink": "Privacy Policy",
+      "createButton": "Create account",
+      "creatingAccount": "Creating account...",
+      "haveAccount": "Already have an account?",
+      "signInInstead": "Sign in instead"
+    },
+    "forgotPassword": {
+      "title": "Forgot Password",
+      "subtitle": "Enter your email address and we'll send you a link to reset your password.",
+      "backToLogin": "Back to Login"
+    },
+    "validation": {
+      "passwordsNoMatch": "Passwords do not match",
+      "passwordTooShort": "Password must be at least 6 characters long",
+      "nameRequired": "Please enter your full name"
+    }
+  },
+  "dashboard": {
+    "navigation": {
+      "title": "Nyota Translation Center",
+      "signOut": "Sign Out"
+    },
+    "header": {
+      "title": "My Bulletins",
+      "subtitle": "Upload French school bulletins, view and edit extracted data, then download English report cards."
+    },
+    "upload": {
+      "title": "📤 Upload New Bulletin",
+      "selectType": "Select Bulletin Type",
+      "form4": {
+        "title": "Form 4 Bulletin",
+        "subtitle": "4ième Secondaire / 2ième Humanité"
+      },
+      "form6": {
+        "title": "Form 6 Bulletin", 
+        "subtitle": "4ième Humanité / 6ième Secondaire"
+      },
+      "stateDiploma": {
+        "title": "State Diploma",
+        "subtitle": "Official State Certificate"
+      },
+      "dragDrop": "Drag and drop your bulletin here or click to select",
+      "uploading": "Uploading...",
+      "processing": "Processing Your Bulletin",
+      "completed": "Complete",
+      "selectFile": "Select File",
+      "supportedFormats": "Supports PNG, JPG, JPEG, GIF, WEBP (max 10MB)",
+      "preparingUpload": "Preparing upload..."
+    },
+    "bulletinsList": {
+      "title": "Your Bulletins",
+      "noUploads": "No bulletins uploaded yet. Upload your first bulletin above!",
+      "student": "Student",
+      "uploaded": "Uploaded",
+      "status": "Status",
+      "actions": "Actions",
+      "view": "View",
+      "edit": "Edit", 
+      "download": "Download",
+      "delete": "Delete"
+    },
+    "editor": {
+      "title": "Edit Bulletin Data",
+      "save": "Save Changes",
+      "cancel": "Cancel",
+      "saving": "Saving...",
+      "success": "Changes saved successfully!",
+      "backToList": "← Back to List"
+    }
+  }
+}

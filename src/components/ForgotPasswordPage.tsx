@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import type { NavigateToPage } from '../App';
 import { useAuth } from '../AuthProvider';
+import { useTranslation } from 'react-i18next';
+import AuthNavigation from './AuthNavigation';
 
 /**
  * ForgotPasswordPage: Allows users to request a password reset email.
@@ -10,6 +12,7 @@ const ForgotPasswordPage: React.FC<{ onNavigate: NavigateToPage }> = ({ onNaviga
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const { sendPasswordReset, error, clearError } = useAuth();
+  const { t } = useTranslation();
   const [localError, setLocalError] = useState<string | null>(null);
 
   // Handle password reset form submission
@@ -26,20 +29,17 @@ const ForgotPasswordPage: React.FC<{ onNavigate: NavigateToPage }> = ({ onNaviga
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 via-white to-secondary-50">
-      <div className="w-full max-w-md bg-white rounded-xl shadow-lg p-8 border border-gray-100">
-        <div className="flex flex-row items-center mb-6 w-full gap-4">
-          <img
-            src="/log.PNG"
-            alt="Nyota Translation Center Logo"
-            className="h-14 w-auto rounded-lg shadow-md"
-          />
-          <h1 className="text-2xl font-bold text-gray-900 leading-tight">Nyota Translation Center</h1>
-        </div>
-        <div className="mb-6 w-full">
-          <h2 className="text-lg font-semibold text-gray-700 mb-1">Forgot Password</h2>
-          <p className="text-gray-500 text-sm">Enter your email address and we'll send you a link to reset your password.</p>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50">
+      {/* Navigation Header */}
+      <AuthNavigation onNavigate={onNavigate} />
+      
+      {/* Main Content */}
+      <div className="flex items-center justify-center py-8 sm:px-6 lg:px-8">
+        <div className="w-full max-w-md bg-white rounded-xl shadow-2xl p-8 border border-gray-100">
+          <div className="mb-6 w-full">
+            <h2 className="text-lg font-semibold text-gray-700 mb-1">{t('auth.forgotPassword.title')}</h2>
+            <p className="text-gray-500 text-sm">{t('auth.forgotPassword.subtitle')}</p>
+          </div>
         {submitted ? (
           <div className="bg-green-50 border border-green-200 text-green-700 rounded p-4 text-center">
             If an account exists for <span className="font-semibold">{email}</span>, a password reset link has been sent.
@@ -74,8 +74,9 @@ const ForgotPasswordPage: React.FC<{ onNavigate: NavigateToPage }> = ({ onNaviga
             className="text-primary-600 hover:text-primary-700 text-sm font-medium underline"
             onClick={() => onNavigate('login')}
           >
-            &larr; Back to Login
+            &larr; {t('auth.forgotPassword.backToLogin')}
           </button>
+        </div>
         </div>
       </div>
     </div>

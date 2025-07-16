@@ -3,14 +3,15 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { AuthProvider, useAuth } from './AuthProvider';
+import { LanguageProvider } from './contexts/LanguageContext';
 import LandingPage from './components/LandingPage';
 import LoginPage from './components/LoginPage';
 import RegisterPage from './components/RegisterPage';
 import FirestoreOnlyDashboardPage from './components/FirestoreOnlyDashboardPage';
-import CardOnlyPage from './components/CardOnlyPage';
 import TermsAndConditionsPage from './components/TermsAndConditionsPage';
 import PrivacyPolicyPage from './components/PrivacyPolicyPage';
 import ForgotPasswordPage from './components/ForgotPasswordPage';
+import CardOnlyPage from './components/CardOnlyPage';
 
 // Simple page routing state
 /**
@@ -21,10 +22,10 @@ type PageType =
   | 'login'
   | 'register'
   | 'dashboard'
-  | 'card-only'
   | 'terms'
   | 'privacy'
-  | 'forgot-password';
+  | 'forgot-password'
+  | 'card-only';
 
 /**
  * Navigation function type for all pages
@@ -33,13 +34,13 @@ type NavigateToPage = (page: PageType) => void;
 
 // Helper function to get page from pathname
 const getPageFromPath = (pathname: string): PageType => {
-  if (pathname === '/card-only') return 'card-only';
   if (pathname === '/login') return 'login';
   if (pathname === '/register') return 'register';
   if (pathname === '/dashboard') return 'dashboard';
   if (pathname === '/terms') return 'terms';
   if (pathname === '/privacy') return 'privacy';
   if (pathname === '/forgot-password') return 'forgot-password';
+  if (pathname === '/card-only') return 'card-only';
   return 'landing';
 };
 
@@ -50,10 +51,10 @@ const getPathFromPage = (page: PageType): string => {
     'login': '/login',
     'register': '/register',
     'dashboard': '/dashboard',
-    'card-only': '/card-only',
     'terms': '/terms',
     'privacy': '/privacy',
     'forgot-password': '/forgot-password',
+    'card-only': '/card-only',
   };
   return paths[page] || '/';
 };
@@ -156,14 +157,14 @@ const AuthAwareRouter: React.FC = () => {
         return <RegisterPage onNavigate={navigateToPage} />;
       case 'dashboard':
         return <FirestoreOnlyDashboardPage />;
-      case 'card-only':
-        return <CardOnlyPage />;
       case 'terms':
-        return <TermsAndConditionsPage />;
+        return <TermsAndConditionsPage onNavigate={navigateToPage} />;
       case 'privacy':
-        return <PrivacyPolicyPage />;
+        return <PrivacyPolicyPage onNavigate={navigateToPage} />;
       case 'forgot-password':
         return <ForgotPasswordPage onNavigate={navigateToPage} />;
+      case 'card-only':
+        return <CardOnlyPage />;
       case 'landing':
       default:
         return <LandingPage onNavigate={navigateToPage} />;
@@ -171,17 +172,19 @@ const AuthAwareRouter: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className={currentPage === 'card-only' ? "min-h-screen bg-white" : "min-h-screen bg-gray-50"}>
       {renderCurrentPage()}
     </div>
   );
 };
 
-// Main App component with AuthProvider wrapper
+// Main App component with AuthProvider and LanguageProvider wrappers
 const App: React.FC = () => {
   return (
     <AuthProvider>
-      <AuthAwareRouter />
+      <LanguageProvider>
+        <AuthAwareRouter />
+      </LanguageProvider>
     </AuthProvider>
   );
 };

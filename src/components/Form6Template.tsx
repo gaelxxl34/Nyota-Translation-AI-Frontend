@@ -340,7 +340,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
       subject.overallTotal = calculateOverallTotal(subject);
     }
     
-    console.log(`📝 Form6Template: Updated subject ${subjectIndex}, field ${fieldPath} = "${value}"`);
+    // Subject field updated
     
     onDataChange({ ...data, subjects: newSubjects });
   };
@@ -352,7 +352,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
       return;
     }
     
-    console.log(`📝 Updating summary field: ${section}.${field} = "${value}"`);
+    // Summary field updated
     
     const newSummaryValues = { ...data.summaryValues };
     if (!newSummaryValues[section as keyof typeof newSummaryValues]) {
@@ -363,8 +363,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
     
     const updatedData = { ...data, summaryValues: newSummaryValues };
     
-    console.log(`📊 Updated summary values:`, newSummaryValues);
-    console.log(`📊 Full updated data structure includes summaryValues:`, !!updatedData.summaryValues);
+    // Data updated with summary values
     
     onDataChange(updatedData);
   };
@@ -547,7 +546,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
       return;
     }
 
-    console.log(`🔄 Dragging group ${draggedGroupIndex} to position ${targetGroupIndex}`);
+    // Reordering group
     
     // Move the group
     moveMaximaGroup(draggedGroupIndex, targetGroupIndex);
@@ -576,7 +575,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
     
     newSubjects.push(newSubject);
     onDataChange({ ...data, subjects: newSubjects });
-    console.log('📝 Added new MAXIMA group with default values');
+    // Added new MAXIMA group
   };
 
   const deleteMaximaGroup = (groupIndex: number) => {
@@ -601,7 +600,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
     });
     
     onDataChange({ ...data, subjects: newSubjects });
-    console.log('🗑️ Deleted MAXIMA group and its subjects');
+    // Deleted MAXIMA group
   };
 
   const moveMaximaGroup = (fromIndex: number, toIndex: number) => {
@@ -646,7 +645,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
     newSubjects.splice(insertionPoint, 0, ...subjectsToMove);
     
     onDataChange({ ...data, subjects: newSubjects });
-    console.log(`🔄 Moved MAXIMA group from ${fromIndex} to ${toIndex}`);
+    // Moved MAXIMA group
   };
 
   const addSubjectToGroup = (groupIndex: number) => {
@@ -670,7 +669,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
     
     newSubjects.push(newSubject);
     onDataChange({ ...data, subjects: newSubjects });
-    console.log('📝 Added new subject to group:', groupIndex);
+    // Added new subject to group
   };
 
   const deleteSubject = (subjectIndex: number) => {
@@ -691,7 +690,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
     currentSubjects.splice(subjectIndex, 1);
     
     onDataChange({ ...data, subjects: currentSubjects });
-    console.log('🗑️ Deleted subject:', subjectName, 'at index:', subjectIndex);
+    // Deleted subject
   };
 
   const addCustomMaximaGroup = () => {
@@ -722,7 +721,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
       
       newSubjects.push(newSubject);
       onDataChange({ ...data, subjects: newSubjects });
-      console.log('📝 Added custom MAXIMA group:', newMaxima);
+      // Added custom MAXIMA group
     }
   };
 

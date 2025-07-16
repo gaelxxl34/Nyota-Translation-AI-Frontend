@@ -5,9 +5,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { collection, query, where, getDocs, getFirestore, doc, updateDoc } from 'firebase/firestore';
 import { useAuth } from '../AuthProvider';
+import { useTranslation } from 'react-i18next';
+import LanguageSwitcher from './LanguageSwitcher';
 import Form6Template from './Form6Template';
 import Form4Template from './Form4Template';
+import StateDiplomaTemplate from './StateDiplomaTemplate';
 import FirestoreOnlyPDFDownloadButton from './FirestoreOnlyPDFDownloadButton';
+import StateDiplomaPDFDownloadButton from './StateDiplomaPDFDownloadButton';
 import Swal from 'sweetalert2';
 
 interface BulletinRecord {
@@ -18,7 +22,7 @@ interface BulletinRecord {
     uploadedAt: any;
     lastModified: any;
     status: string;
-    formType?: 'form4' | 'form6'; // Add form type to metadata
+    formType?: 'form4' | 'form6' | 'stateDiploma'; // Add state diploma to metadata
   };
   editedData: any;
   originalData: any;
@@ -27,6 +31,15 @@ interface BulletinRecord {
 
 const FirestoreOnlyDashboardPage: React.FC = () => {
   const { currentUser } = useAuth();
+  const { t, i18n } = useTranslation();
+  
+  // Set French as default language for dashboard
+  useEffect(() => {
+    if (i18n.language !== 'fr') {
+      i18n.changeLanguage('fr');
+    }
+  }, [i18n]);
+
   const [bulletins, setBulletins] = useState<BulletinRecord[]>([]);
   const [selectedBulletin, setSelectedBulletin] = useState<BulletinRecord | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -35,7 +48,7 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadStage, setUploadStage] = useState<string>('');
-  const [selectedFormType, setSelectedFormType] = useState<'form4' | 'form6'>('form6'); // Add form type selection
+  const [selectedFormType, setSelectedFormType] = useState<'form4' | 'form6' | 'stateDiploma'>('form6'); // Add state diploma selection
   const db = getFirestore();
 
   // Load user's bulletins from Firestore ONLY
@@ -46,9 +59,7 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
       setIsLoading(true);
       setError(null);
 
-      console.log('📥 Loading bulletins from Firestore for user:', currentUser.uid);
-      console.log('🔥 Firestore instance:', db);
-      console.log('🔍 Query details: collection=bulletins, where=userId==', currentUser.uid);
+      // Loading bulletins from Firestore for authenticated user
 
       // Simple query without orderBy to avoid composite index requirement
       const bulletinsQuery = query(
@@ -57,20 +68,18 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
       );
 
       const querySnapshot = await getDocs(bulletinsQuery);
-      console.log('📊 Query result:', querySnapshot);
-      console.log('📊 Number of documents:', querySnapshot.size);
-      console.log('📊 Query empty:', querySnapshot.empty);
+      // Execute query to get user's bulletins
 
       const bulletinsList: BulletinRecord[] = [];
 
       if (querySnapshot.empty) {
-        console.log('📭 No bulletins found for user');
+        // No bulletins found for this user
       } else {
-        console.log('📄 Processing bulletins...');
+        // Process found bulletins
       }
 
       querySnapshot.forEach((doc) => {
-        console.log('📄 Processing document:', doc.id, doc.data());
+        // Process each document
         const data = doc.data();
         bulletinsList.push({
           id: doc.id,
@@ -89,8 +98,7 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
       });
 
       setBulletins(bulletinsList);
-      console.log('✅ Loaded bulletins from Firestore:', bulletinsList.length);
-      console.log('📊 Bulletins data:', bulletinsList);
+      // Bulletins loaded successfully
     } catch (err) {
       console.error('❌ Failed to load bulletins:', err);
       setError('Failed to load your bulletins. Please try again.');
@@ -121,9 +129,7 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
     if (!selectedBulletin) return;
 
     try {
-      console.log('💾 Auto-saving field update to Firestore...');
-      console.log('📊 Updated data structure:', JSON.stringify(updatedData, null, 2));
-      console.log('📊 Summary values in updated data:', updatedData.summaryValues);
+      // Auto-saving field update to Firestore
       
       // Update the bulletin document in Firestore
       const bulletinRef = doc(db, 'bulletins', selectedBulletin.id);
@@ -134,7 +140,7 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
         'metadata.lastModifiedAt': new Date().toISOString()
       });
 
-      console.log('✅ Data saved to Firestore with summary values:', updatedData.summaryValues);
+      // Data saved to Firestore successfully
 
       // Update local state to reflect the change
       setSelectedBulletin(prev => prev ? {
@@ -160,7 +166,7 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
           : bulletin
       ));
 
-      console.log('✅ Field auto-saved successfully');
+      // Field auto-saved successfully
     } catch (error) {
       console.error('❌ Auto-save error:', error);
       setError(`Failed to save changes: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -169,7 +175,7 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
 
   // Handle PDF download success
   const handlePDFSuccess = () => {
-    console.log('✅ PDF downloaded successfully');
+    // PDF downloaded successfully
   };
 
   // Handle PDF download error
@@ -209,7 +215,7 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
       });
 
       if (!confirmResult.isConfirmed) {
-        console.log('🚫 Bulletin deletion cancelled by user');
+        // Bulletin deletion cancelled by user
         return;
       }
 
@@ -225,7 +231,7 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
         }
       });
 
-      console.log('🗑️ Starting bulletin deletion:', bulletinId);
+      // Starting bulletin deletion process
 
       // Get Firebase ID token
       const idToken = await currentUser?.getIdToken();
@@ -253,8 +259,8 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
         throw new Error(errorMessage);
       }
 
-      const deleteResult = await response.json();
-      console.log('✅ Bulletin deleted successfully:', deleteResult);
+      await response.json();
+      // Bulletin deleted successfully
 
       // Close loading dialog
       Swal.close();
@@ -300,11 +306,56 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
     return bulletin.editedData || bulletin.originalData;
   };
 
+  // Transform Firestore data to StateDiploma format
+  const transformDataForStateDiploma = (data: any) => {
+    // Transforming data for State Diploma template
+
+    const transformedData = {
+      studentName: data?.studentName || 'STUDENT NAME',
+      gender: data?.gender || 'male',
+      birthPlace: data?.birthPlace || 'BIRTHPLACE', 
+      birthDate: data?.birthDate || {
+        day: "01",
+        month: "01", 
+        year: "2000"
+      },
+      examSession: data?.examSession || data?.academicYear || 'JUNE 2023',
+      percentage: (() => {
+        // Handle both object format {total: "40.0%"} and string format "40%"
+        let rawPercentage;
+        if (typeof data?.percentage === 'object' && data?.percentage?.total) {
+          rawPercentage = data.percentage.total;
+        } else if (typeof data?.percentage === 'string') {
+          rawPercentage = data.percentage;
+        } else {
+          rawPercentage = data?.finalResultPercentage || '00.0%';
+        }
+        
+        // Extract just the integer part (ignore decimals completely)
+        const numericValue = parseFloat(rawPercentage.replace('%', '')) || 0;
+        const integerPercentage = Math.round(numericValue); // Round to nearest integer
+        const result = integerPercentage.toString() + '%';
+        
+        return result;
+      })(),
+      percentageText: data?.percentageText || 'PERCENTAGE IN WORDS',
+      section: data?.section || data?.class || 'SECTION NAME',
+      option: data?.option || 'OPTION NAME',
+      issueDate: data?.issueDate || 'JANUARY 1, 2023',
+      referenceNumber: data?.referenceNumber || 'T S 0 7',
+      serialNumbers: data?.serialNumbers || ['T', 'S', '0', '7', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
+      serialCode: data?.serialCode || '0000000'
+    };
+
+    // State Diploma transformed data ready
+    return transformedData;
+  };
+
   // Transform Firestore data to Form6Template format
   const transformDataForTemplate = (data: any) => {
     if (!data) return {};
 
-    console.log('🔄 Transforming data for template:', data);
+    // Transforming data for template
 
     // Transform subjects to match Form6Template format
     const transformedSubjects = data.subjects?.map((subject: any) => {
@@ -343,7 +394,7 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
         }
       };
 
-      console.log('📚 Transformed subject:', templateSubject);
+      // Transform subject data
       return templateSubject;
     }) || [];
 
@@ -391,7 +442,7 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
       endorsementDate: data.endorsementDate || ''
     };
 
-    console.log('✅ Final transformed data:', transformedData);
+    // Final transformed data ready
     return transformedData;
   };
 
@@ -430,13 +481,11 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
       formData.append('file', file);
       formData.append('formType', selectedFormType); // Add form type to the upload
 
-      console.log('📤 Uploading file:', file.name);
-      console.log('📋 Form data created with file:', file.name, 'size:', file.size, 'type:', file.type);
-      console.log('🔐 Using auth token length:', idToken.length);
+      // Uploading file to server
 
       // Simulate upload progress stages
       const updateProgress = (stage: string, progress: number) => {
-        console.log(`📊 ${stage}: ${progress}%`);
+        // Upload progress update
         setUploadProgress(progress);
         setUploadStage(stage);
       };
@@ -469,8 +518,7 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
       // Stage 3: Processing response (30-50%)
       updateProgress('Processing response', 50);
 
-      console.log('📡 Response received:', response.status, response.statusText);
-      console.log('📡 Response headers:', Object.fromEntries(response.headers.entries()));
+      // Response received from server
 
       if (!response.ok) {
         let errorMessage = 'Upload failed';
@@ -494,11 +542,10 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
       updateProgress('Extracting text with AI', 70);
       await new Promise(resolve => setTimeout(resolve, 500));
 
-      let result;
       try {
         const responseText = await response.text();
-        result = JSON.parse(responseText);
-        console.log('✅ Response JSON parsed successfully:', result);
+        JSON.parse(responseText);
+        // Response JSON parsed successfully
       } catch (jsonError) {
         console.error('❌ Failed to parse JSON response:', jsonError);
         throw new Error('Server returned invalid JSON response');
@@ -508,7 +555,7 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
       updateProgress('Translating to English', 90);
       await new Promise(resolve => setTimeout(resolve, 500));
       
-      console.log('✅ Upload successful:', result);
+      // Upload successful
 
       // Stage 6: Saving to database (90-100%)
       updateProgress('Saving to database', 100);
@@ -588,9 +635,11 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                 className="h-10 w-auto rounded-lg shadow-md"
               />
               {/* Hide the text on mobile, show on sm+ */}
-              <h1 className="hidden sm:block text-xl font-bold text-gray-900">Nyota Translation Center</h1>
+              <h1 className="hidden sm:block text-xl font-bold text-gray-900">{t('dashboard.navigation.title')}</h1>
             </div>
             <div className="flex items-center space-x-4">
+              {/* Language Switcher */}
+              <LanguageSwitcher />
               <div className="flex items-center space-x-2">
                 {/* Hide email on mobile, show on sm+ */}
                 <span className="hidden sm:inline text-sm text-gray-600">{currentUser.email}</span>
@@ -604,7 +653,7 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                   }}
                   className="px-3 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700"
                 >
-                  Sign Out
+                  {t('dashboard.navigation.signOut')}
                 </button>
               </div>
             </div>
@@ -616,19 +665,19 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
         {/* Responsive Header */}
         <div className="mb-8">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">My Bulletins</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{t('dashboard.header.title')}</h1>
             <p className="text-gray-600 mt-2 text-sm sm:text-base">
-              Upload French school bulletins, view and edit extracted data, then download English report cards.
+              {t('dashboard.header.subtitle')}
             </p>
           </div>
         </div>
 
         {/* Upload Section */}
         <div className="mb-8 bg-white rounded-lg shadow-md p-4 sm:p-6">
-          <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4">📤 Upload New Bulletin</h2>
+          <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4">{t('dashboard.upload.title')}</h2>
           {/* Form Type Selection */}
           <div className="mb-6">
-            <h3 className="text-xs sm:text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">Select Bulletin Type</h3>
+            <h3 className="text-xs sm:text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">{t('dashboard.upload.selectType')}</h3>
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
               <button
                 onClick={() => setSelectedFormType('form4')}
@@ -640,9 +689,9 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
               >
                 <div className="flex items-center justify-center space-x-2">
                   <span>📋</span>
-                  <span>Form 4 Bulletin</span>
+                  <span>{t('dashboard.upload.form4.title')}</span>
                 </div>
-                <div className="text-xs mt-1 opacity-75">4th Year Students</div>
+                <div className="text-xs mt-1 opacity-75">{t('dashboard.upload.form4.subtitle')}</div>
               </button>
               <button
                 onClick={() => setSelectedFormType('form6')}
@@ -654,9 +703,23 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
               >
                 <div className="flex items-center justify-center space-x-2">
                   <span>📄</span>
-                  <span>Form 6 Bulletin</span>
+                  <span>{t('dashboard.upload.form6.title')}</span>
                 </div>
-                <div className="text-xs mt-1 opacity-75">Final Year Students</div>
+                <div className="text-xs mt-1 opacity-75">{t('dashboard.upload.form6.subtitle')}</div>
+              </button>
+              <button
+                onClick={() => setSelectedFormType('stateDiploma')}
+                className={`flex-1 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  selectedFormType === 'stateDiploma'
+                    ? 'bg-purple-600 text-white shadow-lg scale-105'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200'
+                }`}
+              >
+                <div className="flex items-center justify-center space-x-2">
+                  <span>🎓</span>
+                  <span>{t('dashboard.upload.stateDiploma.title')}</span>
+                </div>
+                <div className="text-xs mt-1 opacity-75">{t('dashboard.upload.stateDiploma.subtitle')}</div>
               </button>
             </div>
           </div>
@@ -675,10 +738,10 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                 </div>
                 <h3 className="text-lg font-medium text-gray-900">
-                  Processing Your Bulletin
+                  {t('dashboard.upload.processing')}
                 </h3>
                 <p className="text-gray-600">
-                  {uploadStage || 'Preparing upload...'}
+                  {uploadStage || t('dashboard.upload.preparingUpload')}
                 </p>
                 <div className="w-full max-w-md mx-auto">
                   <div className="w-full bg-gray-200 rounded-full h-3">
@@ -688,7 +751,7 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                     ></div>
                   </div>
                   <p className="text-sm text-gray-500 mt-2">
-                    {uploadProgress}% Complete
+                    {uploadProgress}% {t('dashboard.upload.completed')}
                   </p>
                 </div>
               </div>
@@ -700,11 +763,8 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                   </svg>
                 </div>
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  Drop your bulletin here
+                  {t('dashboard.upload.dragDrop')}
                 </h3>
-                <p className="text-gray-600 mb-4">
-                  Or click to browse and select a file
-                </p>
                 <input
                   type="file"
                   accept=".png,.jpg,.jpeg,.gif,.webp" // Removed .pdf
@@ -717,10 +777,10 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                   htmlFor="file-upload"
                   className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 cursor-pointer"
                 >
-                  Select File
+                  {t('dashboard.upload.selectFile')}
                 </label>
                 <p className="text-sm text-gray-500 mt-2">
-                  Supports PNG, JPG, JPEG, GIF, WEBP (max 10MB)
+                  {t('dashboard.upload.supportedFormats')}
                 </p>
               </>
             )}
@@ -757,7 +817,7 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
         {/* Bulletins List */}
         <div className="mb-8 bg-white rounded-lg shadow-md p-4 sm:p-6">
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-2">
-            <h2 className="text-lg sm:text-xl font-semibold text-gray-900">📚 Your Bulletins</h2>
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-900">📚 {t('dashboard.bulletinsList.title')}</h2>
             <span className="text-xs sm:text-sm text-gray-500">
               {bulletins.length} bulletin{bulletins.length !== 1 ? 's' : ''}
             </span>
@@ -765,15 +825,19 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
           {isLoading ? (
             <div className="flex items-center justify-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-              <span className="ml-2 text-gray-600">Loading from Firestore...</span>
+              <span className="ml-2 text-gray-600">
+                {i18n.language === 'fr' ? 'Chargement depuis Firestore...' : 'Loading from Firestore...'}
+              </span>
             </div>
           ) : bulletins.length === 0 ? (
             <div className="text-center py-8 sm:py-12">
               <svg className="mx-auto h-16 w-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
-              <h3 className="mt-4 text-lg font-medium text-gray-900">No bulletins yet</h3>
-              <p className="mt-2 text-gray-500">Upload your first French school bulletin to get started.</p>
+              <h3 className="mt-4 text-lg font-medium text-gray-900">
+                {i18n.language === 'fr' ? 'Aucun bulletin pour le moment' : 'No bulletins yet'}
+              </h3>
+              <p className="mt-2 text-gray-500">{t('dashboard.bulletinsList.noUploads')}</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
@@ -797,7 +861,17 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                           {displayData?.studentName || bulletin.metadata.studentName || 'Unknown Student'}
                         </h3>
                         <p className="text-sm text-gray-600 mt-1">
-                          {displayData?.class || 'Unknown Class'} • {displayData?.school || 'Unknown School'}
+                          {(bulletin.metadata.formType || 'form6') === 'stateDiploma' ? (
+                            // For State Diploma, show section/option or just leave empty if no additional info
+                            <>
+                              {displayData?.section && displayData?.section !== 'SECTION NAME' ? displayData.section : ''}
+                              {displayData?.option && displayData?.option !== 'OPTION NAME' && displayData?.section && displayData?.section !== 'SECTION NAME' ? ' • ' + displayData.option : (displayData?.option && displayData?.option !== 'OPTION NAME' ? displayData.option : '')}
+                              {(!displayData?.section || displayData?.section === 'SECTION NAME') && (!displayData?.option || displayData?.option === 'OPTION NAME') ? 'State Diploma Certificate' : ''}
+                            </>
+                          ) : (
+                            // For Form 4/6, show class and school
+                            `${displayData?.class || 'Unknown Class'} • ${displayData?.school || 'Unknown School'}`
+                          )}
                         </p>
                         <p className="text-xs text-gray-500 mt-2">
                           {bulletin.metadata.fileName || 'No filename'}
@@ -812,10 +886,17 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                           px-2 py-1 rounded-full text-xs font-medium
                           ${(bulletin.metadata.formType || 'form6') === 'form4' 
                             ? 'bg-green-100 text-green-800' 
+                            : (bulletin.metadata.formType || 'form6') === 'stateDiploma'
+                            ? 'bg-purple-100 text-purple-800'
                             : 'bg-blue-100 text-blue-800'
                           }
                         `}>
-                          {(bulletin.metadata.formType || 'form6') === 'form4' ? 'Form 4' : 'Form 6'}
+                          {(bulletin.metadata.formType || 'form6') === 'form4' 
+                            ? 'Form 4' 
+                            : (bulletin.metadata.formType || 'form6') === 'stateDiploma'
+                            ? 'State Diploma'
+                            : 'Form 6'
+                          }
                         </span>
                         <span className={`
                           px-2 py-1 rounded-full text-xs font-medium
@@ -879,13 +960,30 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                   <span className={`px-2 sm:px-3 py-1 rounded-full text-xs font-medium ${
                     (selectedBulletin.metadata.formType || 'form6') === 'form4' 
                       ? 'bg-green-100 text-green-800' 
+                      : (selectedBulletin.metadata.formType || 'form6') === 'stateDiploma'
+                      ? 'bg-purple-100 text-purple-800'
                       : 'bg-blue-100 text-blue-800'
                   }`}>
-                    {(selectedBulletin.metadata.formType || 'form6') === 'form4' ? 'Form 4' : 'Form 6'}
+                    {(selectedBulletin.metadata.formType || 'form6') === 'form4' 
+                      ? 'Form 4' 
+                      : (selectedBulletin.metadata.formType || 'form6') === 'stateDiploma'
+                      ? 'State Diploma'
+                      : 'Form 6'
+                    }
                   </span>
                 </div>
                 <p className="text-gray-600 mt-1 text-sm sm:text-base">
-                  {getBulletinDisplayData(selectedBulletin)?.class} • {getBulletinDisplayData(selectedBulletin)?.school}
+                  {(selectedBulletin.metadata.formType || 'form6') === 'stateDiploma' ? (
+                    // For State Diploma, show section/option or exam session
+                    <>
+                      {getBulletinDisplayData(selectedBulletin)?.section && getBulletinDisplayData(selectedBulletin)?.section !== 'SECTION NAME' ? getBulletinDisplayData(selectedBulletin)?.section : ''}
+                      {getBulletinDisplayData(selectedBulletin)?.option && getBulletinDisplayData(selectedBulletin)?.option !== 'OPTION NAME' && getBulletinDisplayData(selectedBulletin)?.section && getBulletinDisplayData(selectedBulletin)?.section !== 'SECTION NAME' ? ' • ' + getBulletinDisplayData(selectedBulletin)?.option : (getBulletinDisplayData(selectedBulletin)?.option && getBulletinDisplayData(selectedBulletin)?.option !== 'OPTION NAME' ? getBulletinDisplayData(selectedBulletin)?.option : '')}
+                      {(!getBulletinDisplayData(selectedBulletin)?.section || getBulletinDisplayData(selectedBulletin)?.section === 'SECTION NAME') && (!getBulletinDisplayData(selectedBulletin)?.option || getBulletinDisplayData(selectedBulletin)?.option === 'OPTION NAME') ? (getBulletinDisplayData(selectedBulletin)?.examSession && getBulletinDisplayData(selectedBulletin)?.examSession !== 'JUNE 2023' ? getBulletinDisplayData(selectedBulletin)?.examSession : 'State Diploma Certificate') : ''}
+                    </>
+                  ) : (
+                    // For Form 4/6, show class and school
+                    `${getBulletinDisplayData(selectedBulletin)?.class} • ${getBulletinDisplayData(selectedBulletin)?.school}`
+                  )}
                 </p>
               </div>
               <div className="flex flex-wrap gap-2 sm:gap-3 mt-3 sm:mt-0">
@@ -913,12 +1011,19 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                   </button>
                 )}
                 <div className="w-full sm:w-auto">
-                  <FirestoreOnlyPDFDownloadButton
-                    firestoreId={selectedBulletin.id}
-                    studentName={getBulletinDisplayData(selectedBulletin)?.studentName}
-                    onSuccess={handlePDFSuccess}
-                    onError={handlePDFError}
-                  />
+                  {(selectedBulletin.metadata.formType || 'form6') === 'stateDiploma' ? (
+                    <StateDiplomaPDFDownloadButton
+                      data={transformDataForStateDiploma(getBulletinDisplayData(selectedBulletin))}
+                      className="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center justify-center space-x-2"
+                    />
+                  ) : (
+                    <FirestoreOnlyPDFDownloadButton
+                      firestoreId={selectedBulletin.id}
+                      studentName={getBulletinDisplayData(selectedBulletin)?.studentName}
+                      onSuccess={handlePDFSuccess}
+                      onError={handlePDFError}
+                    />
+                  )}
                 </div>
                 <button
                   onClick={() => handleDeleteBulletin(
@@ -978,6 +1083,12 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                 {(selectedBulletin.metadata.formType || 'form6') === 'form4' ? (
                   <Form4Template 
                     data={transformDataForTemplate(getBulletinDisplayData(selectedBulletin))} 
+                    isEditable={isEditing}
+                    onDataChange={handleFieldUpdate}
+                  />
+                ) : (selectedBulletin.metadata.formType || 'form6') === 'stateDiploma' ? (
+                  <StateDiplomaTemplate 
+                    data={transformDataForStateDiploma(getBulletinDisplayData(selectedBulletin))} 
                     isEditable={isEditing}
                     onDataChange={handleFieldUpdate}
                   />

@@ -78,7 +78,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const token = await userCredential.user.getIdToken();
       setIdToken(token);
       
-      console.log('✅ User registered successfully:', userCredential.user.email);
+      // User registered successfully
     } catch (err) {
       const authError = err as AuthError;
       console.error('🚨 Registration failed:', authError.message);
@@ -116,7 +116,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const token = await userCredential.user.getIdToken();
       setIdToken(token);
       
-      console.log('✅ User logged in successfully:', userCredential.user.email);
+      // User logged in successfully
     } catch (err) {
       const authError = err as AuthError;
       console.error('🚨 Login failed:', authError.message);
@@ -149,7 +149,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setError(null);
       await signOut(auth);
       setIdToken(null);
-      console.log('✅ User logged out successfully');
+      // User logged out successfully
     } catch (err) {
       const authError = err as AuthError;
       console.error('🚨 Logout failed:', authError.message);
@@ -164,7 +164,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setError(null);
       setLoading(true);
       await sendPasswordResetEmail(auth, email);
-      console.log('✅ Password reset email sent:', email);
+      // Password reset email sent
     } catch (err) {
       const authError = err as AuthError;
       console.error('🚨 Password reset failed:', authError.message);
@@ -193,11 +193,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           // Get fresh ID token
           const token = await user.getIdToken();
           setIdToken(token);
-          console.log('👤 User authenticated:', user.email);
+          // User authenticated
         } else {
           setCurrentUser(null);
           setIdToken(null);
-          console.log('👤 User not authenticated');
+          // User not authenticated
         }
       } catch (err) {
         console.error('🚨 Auth state change error:', err);
@@ -220,7 +220,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         try {
           const token = await currentUser.getIdToken(true); // Force refresh
           setIdToken(token);
-          console.log('🔄 ID token refreshed');
+          // ID token refreshed
         } catch (err) {
           console.error('🚨 Token refresh failed:', err);
         }

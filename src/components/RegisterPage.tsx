@@ -1,15 +1,19 @@
 // Register Page Component for NTC
-// Registration form with Firebase Authentication integration
+// Registration form with Firebase Authentication integration and i18n support
 
 import React, { useState } from 'react';
 import { useAuth } from '../AuthProvider';
+import { useTranslation } from 'react-i18next';
+import AuthNavigation from './AuthNavigation';
+import type { NavigateToPage } from '../App';
 
 interface RegisterPageProps {
-  onNavigate: (page: 'landing' | 'login' | 'register' | 'dashboard' | 'terms' | 'privacy') => void;
+  onNavigate: NavigateToPage;
 }
 
 const RegisterPage: React.FC<RegisterPageProps> = ({ onNavigate }) => {
   const { register, error, clearError, loading } = useAuth();
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -36,17 +40,17 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onNavigate }) => {
     
     // Basic validation
     if (formData.password !== formData.confirmPassword) {
-      alert('Passwords do not match');
+      alert(t('auth.validation.passwordsNoMatch'));
       return;
     }
 
     if (formData.password.length < 6) {
-      alert('Password must be at least 6 characters long');
+      alert(t('auth.validation.passwordTooShort'));
       return;
     }
 
     if (!formData.name.trim()) {
-      alert('Please enter your full name');
+      alert(t('auth.validation.nameRequired'));
       return;
     }
 
@@ -64,35 +68,23 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onNavigate }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        {/* Header */}
-        <div className="flex justify-center mb-6">
-          <button
-            onClick={() => onNavigate('landing')}
-            className="flex items-center space-x-3 hover:opacity-80 transition-opacity"
-          >
-            <img
-              src="/log.PNG"
-              alt="Nyota Translation Center Logo"
-              className="h-12 w-auto rounded-lg shadow-md"
-            />
-            <span className="text-xl font-heading font-bold text-gray-900">
-              Nyota Translation Center
-            </span>
-          </button>
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50">
+      {/* Navigation Header */}
+      <AuthNavigation onNavigate={onNavigate} />
+      
+      {/* Main Content */}
+      <div className="flex flex-col justify-center py-8 sm:px-6 lg:px-8">
+        <div className="sm:mx-auto sm:w-full sm:max-w-md">
+          <h2 className="text-center text-3xl font-heading font-bold text-gray-900">
+            {t('auth.register.title')}
+          </h2>
+          <p className="mt-2 text-center text-sm text-gray-600">
+            {t('auth.register.subtitle')}
+          </p>
         </div>
-        
-        <h2 className="text-center text-3xl font-heading font-bold text-gray-900">
-          Create your account
-        </h2>
-        <p className="mt-2 text-center text-sm text-gray-600">
-          Join NTC to start translating bulletins
-        </p>
-      </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow-xl rounded-lg sm:px-10">
+        <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+          <div className="bg-white py-8 px-4 shadow-2xl rounded-xl border border-gray-100 sm:px-10">
           {/* Error Message */}
           {error && (
             <div className="mb-6 bg-red-50 border border-red-200 rounded-md p-4">
@@ -113,7 +105,7 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onNavigate }) => {
             {/* Name Field */}
             <div>
               <label htmlFor="name" className="form-label">
-                Full name
+                {t('auth.register.nameLabel')}
               </label>
               <input
                 id="name"
@@ -124,7 +116,7 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onNavigate }) => {
                 value={formData.name}
                 onChange={handleInputChange}
                 className="form-input"
-                placeholder="Enter your full name"
+                placeholder={t('auth.register.namePlaceholder')}
                 disabled={isSubmitting}
               />
             </div>
@@ -132,7 +124,7 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onNavigate }) => {
             {/* Email Field */}
             <div>
               <label htmlFor="email" className="form-label">
-                Email address
+                {t('auth.register.emailLabel')}
               </label>
               <input
                 id="email"
@@ -143,7 +135,7 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onNavigate }) => {
                 value={formData.email}
                 onChange={handleInputChange}
                 className="form-input"
-                placeholder="Enter your email"
+                placeholder={t('auth.register.emailPlaceholder')}
                 disabled={isSubmitting}
               />
             </div>
@@ -151,7 +143,7 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onNavigate }) => {
             {/* Password Field */}
             <div>
               <label htmlFor="password" className="form-label">
-                Password
+                {t('auth.register.passwordLabel')}
               </label>
               <input
                 id="password"
@@ -162,18 +154,18 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onNavigate }) => {
                 value={formData.password}
                 onChange={handleInputChange}
                 className="form-input"
-                placeholder="Create a password"
+                placeholder={t('auth.register.passwordPlaceholder')}
                 disabled={isSubmitting}
               />
               <p className="mt-1 text-xs text-gray-500">
-                Must be at least 6 characters long
+                {t('auth.register.passwordHint')}
               </p>
             </div>
 
             {/* Confirm Password Field */}
             <div>
               <label htmlFor="confirmPassword" className="form-label">
-                Confirm password
+                {t('auth.register.confirmPasswordLabel')}
               </label>
               <input
                 id="confirmPassword"
@@ -184,7 +176,7 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onNavigate }) => {
                 value={formData.confirmPassword}
                 onChange={handleInputChange}
                 className="form-input"
-                placeholder="Confirm your password"
+                placeholder={t('auth.register.confirmPasswordPlaceholder')}
                 disabled={isSubmitting}
               />
             </div>
@@ -200,21 +192,21 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onNavigate }) => {
                 disabled={isSubmitting}
               />
               <label htmlFor="terms" className="ml-2 block text-sm text-gray-900">
-                I agree to the{' '}
+                {t('auth.register.termsText')}{' '}
                 <a
                   href="#"
                   className="text-primary-600 hover:text-primary-500 underline cursor-pointer"
                   onClick={e => { e.preventDefault(); onNavigate && onNavigate('terms'); }}
                 >
-                  Terms and Conditions
+                  {t('auth.register.termsLink')}
                 </a>{' '}
-                and{' '}
+                {t('auth.register.and')}{' '}
                 <a
                   href="#"
                   className="text-primary-600 hover:text-primary-500 underline cursor-pointer"
                   onClick={e => { e.preventDefault(); onNavigate && onNavigate('privacy'); }}
                 >
-                  Privacy Policy
+                  {t('auth.register.privacyLink')}
                 </a>
               </label>
             </div>
@@ -232,10 +224,10 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onNavigate }) => {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    Creating account...
+                    {t('auth.register.creatingAccount')}
                   </>
                 ) : (
-                  'Create account'
+                  t('auth.register.createButton')
                 )}
               </button>
             </div>
@@ -248,7 +240,7 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onNavigate }) => {
                 <div className="w-full border-t border-gray-300" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">Already have an account?</span>
+                <span className="px-2 bg-white text-gray-500">{t('auth.register.haveAccount')}</span>
               </div>
             </div>
 
@@ -259,9 +251,9 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onNavigate }) => {
                 disabled={isSubmitting}
                 className="w-full btn-secondary text-center justify-center"
               >
-                Sign in instead
+                {t('auth.register.signInInstead')}
               </button>
-            </div>
+            </div>            </div>
           </div>
         </div>
       </div>

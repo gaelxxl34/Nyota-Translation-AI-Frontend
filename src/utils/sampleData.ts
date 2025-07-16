@@ -433,3 +433,43 @@ export const generateRandomBulletinData = () => {
     idNumber: Math.random().toString().substr(2, 16)
   };
 };
+
+// Sample data for the State Diploma template
+export const sampleStateDiplomaData = {
+  studentName: 'ONGORIKO BINANI GABI',
+  gender: 'male',
+  birthPlace: 'Kinshasa',
+  birthDate: {
+    day: '15',
+    month: '03',
+    year: '2005'
+  },
+  examSession: 'JUNE 2023',
+  percentage: '72.5%',
+  percentageText: 'SEVENTY-TWO',
+  section: 'SCIENTIFIC',
+  option: 'BIOLOGY-CHEMISTRY',
+  issueDate: 'December 10, 2023',
+  serialNumbers: ['T', 'S', '0', '7', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '1', '2'],
+  serialCode: '3456789'
+};
+
+// Empty state diploma data for template display without sample data
+export const emptyStateDiplomaData = {
+  studentName: "STUDENT NAME",
+  gender: "male",
+  birthPlace: "BIRTHPLACE",
+  birthDate: {
+    day: "01",
+    month: "01",
+    year: "2000"
+  },
+  examSession: "JUNE 2023",
+  percentage: "00.0%",
+  percentageText: "PERCENTAGE IN WORDS",
+  section: "SECTION NAME",
+  option: "OPTION NAME",
+  issueDate: "JANUARY 1, 2023",
+  serialNumbers: ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
+  serialCode: "0000000"
+};

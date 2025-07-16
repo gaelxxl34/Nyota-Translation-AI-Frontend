@@ -1,18 +1,36 @@
 import React from "react";
 
+interface PrivacyPolicyPageProps {
+  onNavigate?: (page: 'landing') => void;
+}
+
 /**
  * PrivacyPolicyPage: Displays the privacy policy for Nyota Translation Center.
  */
-const PrivacyPolicyPage: React.FC = () => (
-  <div className="max-w-2xl mx-auto p-8">
-    <div className="flex flex-row items-center gap-4 mb-6">
-      <img
-        src="/log.PNG"
-        alt="Nyota Translation Center Logo"
-        className="h-12 w-auto rounded-lg shadow-md"
-      />
-      <h1 className="text-2xl font-bold text-gray-900 leading-tight">Privacy Policy</h1>
+const PrivacyPolicyPage: React.FC<PrivacyPolicyPageProps> = ({ onNavigate }) => (
+  <div className="min-h-screen bg-gray-50">
+    {/* Sticky Header */}
+    <div className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
+      <div className="max-w-2xl mx-auto px-4 sm:px-8 py-4">
+        <div className="flex flex-row items-center gap-4">
+          <button
+            onClick={() => onNavigate?.('landing')}
+            className="hover:opacity-80 transition-opacity duration-200"
+            title="Go back to home"
+          >
+            <img
+              src="/log.PNG"
+              alt="Nyota Translation Center Logo"
+              className="h-10 w-auto rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200"
+            />
+          </button>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 leading-tight">Privacy Policy</h1>
+        </div>
+      </div>
     </div>
+    
+    {/* Content */}
+    <div className="max-w-2xl mx-auto px-4 sm:px-8 py-8">
     <p className="mb-4">
       At Nyota Translation Center (NTC), your privacy is important to us. This policy explains how we collect, use, and protect your information.
     </p>
@@ -42,8 +60,9 @@ const PrivacyPolicyPage: React.FC = () => (
     </p>
     <h2 className="text-xl font-semibold mt-6 mb-2">7. Contact</h2>
     <p>
-      For privacy questions or requests, contact <a href="mailto:support@nyotatranslate.com" className="text-primary-600 underline">support@nyotatranslate.com</a>.
+      For privacy questions or requests, contact <a href="mailto:contact@nyotainnovation.com" className="text-primary-600 underline">contact@nyotainnovation.com</a>.
     </p>
+    </div>
   </div>
 );
 

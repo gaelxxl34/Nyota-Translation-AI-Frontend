@@ -371,8 +371,7 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
       subject.overallTotal = calculateOverallTotal(subject);
     }
     
-    console.log(`📝 Form4Template: Updated subject ${subjectIndex}, field ${fieldPath} = "${value}"`);
-    console.log('Subject after update:', JSON.stringify(subject, null, 2));
+    // Subject field updated
     
     onDataChange({ ...data, subjects: newSubjects });
   };
@@ -384,7 +383,7 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
       return;
     }
     
-    console.log(`📝 Form4: Updating summary field: ${section}.${field} = "${value}"`);
+    // Summary field updated
     
     const newSummaryValues = { ...data.summaryValues };
     if (!newSummaryValues[section as keyof typeof newSummaryValues]) {
@@ -395,8 +394,7 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
     
     const updatedData = { ...data, summaryValues: newSummaryValues };
     
-    console.log(`📊 Form4: Updated summary values:`, newSummaryValues);
-    console.log(`📊 Form4: Full updated data structure includes summaryValues:`, !!updatedData.summaryValues);
+    // Data updated with summary values
     
     onDataChange(updatedData);
   };
@@ -571,7 +569,7 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
       return;
     }
 
-    console.log(`🔄 Dragging group ${draggedGroupIndex} to position ${targetGroupIndex}`);
+    // Reordering group
     
     // Move the group
     moveMaximaGroup(draggedGroupIndex, targetGroupIndex);
@@ -679,7 +677,7 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
     
     newSubjects.push(newSubject);
     onDataChange({ ...data, subjects: newSubjects });
-    console.log('📝 Added new MAXIMA group:', newMaxima);
+    // Added new MAXIMA group
   };
 
   const addSubjectToGroup = (groupIndex: number) => {
@@ -703,7 +701,7 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
     
     newSubjects.push(newSubject);
     onDataChange({ ...data, subjects: newSubjects });
-    console.log('📝 Added new subject to group:', groupIndex);
+    // Added new subject to group
   };
 
   const deleteSubject = (subjectIndex: number) => {
@@ -724,7 +722,7 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
     currentSubjects.splice(subjectIndex, 1);
     
     onDataChange({ ...data, subjects: currentSubjects });
-    console.log('🗑️ Deleted subject:', subjectName, 'at index:', subjectIndex);
+    // Deleted subject
   };
 
   const addCustomMaximaGroup = () => {
@@ -754,7 +752,7 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
     );
     
     onDataChange({ ...data, subjects: newSubjects });
-    console.log('🗑️ Deleted MAXIMA group at index:', groupIndex);
+    // Deleted MAXIMA group
   };
 
   const moveMaximaGroup = (fromIndex: number, toIndex: number) => {
@@ -775,7 +773,7 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
     });
     
     onDataChange({ ...data, subjects: newSubjects });
-    console.log(`🔄 Moved MAXIMA group from ${fromIndex} to ${toIndex}`);
+    // Moved MAXIMA group
   };
 
   // Render ID number boxes
