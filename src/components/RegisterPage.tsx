@@ -18,7 +18,6 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onNavigate }) => {
         title="Registration Coming Soon - Nyota Translation Center | Contact IUEA"
         description="Account registration coming soon! Contact IUEA ICT Department to get early access to Nyota Translation Center's AI-powered academic document translation services."
         keywords="registration, coming soon, IUEA ICT Department, contact, early access, academic translation, account creation"
-        image="https://nyotatranslate.com/hero%20seo.png"
         url="https://nyotatranslate.com/register"
       />
       

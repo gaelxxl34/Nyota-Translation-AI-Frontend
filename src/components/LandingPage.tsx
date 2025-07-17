@@ -25,7 +25,6 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
         title="Nyota Translation Center - AI-Powered Academic Document Translation | IUEA Innovations"
         description="Transform your French school bulletins and academic documents into professional English reports with AI. Trusted by International University of East Africa (IUEA). Fast, accurate, and secure translation services."
         keywords="IUEA, International University of East Africa, Nyota Translation Center, AI translation, academic documents, school bulletin translation, French to English, education technology, IUEA innovations, academic transcripts, report cards, document conversion"
-        image="https://nyotatranslate.com/hero%20seo.png"
         url="https://nyotatranslate.com/"
       />
       

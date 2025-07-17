@@ -152,7 +152,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({
         </motion.div>
 
         {/* Subtitle with shimmer effect */}
-        <motion.div
+        <motion.p
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 2.5, duration: 0.8 }}
@@ -171,7 +171,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({
               }}
             />
           </span>
-        </motion.div>
+        </motion.p>
 
         {/* Dynamic message */}
         <motion.div

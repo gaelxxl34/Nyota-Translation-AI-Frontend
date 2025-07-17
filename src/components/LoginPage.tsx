@@ -57,7 +57,6 @@ const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
         title="Login - Nyota Translation Center | Access Your Account"
         description="Login to your Nyota Translation Center account to access your academic document translations. Secure authentication for IUEA students and institutions."
         keywords="login, account access, Nyota Translation Center, IUEA, academic documents, secure login, authentication"
-        image="https://nyotatranslate.com/hero%20seo.png"
         url="https://nyotatranslate.com/login"
       />
       
