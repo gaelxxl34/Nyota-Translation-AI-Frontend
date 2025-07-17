@@ -636,6 +636,7 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
         title="Dashboard - Nyota Translation Center | Manage Your Academic Documents"
         description="Access and manage your translated academic documents. View, edit, and download your French to English bulletin translations with AI-powered precision."
         keywords="dashboard, academic documents, translated bulletins, document management, IUEA, AI translation, report cards, academic transcripts"
+        image="https://nyotatranslate.com/hero%20seo.png"
         url="https://nyotatranslate.com/dashboard"
       />
       
