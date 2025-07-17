@@ -1,9 +1,8 @@
 // Register Page Component for NTC
-// Registration form with Firebase Authentication integration and i18n support
+// Coming Soon page with contact information for account creation requests
 
-import React, { useState } from 'react';
-import { useAuth } from '../AuthProvider';
-import { useTranslation } from 'react-i18next';
+import React from 'react';
+import SEOHead from './SEOHead';
 import AuthNavigation from './AuthNavigation';
 import type { NavigateToPage } from '../App';
 
@@ -12,248 +11,150 @@ interface RegisterPageProps {
 }
 
 const RegisterPage: React.FC<RegisterPageProps> = ({ onNavigate }) => {
-  const { register, error, clearError, loading } = useAuth();
-  const { t } = useTranslation();
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: ''
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-    
-    // Clear error when user starts typing
-    if (error) {
-      clearError();
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Basic validation
-    if (formData.password !== formData.confirmPassword) {
-      alert(t('auth.validation.passwordsNoMatch'));
-      return;
-    }
-
-    if (formData.password.length < 6) {
-      alert(t('auth.validation.passwordTooShort'));
-      return;
-    }
-
-    if (!formData.name.trim()) {
-      alert(t('auth.validation.nameRequired'));
-      return;
-    }
-
-    try {
-      setIsSubmitting(true);
-      await register(formData.email, formData.password, formData.name.trim());
-      // If successful, user will be automatically redirected to dashboard via App.tsx
-      onNavigate('dashboard');
-    } catch (error) {
-      // Error is handled by AuthProvider and displayed via error state
-      console.error('Registration failed:', error);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50">
+      <SEOHead 
+        title="Registration Coming Soon - Nyota Translation Center | Contact IUEA"
+        description="Account registration coming soon! Contact IUEA ICT Department to get early access to Nyota Translation Center's AI-powered academic document translation services."
+        keywords="registration, coming soon, IUEA ICT Department, contact, early access, academic translation, account creation"
+        url="https://nyotatranslate.com/register"
+      />
+      
       {/* Navigation Header */}
       <AuthNavigation onNavigate={onNavigate} />
       
       {/* Main Content */}
       <div className="flex flex-col justify-center py-8 sm:px-6 lg:px-8">
-        <div className="sm:mx-auto sm:w-full sm:max-w-md">
-          <h2 className="text-center text-3xl font-heading font-bold text-gray-900">
-            {t('auth.register.title')}
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            {t('auth.register.subtitle')}
-          </p>
+        <div className="sm:mx-auto sm:w-full sm:max-w-lg">
+          {/* Coming Soon Header */}
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full mb-4">
+              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h2 className="text-3xl font-heading font-bold text-gray-900 mb-2">
+              Registration Coming Soon!
+            </h2>
+            <p className="text-lg text-gray-600">
+              We're preparing something amazing for you
+            </p>
+          </div>
         </div>
 
-        <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-          <div className="bg-white py-8 px-4 shadow-2xl rounded-xl border border-gray-100 sm:px-10">
-          {/* Error Message */}
-          {error && (
-            <div className="mb-6 bg-red-50 border border-red-200 rounded-md p-4">
-              <div className="flex">
-                <div className="flex-shrink-0">
-                  <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+        <div className="sm:mx-auto sm:w-full sm:max-w-lg">
+          <div className="bg-white py-8 px-6 shadow-2xl rounded-xl border border-gray-100 sm:px-10">
+            
+            {/* Coming Soon Message */}
+            <div className="text-center mb-8">
+              <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6 mb-6">
+                <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                  🚀 Account Registration Coming Soon
+                </h3>
+                <p className="text-gray-700 leading-relaxed">
+                  We're working hard to bring you the best academic document translation experience. 
+                  In the meantime, our team is ready to help you get started!
+                </p>
+              </div>
+            </div>
+
+            {/* Contact Information */}
+            <div className="space-y-6">
+              <div>
+                <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                  <svg className="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                   </svg>
-                </div>
-                <div className="ml-3">
-                  <p className="text-sm text-red-700">{error}</p>
-                </div>
-              </div>
-            </div>
-          )}
+                  Get in Touch with Our Team
+                </h4>
 
-          <form className="space-y-6" onSubmit={handleSubmit}>
-            {/* Name Field */}
-            <div>
-              <label htmlFor="name" className="form-label">
-                {t('auth.register.nameLabel')}
-              </label>
-              <input
-                id="name"
-                name="name"
-                type="text"
-                autoComplete="name"
-                required
-                value={formData.name}
-                onChange={handleInputChange}
-                className="form-input"
-                placeholder={t('auth.register.namePlaceholder')}
-                disabled={isSubmitting}
-              />
-            </div>
-
-            {/* Email Field */}
-            <div>
-              <label htmlFor="email" className="form-label">
-                {t('auth.register.emailLabel')}
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                value={formData.email}
-                onChange={handleInputChange}
-                className="form-input"
-                placeholder={t('auth.register.emailPlaceholder')}
-                disabled={isSubmitting}
-              />
-            </div>
-
-            {/* Password Field */}
-            <div>
-              <label htmlFor="password" className="form-label">
-                {t('auth.register.passwordLabel')}
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="new-password"
-                required
-                value={formData.password}
-                onChange={handleInputChange}
-                className="form-input"
-                placeholder={t('auth.register.passwordPlaceholder')}
-                disabled={isSubmitting}
-              />
-              <p className="mt-1 text-xs text-gray-500">
-                {t('auth.register.passwordHint')}
-              </p>
-            </div>
-
-            {/* Confirm Password Field */}
-            <div>
-              <label htmlFor="confirmPassword" className="form-label">
-                {t('auth.register.confirmPasswordLabel')}
-              </label>
-              <input
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                autoComplete="new-password"
-                required
-                value={formData.confirmPassword}
-                onChange={handleInputChange}
-                className="form-input"
-                placeholder={t('auth.register.confirmPasswordPlaceholder')}
-                disabled={isSubmitting}
-              />
-            </div>
-
-            {/* Terms & Conditions */}
-            <div className="flex items-center">
-              <input
-                id="terms"
-                name="terms"
-                type="checkbox"
-                required
-                className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-                disabled={isSubmitting}
-              />
-              <label htmlFor="terms" className="ml-2 block text-sm text-gray-900">
-                {t('auth.register.termsText')}{' '}
-                <a
-                  href="#"
-                  className="text-primary-600 hover:text-primary-500 underline cursor-pointer"
-                  onClick={e => { e.preventDefault(); onNavigate && onNavigate('terms'); }}
-                >
-                  {t('auth.register.termsLink')}
-                </a>{' '}
-                {t('auth.register.and')}{' '}
-                <a
-                  href="#"
-                  className="text-primary-600 hover:text-primary-500 underline cursor-pointer"
-                  onClick={e => { e.preventDefault(); onNavigate && onNavigate('privacy'); }}
-                >
-                  {t('auth.register.privacyLink')}
-                </a>
-              </label>
-            </div>
-
-            {/* Submit Button */}
-            <div>
-              <button
-                type="submit"
-                disabled={isSubmitting || loading}
-                className="w-full btn-primary text-center justify-center flex items-center"
-              >
-                {isSubmitting ? (
-                  <>
-                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                {/* Phone Contact */}
+                <div className="bg-gray-50 rounded-lg p-4 mb-4">
+                  <div className="flex items-center mb-2">
+                    <svg className="w-5 h-5 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                     </svg>
-                    {t('auth.register.creatingAccount')}
-                  </>
-                ) : (
-                  t('auth.register.createButton')
-                )}
-              </button>
-            </div>
-          </form>
+                    <span className="font-medium text-gray-900">Call Us</span>
+                  </div>
+                  <a href="tel:+256749117690" className="text-lg font-mono text-blue-600 hover:text-blue-800 transition-colors">
+                    +256 749 117 690
+                  </a>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Our agent will get in touch with you within 24 hours
+                  </p>
+                </div>
 
-          {/* Divider */}
-          <div className="mt-6">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300" />
+                {/* Physical Address */}
+                <div className="bg-gray-50 rounded-lg p-4 mb-4">
+                  <div className="flex items-center mb-2">
+                    <svg className="w-5 h-5 text-purple-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <span className="font-medium text-gray-900">Visit Us</span>
+                  </div>
+                  <div className="text-gray-700">
+                    <p className="font-medium">ICT Department</p>
+                    <p>International University of East Africa (IUEA)</p>
+                    <p>Kansanga Campus</p>
+                    <p>Kampala, Uganda</p>
+                  </div>
+                  <p className="text-sm text-gray-600 mt-2">
+                    Walk-ins welcome during business hours
+                  </p>
+                </div>
+
+                {/* Email Contact */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <div className="flex items-center mb-2">
+                    <svg className="w-5 h-5 text-blue-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+                    </svg>
+                    <span className="font-medium text-gray-900">Email Us</span>
+                  </div>
+                  <a href="mailto:contact@nyotainnovation.com" className="text-blue-600 hover:text-blue-800 transition-colors">
+                    contact@nyotainnovation.com
+                  </a>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Send us your details for priority access
+                  </p>
+                </div>
               </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">{t('auth.register.haveAccount')}</span>
+
+              {/* IUEA Branding */}
+              <div className="border-t border-gray-200 pt-6">
+                <div className="flex items-center justify-center space-x-3">
+                  <img
+                    src="/iuea-Logo.png"
+                    alt="IUEA Logo"
+                    className="h-8 w-auto"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                  <div className="text-center">
+                    <p className="text-sm font-medium text-gray-900">Powered by IUEA Innovations</p>
+                    <p className="text-xs text-gray-600">International University of East Africa</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Already Have Account */}
+              <div className="border-t border-gray-200 pt-6">
+                <div className="text-center">
+                  <p className="text-sm text-gray-600 mb-3">
+                    Already have an account from our team?
+                  </p>
+                  <button
+                    onClick={() => onNavigate('login')}
+                    className="w-full btn-secondary text-center justify-center"
+                  >
+                    Sign In Here
+                  </button>
+                </div>
               </div>
             </div>
-
-            {/* Login Link */}
-            <div className="mt-6">
-              <button
-                onClick={() => onNavigate('login')}
-                disabled={isSubmitting}
-                className="w-full btn-secondary text-center justify-center"
-              >
-                {t('auth.register.signInInstead')}
-              </button>
-            </div>            </div>
           </div>
         </div>
       </div>
