@@ -5,7 +5,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { collection, query, where, getDocs, getFirestore, doc, updateDoc } from 'firebase/firestore';
 import { useAuth } from '../AuthProvider';
+import { useLoading } from '../contexts/LoadingContext';
 import { useTranslation } from 'react-i18next';
+import SEOHead from './SEOHead';
 import LanguageSwitcher from './LanguageSwitcher';
 import Form6Template from './Form6Template';
 import Form4Template from './Form4Template';
@@ -31,6 +33,7 @@ interface BulletinRecord {
 
 const FirestoreOnlyDashboardPage: React.FC = () => {
   const { currentUser } = useAuth();
+  const { showSplash, hideSplash } = useLoading();
   const { t, i18n } = useTranslation();
   
   // Set French as default language for dashboard
@@ -470,6 +473,9 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
       setError(null);
       setUploadProgress(0);
 
+      // Show splash screen for upload process
+      showSplash('Preparing your document upload...');
+
       // Get Firebase ID token
       const idToken = await currentUser?.getIdToken();
       if (!idToken) {
@@ -483,19 +489,20 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
 
       // Uploading file to server
 
-      // Simulate upload progress stages
+      // Simulate upload progress stages with splash screen messages
       const updateProgress = (stage: string, progress: number) => {
         // Upload progress update
         setUploadProgress(progress);
         setUploadStage(stage);
+        showSplash(stage);
       };
 
       // Stage 1: Preparing upload (0-10%)
-      updateProgress('Preparing upload', 10);
+      updateProgress('Preparing upload...', 10);
       await new Promise(resolve => setTimeout(resolve, 200));
 
       // Stage 2: Uploading file (10-30%)
-      updateProgress('Uploading file', 30);
+      updateProgress('Uploading your document...', 30);
       
       // Upload to backend with timeout
       const controller = new AbortController();
@@ -513,10 +520,9 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
       clearTimeout(timeoutId);
 
       // Stage 3: Processing response (30-50%)
-      updateProgress('Processing response', 50);
+      updateProgress('Processing your document...', 50);
 
-      // Stage 3: Processing response (30-50%)
-      updateProgress('Processing response', 50);
+      // Response received from server
 
       // Response received from server
 
@@ -539,7 +545,7 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
       }
 
       // Stage 4: Extracting data (50-70%)
-      updateProgress('Extracting text with AI', 70);
+      updateProgress('Extracting text with AI...', 70);
       await new Promise(resolve => setTimeout(resolve, 500));
 
       try {
@@ -552,13 +558,13 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
       }
 
       // Stage 5: Translating data (70-90%)
-      updateProgress('Translating to English', 90);
+      updateProgress('Translating to English...', 90);
       await new Promise(resolve => setTimeout(resolve, 500));
       
       // Upload successful
 
       // Stage 6: Saving to database (90-100%)
-      updateProgress('Saving to database', 100);
+      updateProgress('Saving to database...', 100);
       await new Promise(resolve => setTimeout(resolve, 300));
 
       // Reset form
@@ -567,11 +573,12 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
       // Refresh bulletins list
       await loadUserBulletins();
 
-      // Show success message briefly
+      // Hide splash screen and show success message briefly
+      hideSplash();
       setTimeout(() => {
         setUploadProgress(0);
         setUploadStage('');
-      }, 2000);
+      }, 1000);
 
     } catch (error) {
       console.error('❌ Upload error:', error);
@@ -584,6 +591,7 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
     } finally {
       setIsUploading(false);
       setUploadStage('');
+      hideSplash(); // Always hide splash screen when upload completes
     }
   };
 
@@ -624,6 +632,13 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <SEOHead 
+        title="Dashboard - Nyota Translation Center | Manage Your Academic Documents"
+        description="Access and manage your translated academic documents. View, edit, and download your French to English bulletin translations with AI-powered precision."
+        keywords="dashboard, academic documents, translated bulletins, document management, IUEA, AI translation, report cards, academic transcripts"
+        url="https://nyotatranslate.com/dashboard"
+      />
+      
       {/* Navigation Header */}
       <nav className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

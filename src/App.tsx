@@ -2,8 +2,11 @@
 // Handles routing and main application shell
 
 import React, { useState, useEffect, useRef } from 'react';
+import { HelmetProvider } from 'react-helmet-async';
 import { AuthProvider, useAuth } from './AuthProvider';
 import { LanguageProvider } from './contexts/LanguageContext';
+import { LoadingProvider } from './contexts/LoadingContext';
+import PageWithSplash from './components/PageWithSplash';
 import LandingPage from './components/LandingPage';
 import LoginPage from './components/LoginPage';
 import RegisterPage from './components/RegisterPage';
@@ -148,7 +151,7 @@ const AuthAwareRouter: React.FC = () => {
     return <FirestoreOnlyDashboardPage />;
   }
 
-  // Render the appropriate page
+  // Render the appropriate page (excluding card-only which is handled separately)
   const renderCurrentPage = () => {
     switch (currentPage) {
       case 'login':
@@ -163,8 +166,6 @@ const AuthAwareRouter: React.FC = () => {
         return <PrivacyPolicyPage onNavigate={navigateToPage} />;
       case 'forgot-password':
         return <ForgotPasswordPage onNavigate={navigateToPage} />;
-      case 'card-only':
-        return <CardOnlyPage />;
       case 'landing':
       default:
         return <LandingPage onNavigate={navigateToPage} />;
@@ -173,7 +174,15 @@ const AuthAwareRouter: React.FC = () => {
 
   return (
     <div className={currentPage === 'card-only' ? "min-h-screen bg-white" : "min-h-screen bg-gray-50"}>
-      {renderCurrentPage()}
+      {currentPage === 'card-only' ? (
+        // Card-only page doesn't need splash screen
+        <CardOnlyPage />
+      ) : (
+        // All other pages get splash screen
+        <PageWithSplash currentPage={currentPage}>
+          {renderCurrentPage()}
+        </PageWithSplash>
+      )}
     </div>
   );
 };
@@ -181,11 +190,15 @@ const AuthAwareRouter: React.FC = () => {
 // Main App component with AuthProvider and LanguageProvider wrappers
 const App: React.FC = () => {
   return (
-    <AuthProvider>
-      <LanguageProvider>
-        <AuthAwareRouter />
-      </LanguageProvider>
-    </AuthProvider>
+    <HelmetProvider>
+      <AuthProvider>
+        <LanguageProvider>
+          <LoadingProvider>
+            <AuthAwareRouter />
+          </LoadingProvider>
+        </LanguageProvider>
+      </AuthProvider>
+    </HelmetProvider>
   );
 };
 

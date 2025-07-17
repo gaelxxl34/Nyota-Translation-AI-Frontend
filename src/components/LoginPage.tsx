@@ -4,6 +4,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../AuthProvider';
 import { useTranslation } from 'react-i18next';
+import SEOHead from './SEOHead';
 import AuthNavigation from './AuthNavigation';
 import type { NavigateToPage } from '../App';
 
@@ -52,6 +53,13 @@ const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50">
+      <SEOHead 
+        title="Login - Nyota Translation Center | Access Your Account"
+        description="Login to your Nyota Translation Center account to access your academic document translations. Secure authentication for IUEA students and institutions."
+        keywords="login, account access, Nyota Translation Center, IUEA, academic documents, secure login, authentication"
+        url="https://nyotatranslate.com/login"
+      />
+      
       {/* Navigation Header */}
       <AuthNavigation onNavigate={onNavigate} />
       

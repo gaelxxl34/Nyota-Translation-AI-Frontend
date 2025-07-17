@@ -1,0 +1,22 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://nyotatranslate.com/sitemap.xml
+
+# Block access to private/admin areas (if any in the future)
+Disallow: /admin/
+Disallow: /api/
+Disallow: /_next/
+Disallow: /dist/
+
+# Allow search engines to crawl all content
+Allow: /
+Allow: /login
+Allow: /register
+Allow: /dashboard
+Allow: /privacy
+Allow: /terms
+
+# Crawl delay (optional - helps prevent overloading)
+Crawl-delay: 1

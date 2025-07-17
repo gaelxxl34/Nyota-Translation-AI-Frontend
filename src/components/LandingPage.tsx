@@ -3,6 +3,7 @@
 
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import SEOHead from './SEOHead';
 import LanguageSwitcher from './LanguageSwitcher';
 import FeaturesSection from './FeaturesSection';
 import SpeedComparison from './SpeedComparison';
@@ -20,6 +21,13 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50">
+      <SEOHead 
+        title="Nyota Translation Center - AI-Powered Academic Document Translation | IUEA Innovations"
+        description="Transform your French school bulletins and academic documents into professional English reports with AI. Trusted by International University of East Africa (IUEA). Fast, accurate, and secure translation services."
+        keywords="IUEA, International University of East Africa, Nyota Translation Center, AI translation, academic documents, school bulletin translation, French to English, education technology, IUEA innovations, academic transcripts, report cards, document conversion"
+        url="https://nyotatranslate.com/"
+      />
+      
       {/* Sticky Navigation Header */}
       <div className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-200/50 shadow-sm">
         <nav className="container mx-auto px-4 sm:px-6 py-4">
