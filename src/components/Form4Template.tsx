@@ -2,7 +2,8 @@
 // Converts French school bulletins to English format with proper A4 sizing
 // Specifically designed for 4th Year Humanities Math-Physics class structure
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
+import QRCodeComponent from './QRCodeComponent';
 
 interface Maxima {
   periodMaxima: number; // e.g., 10 for religion, 40 for physics
@@ -154,13 +155,15 @@ interface Form4TemplateProps {
   className?: string;
   isEditable?: boolean;
   onDataChange?: (updatedData: BulletinData) => void;
+  documentId?: string; // Allow passing document ID from parent
 }
 
 const Form4Template: React.FC<Form4TemplateProps> = ({ 
   data = {}, 
   className = '',
   isEditable = false,
-  onDataChange 
+  onDataChange,
+  documentId: propDocumentId // Accept documentId as prop
 }) => {
 
   // Editable field component with auto-save
@@ -548,6 +551,19 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
   
   // Drag and drop state
   const [draggedGroupIndex, setDraggedGroupIndex] = useState<number | null>(null);
+  
+  // Document verification state
+  const [documentId, setDocumentId] = useState<string>(propDocumentId || '');
+  
+  console.log('🔍 Form4Template - propDocumentId:', propDocumentId, 'documentId state:', documentId);
+
+  // Update document ID when prop changes
+  useEffect(() => {
+    if (propDocumentId && propDocumentId !== documentId) {
+      console.log('🔄 Form4Template - Setting prop documentId:', propDocumentId);
+      setDocumentId(propDocumentId);
+    }
+  }, [propDocumentId, documentId]);
 
   // Drag handlers
   const handleDragStart = (e: React.DragEvent, groupIndex: number) => {
@@ -827,7 +843,7 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
 
 
   return (
-    <div className={`bg-white ${className}`}>        {/* A4 Container with proper dimensions */}
+    <div className={`bg-white relative ${className}`}>        {/* A4 Container with proper dimensions + relative positioning for QR code */}
         <div 
           id="bulletin-template"
           data-testid="bulletin-template"
@@ -2112,9 +2128,42 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
             </div>
             
             {/* Legal Notice Section */}
-            <div className="space-y-2 pt-2">
-              <div>
+            <div className="space-y-2 pt-2 relative">
+              <div className="relative">
                 <p className="text-xs text-left font-medium">NOTE: This report card is invalid if altered or modified.</p>
+                
+                {/* QR Code for Verification - Below NOTE text, bottom left */}
+                {documentId && (
+                  <div 
+                    style={{
+                      position: 'absolute',
+                      top: '25px',
+                      left: '0px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'flex-start',
+                      gap: '2px',
+                      zIndex: 30
+                    }}
+                  >
+                    <QRCodeComponent 
+                      documentId={documentId}
+                      size={60}
+                      className="print-visible"
+                    />
+                    <div 
+                      style={{
+                        fontSize: '7px',
+                        color: '#000',
+                        textAlign: 'center',
+                        fontWeight: 'bold',
+                        width: '60px'
+                      }}
+                    >
+                      Verify Document
+                    </div>
+                  </div>
+                )}
               </div>
               
               <div className="text-center">
@@ -2124,6 +2173,7 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
               </div>
             </div>
           </div>
+
         </div>
                 {/* End of content wrapped in table cell */}
               </td>

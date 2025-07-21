@@ -15,6 +15,7 @@ import TermsAndConditionsPage from './components/TermsAndConditionsPage';
 import PrivacyPolicyPage from './components/PrivacyPolicyPage';
 import ForgotPasswordPage from './components/ForgotPasswordPage';
 import CardOnlyPage from './components/CardOnlyPage';
+import DocumentVerificationPage from './components/DocumentVerificationPage';
 
 // Simple page routing state
 /**
@@ -28,7 +29,8 @@ type PageType =
   | 'terms'
   | 'privacy'
   | 'forgot-password'
-  | 'card-only';
+  | 'card-only'
+  | 'verify';
 
 /**
  * Navigation function type for all pages
@@ -44,6 +46,7 @@ const getPageFromPath = (pathname: string): PageType => {
   if (pathname === '/privacy') return 'privacy';
   if (pathname === '/forgot-password') return 'forgot-password';
   if (pathname === '/card-only') return 'card-only';
+  if (pathname === '/verify' || pathname.startsWith('/verify?')) return 'verify';
   return 'landing';
 };
 
@@ -58,6 +61,7 @@ const getPathFromPage = (page: PageType): string => {
     'privacy': '/privacy',
     'forgot-password': '/forgot-password',
     'card-only': '/card-only',
+    'verify': '/verify',
   };
   return paths[page] || '/';
 };
@@ -166,6 +170,8 @@ const AuthAwareRouter: React.FC = () => {
         return <PrivacyPolicyPage onNavigate={navigateToPage} />;
       case 'forgot-password':
         return <ForgotPasswordPage onNavigate={navigateToPage} />;
+      case 'verify':
+        return <DocumentVerificationPage onNavigate={navigateToPage} />;
       case 'landing':
       default:
         return <LandingPage onNavigate={navigateToPage} />;
@@ -173,10 +179,13 @@ const AuthAwareRouter: React.FC = () => {
   };
 
   return (
-    <div className={currentPage === 'card-only' ? "min-h-screen bg-white" : "min-h-screen bg-gray-50"}>
+    <div className={currentPage === 'card-only' || currentPage === 'verify' ? "min-h-screen bg-white" : "min-h-screen bg-gray-50"}>
       {currentPage === 'card-only' ? (
         // Card-only page doesn't need splash screen
         <CardOnlyPage />
+      ) : currentPage === 'verify' ? (
+        // Verification page doesn't need splash screen
+        <DocumentVerificationPage onNavigate={navigateToPage} />
       ) : (
         // All other pages get splash screen
         <PageWithSplash currentPage={currentPage}>

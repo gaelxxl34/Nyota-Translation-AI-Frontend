@@ -294,5 +294,54 @@
       "success": "Changes saved successfully!",
       "backToList": "← Back to List"
     }
+  },
+  "verification": {
+    "pageTitle": "Document Verification",
+    "pageSubtitle": "Verify the authenticity of academic documents with our blockchain-powered verification system",
+    "loading": {
+      "title": "Verifying Document...",
+      "description": "Please wait while we verify the document authenticity on the blockchain"
+    },
+    "error": {
+      "title": "Verification Failed",
+      "invalidUrl": "Invalid verification URL. Document ID missing.",
+      "notFound": "Document not found or verification failed.",
+      "generic": "Error verifying document. Please try again.",
+      "tryAgain": "Try Again"
+    },
+    "success": {
+      "title": "Document Verified",
+      "description": "This document has been successfully verified and is authentic."
+    },
+    "documentInfo": {
+      "title": "Document Information",
+      "studentName": "Student Name",
+      "generationDate": "Generation Date"
+    },
+    "blockchain": {
+      "title": "🔗 Powered by Blockchain",
+      "description": "This document verification is secured by blockchain technology, ensuring authenticity and preventing tampering."
+    },
+    "institution": {
+      "title": "International University of East Africa (IUEA)",
+      "description": "This document has been verified as authentic and was generated through our secure blockchain-powered system."
+    },
+    "contact": {
+      "title": "Need Help or Have Questions?",
+      "description": "For any inquiries about this document verification, please contact Nyota Translation Center directly.",
+      "email": "contact@nyotainnovation.com",
+      "phone": "+256749117690",
+      "sendEmail": "Send Email",
+      "callUs": "Call Us",
+      "backHome": "Back to Home"
+    },
+    "invalid": {
+      "title": "❌ Document Not Valid",
+      "description": "This document could not be verified or has been tampered with.",
+      "backHome": "Back to Home"
+    },
+    "navigation": {
+      "backToHome": "Back to Home"
+    }
   }
 }

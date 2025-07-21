@@ -294,5 +294,54 @@
       "success": "Modifications sauvegardées avec succès !",
       "backToList": "← Retour à la Liste"
     }
+  },
+  "verification": {
+    "pageTitle": "Vérification de Document",
+    "pageSubtitle": "Vérifiez l'authenticité des documents académiques avec notre système de vérification alimenté par blockchain",
+    "loading": {
+      "title": "Vérification du Document...",
+      "description": "Veuillez patienter pendant que nous vérifions l'authenticité du document sur la blockchain"
+    },
+    "error": {
+      "title": "Échec de la Vérification",
+      "invalidUrl": "URL de vérification invalide. ID de document manquant.",
+      "notFound": "Document non trouvé ou vérification échouée.",
+      "generic": "Erreur lors de la vérification du document. Veuillez réessayer.",
+      "tryAgain": "Réessayer"
+    },
+    "success": {
+      "title": "Document Vérifié",
+      "description": "Ce document a été vérifié avec succès et est authentique."
+    },
+    "documentInfo": {
+      "title": "Informations du Document",
+      "studentName": "Nom de l'Étudiant",
+      "generationDate": "Date de Génération"
+    },
+    "blockchain": {
+      "title": "🔗 Alimenté par Blockchain",
+      "description": "Cette vérification de document est sécurisée par la technologie blockchain, garantissant l'authenticité et empêchant la falsification."
+    },
+    "institution": {
+      "title": "International University of East Africa (IUEA)",
+      "description": "Ce document a été vérifié comme authentique et a été généré grâce à notre système sécurisé alimenté par blockchain."
+    },
+    "contact": {
+      "title": "Besoin d'Aide ou Avez des Questions ?",
+      "description": "Pour toute demande concernant cette vérification de document, veuillez contacter directement Nyota Translation Center.",
+      "email": "contact@nyotainnovation.com",
+      "phone": "+256749117690",
+      "sendEmail": "Envoyer un E-mail",
+      "callUs": "Nous Appeler",
+      "backHome": "Retour à l'Accueil"
+    },
+    "invalid": {
+      "title": "❌ Document Non Valide",
+      "description": "Ce document n'a pas pu être vérifié ou a été falsifié.",
+      "backHome": "Retour à l'Accueil"
+    },
+    "navigation": {
+      "backToHome": "Retour à l'Accueil"
+    }
   }
 }

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import QRCodeComponent from './QRCodeComponent';
 
 // Editable Field Component for State Diploma
 const EditableField: React.FC<{
@@ -90,12 +91,14 @@ interface StateDiplomaTemplateProps {
   data?: DiplomaData;
   isEditable?: boolean;
   onDataChange?: (updatedData: DiplomaData) => void;
+  documentId?: string; // Allow passing document ID from parent
 }
 
 const StateDiplomaTemplate: React.FC<StateDiplomaTemplateProps> = ({ 
   data, 
   isEditable = false, 
-  onDataChange 
+  onDataChange,
+  documentId: propDocumentId // Accept documentId as prop
 }) => {
   // Create default empty data if no data is provided
   const defaultData: DiplomaData = {
@@ -123,6 +126,18 @@ const StateDiplomaTemplate: React.FC<StateDiplomaTemplateProps> = ({
   const [currentData, setCurrentData] = useState<DiplomaData>(defaultData);
   // State for screen width to handle responsiveness
   const [screenWidth, setScreenWidth] = useState<number>(typeof window !== 'undefined' ? window.innerWidth : 1024);
+  // State for document ID and QR code
+  const [documentId, setDocumentId] = useState<string>(propDocumentId || '');
+  
+  console.log('🔍 StateDiplomaTemplate - propDocumentId:', propDocumentId, 'documentId state:', documentId);
+
+  // Update document ID when prop changes
+  useEffect(() => {
+    if (propDocumentId && propDocumentId !== documentId) {
+      console.log('🔄 StateDiplomaTemplate - Setting prop documentId:', propDocumentId);
+      setDocumentId(propDocumentId);
+    }
+  }, [propDocumentId, documentId]);
 
   // Update current data when props change
   useEffect(() => {
@@ -789,6 +804,33 @@ const StateDiplomaTemplate: React.FC<StateDiplomaTemplateProps> = ({
                     diploma shall be issued.
                   </p>
                 </div>
+
+                {/* QR Code for Verification - Bottom Left */}
+                {documentId && (
+                  <div style={{
+                    position: 'absolute',
+                    bottom: '20px',
+                    left: '20px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '4px'
+                  }}>
+                    <QRCodeComponent 
+                      documentId={documentId}
+                      size={screenWidth < 640 ? 60 : 80}
+                      className="print-visible"
+                    />
+                    <div style={{
+                      fontSize: screenWidth < 640 ? '8px' : '10px',
+                      color: '#000',
+                      textAlign: 'center',
+                      fontWeight: 'bold'
+                    }}>
+                      Verify Document
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>

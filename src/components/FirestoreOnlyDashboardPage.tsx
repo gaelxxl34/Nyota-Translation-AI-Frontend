@@ -1095,23 +1095,30 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
               </div>
               <div className="p-2 sm:p-4 bg-gray-50 overflow-x-auto">
                 {/* Conditional template rendering based on form type */}
+                {(() => {
+                  console.log('🔍 Dashboard - selectedBulletin.id:', selectedBulletin?.id, 'formType:', selectedBulletin?.metadata?.formType);
+                  return null;
+                })()}
                 {(selectedBulletin.metadata.formType || 'form6') === 'form4' ? (
                   <Form4Template 
                     data={transformDataForTemplate(getBulletinDisplayData(selectedBulletin))} 
                     isEditable={isEditing}
                     onDataChange={handleFieldUpdate}
+                    documentId={selectedBulletin.id} // Pass Firestore document ID as documentId for QR codes
                   />
                 ) : (selectedBulletin.metadata.formType || 'form6') === 'stateDiploma' ? (
                   <StateDiplomaTemplate 
                     data={transformDataForStateDiploma(getBulletinDisplayData(selectedBulletin))} 
                     isEditable={isEditing}
                     onDataChange={handleFieldUpdate}
+                    documentId={selectedBulletin.id} // Pass Firestore document ID as documentId for QR codes
                   />
                 ) : (
                   <Form6Template 
                     data={transformDataForTemplate(getBulletinDisplayData(selectedBulletin))} 
                     isEditable={isEditing}
                     onDataChange={handleFieldUpdate}
+                    documentId={selectedBulletin.id} // Pass Firestore document ID as documentId for QR codes
                   />
                 )}
                 {isEditing && (
