@@ -29,7 +29,7 @@ const QRCodeComponent: React.FC<QRCodeComponentProps> = ({
   }
 
   // Backend QR endpoint - directly use as image source
-  const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3002';
+  const backendUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
   const qrImageUrl = `${backendUrl}/api/qr/${documentId}`;
   
   console.log('🔗 QRCodeComponent - Using backend QR URL:', qrImageUrl);
