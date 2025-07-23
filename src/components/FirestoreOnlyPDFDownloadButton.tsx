@@ -11,6 +11,7 @@ interface FirestoreOnlyPDFDownloadButtonProps {
   disabled?: boolean;
   onSuccess?: () => void;
   onError?: (error: string) => void;
+  tableSize?: 'auto' | 'normal' | '11px' | '12px' | '13px' | '14px' | '15px'; // Table size for PDF generation
 }
 
 const FirestoreOnlyPDFDownloadButton: React.FC<FirestoreOnlyPDFDownloadButtonProps> = ({ 
@@ -19,7 +20,8 @@ const FirestoreOnlyPDFDownloadButton: React.FC<FirestoreOnlyPDFDownloadButtonPro
   className = '',
   disabled = false,
   onSuccess,
-  onError
+  onError,
+  tableSize = 'auto' // Default to auto sizing
 }) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -97,6 +99,7 @@ const FirestoreOnlyPDFDownloadButton: React.FC<FirestoreOnlyPDFDownloadButtonPro
               frontendUrl: frontendUrl,
               waitSelector: '#bulletin-template',
               waitForImages: true, // Wait for all images including QR codes
+              tableSize: tableSize, // Include table size for PDF generation
               pdfOptions: {
                 format: 'A4',
                 printBackground: true,

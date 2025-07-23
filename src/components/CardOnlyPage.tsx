@@ -10,6 +10,10 @@ const CardOnlyPage: React.FC = () => {
   const [studentData, setStudentData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Read table size from URL parameters
+  const urlParams = new URLSearchParams(window.location.search);
+  const tableSize = (urlParams.get('tableSize') as 'auto' | 'normal' | '11px' | '12px' | '13px' | '14px' | '15px') || 'auto';
+
   useEffect(() => {
     // Check for data in window object (injected by Puppeteer)
     const checkForData = () => {
@@ -115,6 +119,7 @@ const CardOnlyPage: React.FC = () => {
             documentId={documentId}
             isEditable={false}
             onDataChange={() => {}} // No-op for PDF generation
+            initialTableSize={tableSize} // Use table size from URL parameter
           />
         );
       case 'stateDiploma':
@@ -132,6 +137,7 @@ const CardOnlyPage: React.FC = () => {
             documentId={documentId}
             isEditable={false}
             onDataChange={() => {}} // No-op for PDF generation
+            initialTableSize={tableSize} // Use table size from URL parameter
           />
         );
     }

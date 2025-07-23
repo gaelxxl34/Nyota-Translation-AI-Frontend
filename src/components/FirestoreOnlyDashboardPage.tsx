@@ -52,6 +52,7 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadStage, setUploadStage] = useState<string>('');
   const [selectedFormType, setSelectedFormType] = useState<'form4' | 'form6' | 'stateDiploma'>('form6'); // Add state diploma selection
+  const [tableSize, setTableSize] = useState<'auto' | 'normal' | '11px' | '12px' | '13px' | '14px' | '15px'>('auto'); // Track table size for PDF generation
   const db = getFirestore();
 
   // Load user's bulletins from Firestore ONLY
@@ -1093,6 +1094,7 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                       studentName={getBulletinDisplayData(selectedBulletin)?.studentName}
                       onSuccess={handlePDFSuccess}
                       onError={handlePDFError}
+                      tableSize={tableSize} // Pass current table size to PDF generation
                     />
                   )}
                 </div>
@@ -1175,6 +1177,8 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                     isEditable={isEditing}
                     onDataChange={handleFieldUpdate}
                     documentId={selectedBulletin.id} // Pass Firestore document ID as documentId for QR codes
+                    initialTableSize={tableSize} // Pass current table size
+                    onTableSizeChange={setTableSize} // Update table size when changed
                   />
                 )}
                 {isEditing && (

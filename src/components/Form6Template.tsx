@@ -158,6 +158,8 @@ interface Form6TemplateProps {
   isEditable?: boolean;
   onDataChange?: (updatedData: BulletinData) => void;
   documentId?: string; // Allow passing document ID from parent
+  initialTableSize?: 'auto' | 'normal' | '11px' | '12px' | '13px' | '14px' | '15px'; // Allow setting initial table size
+  onTableSizeChange?: (size: 'auto' | 'normal' | '11px' | '12px' | '13px' | '14px' | '15px') => void; // Callback for size changes
 }
 
 const Form6Template: React.FC<Form6TemplateProps> = ({ 
@@ -165,11 +167,26 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
   className = '',
   isEditable = false,
   onDataChange,
-  documentId: propDocumentId // Accept documentId as prop
+  documentId: propDocumentId, // Accept documentId as prop
+  initialTableSize = 'auto', // Default to auto sizing
+  onTableSizeChange // Callback for size changes
 }) => {
 
-  // Manual sizing override state
-  const [manualSizeOverride, setManualSizeOverride] = useState<'auto' | 'normal' | '11px' | '12px' | '13px' | '14px' | '15px'>('auto');
+  // Manual sizing override state - initialize with prop value
+  const [manualSizeOverride, setManualSizeOverride] = useState<'auto' | 'normal' | '11px' | '12px' | '13px' | '14px' | '15px'>(initialTableSize);
+
+  // Sync with initialTableSize prop changes
+  useEffect(() => {
+    setManualSizeOverride(initialTableSize);
+  }, [initialTableSize]);
+
+  // Handle table size changes
+  const handleTableSizeChange = (newSize: 'auto' | 'normal' | '11px' | '12px' | '13px' | '14px' | '15px') => {
+    setManualSizeOverride(newSize);
+    if (onTableSizeChange) {
+      onTableSizeChange(newSize);
+    }
+  };
 
   // Editable field component with auto-save
   const EditableField: React.FC<{
@@ -1192,14 +1209,17 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
             )}
             
             {/* Size Control - always visible but hidden when printing */}
-            <div className="flex items-center space-x-2 print:hidden">
+            <div 
+              className="table-size-control flex items-center space-x-2" 
+              style={{ display: 'flex' }}
+            >
               <label htmlFor="sizeControl" className="text-xs font-medium text-gray-700">
                 Table Size:
               </label>
               <select
                 id="sizeControl"
                 value={manualSizeOverride}
-                onChange={(e) => setManualSizeOverride(e.target.value as 'auto' | 'normal' | '11px' | '12px' | '13px' | '14px' | '15px')}
+                onChange={(e) => handleTableSizeChange(e.target.value as 'auto' | 'normal' | '11px' | '12px' | '13px' | '14px' | '15px')}
                 className="text-xs border border-gray-300 rounded px-2 py-1 bg-white focus:border-blue-500 focus:outline-none"
               >
                 <option value="auto">Auto ({(() => {

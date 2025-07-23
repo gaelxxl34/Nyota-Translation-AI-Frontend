@@ -212,6 +212,11 @@ body {
   height: 100% !important;
 }
 
+/* Table size control - always visible in browser */
+.table-size-control {
+  display: flex !important;
+}
+
 /* Print Styles */
 @media print {
   body {
@@ -321,5 +326,10 @@ body {
   img[alt*="QR Code"] {
     filter: none !important;
     transform: none !important;
+  }
+  
+  /* Hide table size control when printing */
+  .table-size-control {
+    display: none !important;
   }
 }
