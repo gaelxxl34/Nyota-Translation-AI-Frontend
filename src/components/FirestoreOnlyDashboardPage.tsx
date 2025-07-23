@@ -242,8 +242,23 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
         throw new Error('Authentication token not available');
       }
 
+      // Get the backend URL
+      const envApiUrl = import.meta.env.VITE_API_BASE_URL;
+      const isProduction = import.meta.env.PROD;
+      const currentProtocol = window.location.protocol;
+      const currentHostname = window.location.hostname;
+      
+      let deleteBackendUrl: string;
+      if (envApiUrl && envApiUrl !== 'https://your-backend-domain.com') {
+        deleteBackendUrl = envApiUrl;
+      } else if (isProduction) {
+        deleteBackendUrl = `${currentProtocol}//${currentHostname}`;
+      } else {
+        deleteBackendUrl = 'http://localhost:3001';
+      }
+
       // Call backend delete API
-      const response = await fetch(`/api/bulletins/${bulletinId}`, {
+      const response = await fetch(`${deleteBackendUrl}/api/bulletins/${bulletinId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${idToken}`,
@@ -504,11 +519,42 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
       // Stage 2: Uploading file (10-30%)
       updateProgress('Uploading your document...', 30);
       
+      // Determine backend URL based on environment
+      const isProduction = import.meta.env.PROD;
+      const currentProtocol = window.location.protocol;
+      const currentHostname = window.location.hostname;
+      const envApiUrl = import.meta.env.VITE_API_BASE_URL;
+
+      // Debug logging for production
+      console.log('🔧 Environment debug info:');
+      console.log(`  - isProduction: ${isProduction}`);
+      console.log(`  - currentHostname: ${currentHostname}`);
+      console.log(`  - envApiUrl: ${envApiUrl}`);
+
+      let backendUrl: string;
+      
+      if (envApiUrl && envApiUrl !== 'https://your-backend-domain.com') {
+        // Use environment variable if set and not placeholder
+        backendUrl = envApiUrl;
+      } else if (isProduction) {
+        // Production fallback - same domain (reverse proxy should handle /api routing)
+        backendUrl = `${currentProtocol}//${currentHostname}`;
+      } else {
+        // Local development - use localhost with default port
+        backendUrl = 'http://localhost:3001';
+      }
+      
+      console.log(`🎯 Using backend URL: ${backendUrl}`);
+
       // Upload to backend with timeout
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minute timeout for processing
+      const timeoutId = setTimeout(() => controller.abort(), 300000); // 5 minute timeout for AI processing
 
-      const response = await fetch('/api/upload', {
+      console.log(`🔄 Uploading to: ${backendUrl}/api/upload`);
+      console.log(`📄 File: ${file.name} (${file.size} bytes)`);
+      console.log(`📋 Form Type: ${selectedFormType}`);
+
+      const response = await fetch(`${backendUrl}/api/upload`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${idToken}`,
@@ -517,6 +563,7 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
         signal: controller.signal,
       });
 
+      console.log(`📨 Response status: ${response.status} ${response.statusText}`);
       clearTimeout(timeoutId);
 
       // Stage 3: Processing response (30-50%)
@@ -584,9 +631,17 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
       console.error('❌ Upload error:', error);
       
       if (error instanceof Error && error.name === 'AbortError') {
-        setError('Upload timed out. Please try again with a smaller file.');
+        setError('Upload timed out. Please try again with a smaller file or check your internet connection.');
+      } else if (error instanceof Error && error.message.includes('timeout')) {
+        setError('Processing timed out. Please try again with a smaller or simpler document.');
+      } else if (error instanceof Error && error.message.includes('413')) {
+        setError('File too large. Please upload a smaller file (max 10MB).');
+      } else if (error instanceof Error && error.message.includes('504')) {
+        setError('Server timeout. Please try again in a few moments.');
+      } else if (error instanceof Error && error.message.includes('502')) {
+        setError('Server temporarily unavailable. Please try again in a few moments.');
       } else {
-        setError(error instanceof Error ? error.message : 'Upload failed');
+        setError(error instanceof Error ? error.message : 'Upload failed. Please try again.');
       }
     } finally {
       setIsUploading(false);
