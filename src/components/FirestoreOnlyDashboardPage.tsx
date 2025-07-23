@@ -1084,6 +1084,7 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                   {(selectedBulletin.metadata.formType || 'form6') === 'stateDiploma' ? (
                     <StateDiplomaPDFDownloadButton
                       data={transformDataForStateDiploma(getBulletinDisplayData(selectedBulletin))}
+                      documentId={selectedBulletin.id} // Pass document ID for QR codes
                       className="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center justify-center space-x-2"
                     />
                   ) : (

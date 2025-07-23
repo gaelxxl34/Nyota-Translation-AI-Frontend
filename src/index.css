@@ -231,24 +231,95 @@ body {
   }
 }
 
-/* Mobile Specific Styles for State Diploma */
-@media (max-width: 640px) {
-  /* Reduce headings size on mobile for State Diploma */
-  .state-diploma-landing-preview h1,
-  .state-diploma-landing-preview h2,
-  .state-diploma-landing-preview h3 {
-    font-size: 0.85em !important;
+
+
+/* Print styles to ensure QR codes are visible */
+@media print {
+  /* Force all QR-related elements to be visible */
+  .print-qr-force-visible,
+  [data-print-element="qr-container"],
+  [data-print-element="qr-image"],
+  .qr-verification-container {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: relative !important;
+    z-index: 9999 !important;
   }
   
-  /* Reduce main text size on mobile for State Diploma */
-  .state-diploma-landing-preview div[style*="mainTextStyle"] {
-    font-size: 0.9em !important;
+  /* Override hidden styles for print QR alternative */
+  .hidden.print-qr-force-visible,
+  .print-qr-fallback.hidden {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
   }
   
-  /* Adjust centered headings specifically for State Diploma */
-  .state-diploma-landing-preview div[style*="textAlign: 'center'"] h1,
-  .state-diploma-landing-preview div[style*="text-align: center"] h1,
-  .state-diploma-landing-preview div[style*="text-align: center"] h2 {
-    font-size: 0.75em !important;
+  /* QR fallback specifically for print */
+  .print-qr-fallback {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+  }
+  
+  /* Ensure all images including QR codes print correctly */
+  img {
+    print-color-adjust: exact !important;
+    -webkit-print-color-adjust: exact !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+  
+  /* State Diploma specific image fixes */
+  .state-diploma-template img {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: static !important;
+    print-color-adjust: exact !important;
+    -webkit-print-color-adjust: exact !important;
+  }
+  
+  /* State Diploma QR code specific fixes */
+  .state-diploma-template .qr-verification-container {
+    position: absolute !important;
+    bottom: 10px !important;
+    left: 10px !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    z-index: 9999 !important;
+  }
+  
+  /* Force QR code containers to be visible */
+  [class*="qr"], 
+  [alt*="QR Code"],
+  .qr-container {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+  
+  /* Specific QR positioning for print */
+  .print-qr-container {
+    position: relative !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    z-index: 9999 !important;
+  }
+  
+  /* Override any hidden styles on QR elements */
+  [data-print-element="qr-container"] * {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+  
+  /* Ensure QR images are not filtered out */
+  img[alt*="QR Code"] {
+    filter: none !important;
+    transform: none !important;
   }
 }

@@ -25,12 +25,14 @@ interface DiplomaData {
 
 interface StateDiplomaPDFDownloadButtonProps {
   data: DiplomaData;
+  documentId?: string; // Add optional document ID for QR codes
   className?: string;
   disabled?: boolean;
 }
 
 const StateDiplomaPDFDownloadButton: React.FC<StateDiplomaPDFDownloadButtonProps> = ({ 
   data,
+  documentId, // Accept document ID for QR codes
   className = '',
   disabled = false,
 }) => {
@@ -67,8 +69,14 @@ const StateDiplomaPDFDownloadButton: React.FC<StateDiplomaPDFDownloadButtonProps
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          diplomaData: data,
+          diplomaData: { 
+            ...data, 
+            documentId: documentId, // Include document ID for QR codes
+            firestoreId: documentId,
+            id: documentId 
+          },
           frontendUrl: frontendUrl,
+          waitForImages: true, // Wait for QR codes to load
           pdfOptions: {
             format: 'A4',
             landscape: true,

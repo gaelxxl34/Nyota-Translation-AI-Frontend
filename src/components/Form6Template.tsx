@@ -1,6 +1,13 @@
 // Form6Template.tsx - A4 Report Card Template for Form 6 (6th Year) - NTC
 // Converts French school bulletins to English format with proper A4 sizing
 // Specifically designed for 6th Year Humanities Math-Physics class structure
+// 
+// DYNAMIC SIZING FEATURE:
+// The template automatically adjusts cell padding and font size based on the number of subjects:
+// - ≤18 subjects: Normal sizing (text-xs, px-0.5 py-0.5)
+// - 19-30 subjects: Compact sizing (text-[12px], px-0.5 py-[1px])  
+// - ≥31 subjects: Ultra-compact sizing (text-[11px], px-0.5 py-0)
+// This ensures the table always fits within A4 page dimensions while maintaining readability.
 
 import React, { useMemo, useState, useEffect } from 'react';
 import QRCodeComponent from './QRCodeComponent';
@@ -160,6 +167,9 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
   onDataChange,
   documentId: propDocumentId // Accept documentId as prop
 }) => {
+
+  // Manual sizing override state
+  const [manualSizeOverride, setManualSizeOverride] = useState<'auto' | 'normal' | '11px' | '12px' | '13px' | '14px' | '15px'>('auto');
 
   // Editable field component with auto-save
   const EditableField: React.FC<{
@@ -375,6 +385,91 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
   const renderGrade = (value: string | number | undefined) => {
     return String(value || '');
   };
+
+  // Calculate dynamic sizing based on total subjects count with manual override support
+  const getDynamicSizing = useMemo(() => {
+    const totalSubjects = (data.subjects || []).filter(s => s.subject || s.maxima).length;
+    const maxBaseRows = 18; // Increased from 15 to allow more subjects at normal size
+    
+    // Determine sizing tier
+    let sizingTier: 'normal' | '11px' | '12px' | '13px' | '14px' | '15px';
+    
+    // Use manual override if set, otherwise use automatic sizing
+    if (manualSizeOverride !== 'auto') {
+      sizingTier = manualSizeOverride;
+      console.log(`📏 Form6 Manual Sizing: Using manual override "${sizingTier}" for ${totalSubjects} subjects`);
+    } else {
+      // Automatic sizing based on subject count
+      if (totalSubjects <= maxBaseRows) {
+        sizingTier = 'normal';
+      } else if (totalSubjects <= 30) {
+        sizingTier = '12px';
+      } else {
+        sizingTier = '11px';
+      }
+      console.log(`📏 Form6 Auto Sizing: ${totalSubjects} subjects → "${sizingTier}" tier`);
+    }
+    
+    // Apply the sizing configuration
+    let sizing;
+    if (sizingTier === 'normal') {
+      // Normal sizing for smaller tables - keeping original size
+      sizing = {
+        cellPadding: 'px-0.5 py-0.5',
+        fontSize: 'text-xs',
+        headerPadding: 'px-0.5 py-0.5',
+        headerFontSize: 'text-xs',
+        compactMode: false
+      };
+    } else if (sizingTier === '15px') {
+      // 15px sizing
+      sizing = {
+        cellPadding: 'px-0.5 py-1',
+        fontSize: 'text-[15px]',
+        headerPadding: 'px-0.5 py-1',
+        headerFontSize: 'text-[15px]',
+        compactMode: false
+      };
+    } else if (sizingTier === '14px') {
+      // 14px sizing
+      sizing = {
+        cellPadding: 'px-0.5 py-0.5',
+        fontSize: 'text-[14px]',
+        headerPadding: 'px-0.5 py-0.5',
+        headerFontSize: 'text-[14px]',
+        compactMode: false
+      };
+    } else if (sizingTier === '13px') {
+      // 13px sizing
+      sizing = {
+        cellPadding: 'px-0.5 py-0.5',
+        fontSize: 'text-[13px]',
+        headerPadding: 'px-0.5 py-0.5',
+        headerFontSize: 'text-[13px]',
+        compactMode: false
+      };
+    } else if (sizingTier === '12px') {
+      // 12px sizing for medium tables
+      sizing = {
+        cellPadding: 'px-0.5 py-[1px]', // Reduced padding but not zero
+        fontSize: 'text-[12px]',
+        headerPadding: 'px-0.5 py-[1px]',
+        headerFontSize: 'text-[12px]',
+        compactMode: true
+      };
+    } else {
+      // 11px sizing for large tables
+      sizing = {
+        cellPadding: 'px-0.5 py-0',
+        fontSize: 'text-[11px]',
+        headerPadding: 'px-0.5 py-0',
+        headerFontSize: 'text-[11px]',
+        compactMode: true
+      };
+    }
+    
+    return sizing;
+  }, [data.subjects, manualSizeOverride]);
 
   // Sort subjects by maxima values (same logic as backend)
   const sortSubjectsByMaxima = (subjects: SubjectGrade[]) => {
@@ -839,7 +934,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
         {/* Header with Logos and Titles */}
         <div className="flex items-center justify-between p-1 border-b border-gray-300">
           <img
-            src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Flag_of_the_Democratic_Republic_of_the_Congo.svg/640px-Flag_of_the_Democratic_Republic_of_the_Congo.svg.png"
+            src="/flag.png"
             alt="DRC Flag"
             className="h-10"
           />
@@ -850,7 +945,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
             </p>
           </div>
           <img
-            src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTXsF5nQx4tanE26gNkogT9BDi0w7A9niMRlg&s"
+            src="/Coat.png"
             alt="Emblem"
             className="h-10"
           />
@@ -1072,79 +1167,108 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
 
         {/* Grades Table */}
         <div className="print:break-inside-avoid">
-          {/* MAXIMA Group Controls */}
-          {isEditable && (
-            <div className="mb-2 flex justify-start space-x-2">
-              <button
-                onClick={() => addMaximaGroup()}
-                className="px-3 py-1 bg-green-500 hover:bg-green-600 text-white text-xs rounded flex items-center space-x-1"
-                title="Add new MAXIMA group with default values (20/40/80)"
+          {/* MAXIMA Group Controls (only in edit mode) and Size Control (always visible) */}
+          <div className={`mb-2 flex items-center ${isEditable ? 'justify-between' : 'justify-end'}`}>
+            {/* MAXIMA Group Controls - only in edit mode */}
+            {isEditable && (
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => addMaximaGroup()}
+                  className="px-3 py-1 bg-green-500 hover:bg-green-600 text-white text-xs rounded flex items-center space-x-1"
+                  title="Add new MAXIMA group with default values (20/40/80)"
+                >
+                  <span>+</span>
+                  <span>Add MAXIMA Group</span>
+                </button>
+                <button
+                  onClick={addCustomMaximaGroup}
+                  className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white text-xs rounded flex items-center space-x-1"
+                  title="Add new MAXIMA group with custom values"
+                >
+                  <span>⚙</span>
+                  <span>Custom MAXIMA</span>
+                </button>
+              </div>
+            )}
+            
+            {/* Size Control - always visible but hidden when printing */}
+            <div className="flex items-center space-x-2 print:hidden">
+              <label htmlFor="sizeControl" className="text-xs font-medium text-gray-700">
+                Table Size:
+              </label>
+              <select
+                id="sizeControl"
+                value={manualSizeOverride}
+                onChange={(e) => setManualSizeOverride(e.target.value as 'auto' | 'normal' | '11px' | '12px' | '13px' | '14px' | '15px')}
+                className="text-xs border border-gray-300 rounded px-2 py-1 bg-white focus:border-blue-500 focus:outline-none"
               >
-                <span>+</span>
-                <span>Add MAXIMA Group</span>
-              </button>
-              <button
-                onClick={addCustomMaximaGroup}
-                className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white text-xs rounded flex items-center space-x-1"
-                title="Add new MAXIMA group with custom values"
-              >
-                <span>⚙</span>
-                <span>Custom MAXIMA</span>
-              </button>
+                <option value="auto">Auto ({(() => {
+                  const totalSubjects = (data.subjects || []).filter(s => s.subject || s.maxima).length;
+                  if (totalSubjects <= 18) return 'Normal';
+                  if (totalSubjects <= 30) return '12px';
+                  return '11px';
+                })()})</option>
+                <option value="normal">Normal (text-xs)</option>
+                <option value="15px">15px</option>
+                <option value="14px">14px</option>
+                <option value="13px">13px</option>
+                <option value="12px">12px</option>
+                <option value="11px">11px</option>
+              </select>
             </div>
-          )}
+          </div>
           
-          <table className="table-fixed w-full border-collapse text-xs">
+          <table className="table-fixed w-full border-collapse" style={{ fontSize: getDynamicSizing.fontSize.replace('text-', ''), lineHeight: getDynamicSizing.compactMode ? '1.1' : '1.0' }}>
             <thead>
               {/* Semester Group Headers */}
               <tr className="text-center">
-                <th rowSpan={3} className="border border-black px-0.5 py-0.5 text-xs w-20 uppercase bg-white">
+                <th rowSpan={3} className={`border border-black ${getDynamicSizing.headerPadding} ${getDynamicSizing.headerFontSize} w-20 uppercase bg-white`}>
                   SUBJECTS
                 </th>
-                <th colSpan={4} className="border border-black px-0.5 py-0.5 uppercase text-xs w-24 bg-white">
+                <th colSpan={4} className={`border border-black ${getDynamicSizing.headerPadding} uppercase ${getDynamicSizing.headerFontSize} w-24 bg-white`}>
                   FIRST SEMESTER
                 </th>
-                <th colSpan={4} className="border border-black px-0.5 py-0.5 uppercase text-xs w-24 bg-white">
+                <th colSpan={4} className={`border border-black ${getDynamicSizing.headerPadding} uppercase ${getDynamicSizing.headerFontSize} w-24 bg-white`}>
                   SECOND SEMESTER
                 </th>
-                <th rowSpan={3} className="border border-black px-0.5 py-0.5 uppercase text-xs w-8 bg-white">
+                <th rowSpan={3} className={`border border-black ${getDynamicSizing.headerPadding} uppercase ${getDynamicSizing.headerFontSize} w-8 bg-white`}>
                   OVERALL TOTAL
                 </th>
-                <th rowSpan={3} className="border border-black px-0.5 py-0.5 bg-black w-1">&nbsp;</th>
-                <th rowSpan={2} colSpan={3} className="border border-black px-0.5 py-0.5 uppercase text-xs w-16 bg-white">
+                <th rowSpan={3} className={`border border-black ${getDynamicSizing.headerPadding} bg-black w-1`}>&nbsp;</th>
+                <th rowSpan={2} colSpan={3} className={`border border-black ${getDynamicSizing.headerPadding} uppercase ${getDynamicSizing.headerFontSize} w-16 bg-white`}>
                   NATIONAL EXAM
                 </th>
               </tr>
               {/* Criteria Headers */}
               <tr className="text-center">
-                <th colSpan={2} className="border border-black px-0.5 py-0.5 text-xs uppercase bg-white">
+                <th colSpan={2} className={`border border-black ${getDynamicSizing.headerPadding} ${getDynamicSizing.headerFontSize} uppercase bg-white`}>
                   DAILY WORK
                 </th>
-                <th rowSpan={2} className="border border-black px-0.5 py-0.5 text-xs uppercase bg-white">
+                <th rowSpan={2} className={`border border-black ${getDynamicSizing.headerPadding} ${getDynamicSizing.headerFontSize} uppercase bg-white`}>
                   EXAM
                 </th>
-                <th rowSpan={2} className="border border-black px-0.5 py-0.5 text-xs uppercase bg-white">
+                <th rowSpan={2} className={`border border-black ${getDynamicSizing.headerPadding} ${getDynamicSizing.headerFontSize} uppercase bg-white`}>
                   TOTAL
                 </th>
-                <th colSpan={2} className="border border-black px-0.5 py-0.5 text-xs uppercase bg-white">
+                <th colSpan={2} className={`border border-black ${getDynamicSizing.headerPadding} ${getDynamicSizing.headerFontSize} uppercase bg-white`}>
                   DAILY WORK
                 </th>
-                <th rowSpan={2} className="border border-black px-0.5 py-0.5 text-xs uppercase bg-white">
+                <th rowSpan={2} className={`border border-black ${getDynamicSizing.headerPadding} ${getDynamicSizing.headerFontSize} uppercase bg-white`}>
                   EXAM
                 </th>
-                <th rowSpan={2} className="border border-black px-0.5 py-0.5 text-xs uppercase bg-white">
+                <th rowSpan={2} className={`border border-black ${getDynamicSizing.headerPadding} ${getDynamicSizing.headerFontSize} uppercase bg-white`}>
                   TOTAL
                 </th>
               </tr>
               {/* Period Labels */}
               <tr className="text-center">
-                <th className="border border-black px-0.5 py-0.5 text-xs bg-white">1<sup>st</sup> P.</th>
-                <th className="border border-black px-0.5 py-0.5 text-xs bg-white">2<sup>nd</sup> P.</th>
-                <th className="border border-black px-0.5 py-0.5 text-xs bg-white">3<sup>rd</sup> P.</th>
-                <th className="border border-black px-0.5 py-0.5 text-xs bg-white">4<sup>th</sup> P.</th>
-                <th className="border border-black px-0.5 py-0.5 text-xs bg-white"></th>
-                <th className="border border-black px-0.5 py-0.5 text-[8px] bg-white">MARKS</th>
-                <th className="border border-black px-0.5 py-0.5 text-[8px] bg-white">MAX</th>
+                <th className={`border border-black ${getDynamicSizing.headerPadding} ${getDynamicSizing.headerFontSize} bg-white`}>1<sup>st</sup> P.</th>
+                <th className={`border border-black ${getDynamicSizing.headerPadding} ${getDynamicSizing.headerFontSize} bg-white`}>2<sup>nd</sup> P.</th>
+                <th className={`border border-black ${getDynamicSizing.headerPadding} ${getDynamicSizing.headerFontSize} bg-white`}>3<sup>rd</sup> P.</th>
+                <th className={`border border-black ${getDynamicSizing.headerPadding} ${getDynamicSizing.headerFontSize} bg-white`}>4<sup>th</sup> P.</th>
+                <th className={`border border-black ${getDynamicSizing.headerPadding} ${getDynamicSizing.headerFontSize} bg-white`}></th>
+                <th className={`border border-black ${getDynamicSizing.headerPadding} text-[8px] bg-white`}>MARKS</th>
+                <th className={`border border-black ${getDynamicSizing.headerPadding} text-[8px] bg-white`}>MAX</th>
               </tr>
             </thead>
             <tbody>
@@ -1170,7 +1294,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                       onDrop={(e) => handleDrop(e, groupIndex)}
                       onDragEnd={handleDragEnd}
                     >
-                      <td className="border border-black px-0.5 py-0.5 text-xs font-bold bg-white relative">
+                      <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} font-bold bg-white relative`}>
                         <div className="flex items-center justify-between">
                           <span className="flex items-center">
                             {isEditable && (
@@ -1212,7 +1336,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                           )}
                         </div>
                       </td>
-                      <td className="border border-black px-0.5 py-0.5 text-xs text-center font-bold bg-white">
+                      <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} text-center font-bold bg-white`}>
                         <EditableField 
                           value={group.maxima.periodMaxima}
                           onChange={(value) => updateMaximaField(groupIndex, 'periodMaxima', value)}
@@ -1222,7 +1346,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                           isTableCell={true}
                         />
                       </td>
-                      <td className="border border-black px-0.5 py-0.5 text-xs text-center font-bold bg-white">
+                      <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} text-center font-bold bg-white`}>
                         <EditableField 
                           value={group.maxima.periodMaxima}
                           onChange={(value) => updateMaximaField(groupIndex, 'periodMaxima', value)}
@@ -1232,7 +1356,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                           isTableCell={true}
                         />
                       </td>
-                      <td className="border border-black px-0.5 py-0.5 text-xs text-center font-bold bg-white">
+                      <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} text-center font-bold bg-white`}>
                         <EditableField 
                           value={group.maxima.examMaxima}
                           onChange={(value) => updateMaximaField(groupIndex, 'examMaxima', value)}
@@ -1242,7 +1366,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                           isTableCell={true}
                         />
                       </td>
-                      <td className="border border-black px-0.5 py-0.5 text-xs text-center font-bold bg-white">
+                      <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} text-center font-bold bg-white`}>
                         <EditableField 
                           value={group.maxima.totalMaxima}
                           onChange={(value) => updateMaximaField(groupIndex, 'totalMaxima', value)}
@@ -1252,7 +1376,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                           isTableCell={true}
                         />
                       </td>
-                      <td className="border border-black px-0.5 py-0.5 text-xs text-center font-bold bg-white">
+                      <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} text-center font-bold bg-white`}>
                         <EditableField 
                           value={group.maxima.periodMaxima}
                           onChange={(value) => updateMaximaField(groupIndex, 'periodMaxima', value)}
@@ -1262,7 +1386,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                           isTableCell={true}
                         />
                       </td>
-                      <td className="border border-black px-0.5 py-0.5 text-xs text-center font-bold bg-white">
+                      <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} text-center font-bold bg-white`}>
                         <EditableField 
                           value={group.maxima.periodMaxima}
                           onChange={(value) => updateMaximaField(groupIndex, 'periodMaxima', value)}
@@ -1272,7 +1396,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                           isTableCell={true}
                         />
                       </td>
-                      <td className="border border-black px-0.5 py-0.5 text-xs text-center font-bold bg-white">
+                      <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} text-center font-bold bg-white`}>
                         <EditableField 
                           value={group.maxima.examMaxima}
                           onChange={(value) => updateMaximaField(groupIndex, 'examMaxima', value)}
@@ -1282,7 +1406,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                           isTableCell={true}
                         />
                       </td>
-                      <td className="border border-black px-0.5 py-0.5 text-xs text-center font-bold bg-white">
+                      <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} text-center font-bold bg-white`}>
                         <EditableField 
                           value={group.maxima.totalMaxima}
                           onChange={(value) => updateMaximaField(groupIndex, 'totalMaxima', value)}
@@ -1292,7 +1416,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                           isTableCell={true}
                         />
                       </td>
-                      <td className="border border-black px-0.5 py-0.5 text-xs text-center font-bold bg-white">
+                      <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} text-center font-bold bg-white`}>
                         <EditableField 
                           value={group.maxima.totalMaxima * 2}
                           onChange={(value) => {
@@ -1311,9 +1435,9 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                           <td rowSpan={totalRows} className="border-l border-r border-t border-b border-black px-1 py-1 bg-black w-1">
                             &nbsp;
                           </td>
-                          <td className="border border-black px-1 py-1 text-[8px] text-center bg-white">Total</td>
-                          <td className="border border-black px-1 py-1 text-xs bg-white"></td>
-                          <td className="border border-black px-1 py-1 text-xs bg-white">&nbsp;</td>
+                          <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} text-center bg-white`}>Total</td>
+                          <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} bg-white`}></td>
+                          <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} bg-white`}>&nbsp;</td>
                         </>
                       )}
                       {isSecondMaxima && !hasStartedVerificationSection && (
@@ -1421,7 +1545,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                     
                     groupRows.push(
                       <tr key={`subject-${groupIndex}-${subjectIndex}`}>
-                        <td className="border border-black px-0.5 py-0.5 text-xs bg-white text-left">
+                        <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} bg-white text-left`}>
                           <div className="flex items-center justify-between">
                             <EditableField 
                               value={subject.subject}
@@ -1443,7 +1567,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                             )}
                           </div>
                         </td>
-                        <td className="border border-black px-0.5 py-0.5 text-xs text-center bg-white">
+                        <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} text-center bg-white`}>
                           <EditableField 
                             value={subject.firstSemester.period1}
                             onChange={(value) => updateSubjectField(originalSubjectIndex, 'firstSemester.period1', value)}
@@ -1453,7 +1577,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                             isTableCell={true}
                           />
                         </td>
-                        <td className="border border-black px-0.5 py-0.5 text-xs text-center bg-white">
+                        <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} text-center bg-white`}>
                           <EditableField 
                             value={subject.firstSemester.period2}
                             onChange={(value) => updateSubjectField(originalSubjectIndex, 'firstSemester.period2', value)}
@@ -1463,7 +1587,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                             isTableCell={true}
                           />
                         </td>
-                        <td className="border border-black px-0.5 py-0.5 text-xs text-center bg-white">
+                        <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} text-center bg-white`}>
                           <EditableField 
                             value={subject.firstSemester.exam}
                             onChange={(value) => updateSubjectField(originalSubjectIndex, 'firstSemester.exam', value)}
@@ -1473,7 +1597,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                             isTableCell={true}
                           />
                         </td>
-                        <td className="border border-black px-0.5 py-0.5 text-xs text-center bg-white">
+                        <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} text-center bg-white`}>
                           <EditableField 
                             value={calculateFirstSemesterTotal(subject)}
                             onChange={() => {}} // Non-editable - calculated automatically
@@ -1483,7 +1607,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                             isTableCell={true}
                           />
                         </td>
-                        <td className="border border-black px-0.5 py-0.5 text-xs text-center bg-white">
+                        <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} text-center bg-white`}>
                           <EditableField 
                             value={subject.secondSemester.period3}
                             onChange={(value) => updateSubjectField(originalSubjectIndex, 'secondSemester.period3', value)}
@@ -1493,7 +1617,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                             isTableCell={true}
                           />
                         </td>
-                        <td className="border border-black px-0.5 py-0.5 text-xs text-center bg-white">
+                        <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} text-center bg-white`}>
                           <EditableField 
                             value={subject.secondSemester.period4}
                             onChange={(value) => updateSubjectField(originalSubjectIndex, 'secondSemester.period4', value)}
@@ -1503,7 +1627,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                             isTableCell={true}
                           />
                         </td>
-                        <td className="border border-black px-0.5 py-0.5 text-xs text-center bg-white">
+                        <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} text-center bg-white`}>
                           <EditableField 
                             value={subject.secondSemester.exam}
                             onChange={(value) => updateSubjectField(originalSubjectIndex, 'secondSemester.exam', value)}
@@ -1513,7 +1637,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                             isTableCell={true}
                           />
                         </td>
-                        <td className="border border-black px-0.5 py-0.5 text-xs text-center bg-white">
+                        <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} text-center bg-white`}>
                           <EditableField 
                             value={calculateSecondSemesterTotal(subject)}
                             onChange={() => {}} // Non-editable - calculated automatically
@@ -1523,7 +1647,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                             isTableCell={true}
                           />
                         </td>
-                        <td className="border border-black px-0.5 py-0.5 text-xs text-center bg-white">
+                        <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} text-center bg-white`}>
                           <EditableField 
                             value={calculateOverallTotal(subject)}
                             onChange={() => {}} // Non-editable - calculated automatically
@@ -1535,9 +1659,9 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                         </td>
                         {rowIndex === 1 && (
                           <>
-                            <td className="border border-black px-0.5 py-0.5 text-[8px] text-center">%</td>
-                            <td className="border border-black px-0.5 py-0.5 text-xs">&nbsp;</td>
-                            <td className="border border-black px-0.5 py-0.5 text-xs">&nbsp;</td>
+                            <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} text-center`}>%</td>
+                            <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize}`}>&nbsp;</td>
+                            <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize}`}>&nbsp;</td>
                           </>
                         )}
                       </tr>
@@ -1549,10 +1673,10 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                   if (isEditable) {
                     groupRows.push(
                       <tr key={`add-subject-${groupIndex}`} className="bg-gray-50 print:hidden">
-                        <td className="border border-black px-0.5 py-0.5 text-xs bg-white">
+                        <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} bg-white`}>
                           <button
                             onClick={() => addSubjectToGroup(groupIndex)}
-                            className="w-full px-2 py-1 bg-green-100 hover:bg-green-200 text-green-700 text-xs rounded border border-green-300 flex items-center justify-center space-x-1"
+                            className={`w-full px-2 py-1 bg-green-100 hover:bg-green-200 text-green-700 ${getDynamicSizing.fontSize} rounded border border-green-300 flex items-center justify-center space-x-1`}
                             title={`Add new subject to MAXIMA group ${groupIndex + 1}`}
                           >
                             <span>+</span>
@@ -1571,8 +1695,8 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
 
               {/* Summary rows */}
               <tr>
-                <td className="border border-black px-0.5 py-0.5 text-xs font-bold">AGGREGATES MAXIMA</td>
-                <td className="border border-black px-0.5 py-0.5 text-xs text-center">
+                <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} font-bold`}>AGGREGATES MAXIMA</td>
+                <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} text-center`}>
                   <EditableField 
                     value={data.summaryValues?.aggregatesMaxima?.period1 || ''}
                     onChange={(value) => updateSummaryField('aggregatesMaxima', 'period1', value)}
@@ -1582,7 +1706,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                     isTableCell={true}
                   />
                 </td>
-                <td className="border border-black px-0.5 py-0.5 text-xs text-center">
+                <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} text-center`}>
                   <EditableField 
                     value={data.summaryValues?.aggregatesMaxima?.period2 || ''}
                     onChange={(value) => updateSummaryField('aggregatesMaxima', 'period2', value)}
@@ -1592,7 +1716,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                     isTableCell={true}
                   />
                 </td>
-                <td className="border border-black px-0.5 py-0.5 text-xs text-center">
+                <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} text-center`}>
                   <EditableField 
                     value={data.summaryValues?.aggregatesMaxima?.exam1 || ''}
                     onChange={(value) => updateSummaryField('aggregatesMaxima', 'exam1', value)}
@@ -1602,7 +1726,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                     isTableCell={true}
                   />
                 </td>
-                <td className="border border-black px-0.5 py-0.5 text-xs text-center">
+                <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} text-center`}>
                   <EditableField 
                     value={data.summaryValues?.aggregatesMaxima?.total1 || renderGrade(data.totalMarksOutOf?.firstSemester)}
                     onChange={(value) => updateSummaryField('aggregatesMaxima', 'total1', value)}
@@ -1612,7 +1736,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                     isTableCell={true}
                   />
                 </td>
-                <td className="border border-black px-0.5 py-0.5 text-xs text-center">
+                <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} text-center`}>
                   <EditableField 
                     value={data.summaryValues?.aggregatesMaxima?.period3 || ''}
                     onChange={(value) => updateSummaryField('aggregatesMaxima', 'period3', value)}
@@ -1622,7 +1746,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                     isTableCell={true}
                   />
                 </td>
-                <td className="border border-black px-0.5 py-0.5 text-xs text-center">
+                <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} text-center`}>
                   <EditableField 
                     value={data.summaryValues?.aggregatesMaxima?.period4 || ''}
                     onChange={(value) => updateSummaryField('aggregatesMaxima', 'period4', value)}
@@ -1632,7 +1756,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                     isTableCell={true}
                   />
                 </td>
-                <td className="border border-black px-0.5 py-0.5 text-xs text-center">
+                <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} text-center`}>
                   <EditableField 
                     value={data.summaryValues?.aggregatesMaxima?.exam2 || ''}
                     onChange={(value) => updateSummaryField('aggregatesMaxima', 'exam2', value)}
@@ -1642,7 +1766,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                     isTableCell={true}
                   />
                 </td>
-                <td className="border border-black px-0.5 py-0.5 text-xs text-center">
+                <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} text-center`}>
                   <EditableField 
                     value={data.summaryValues?.aggregatesMaxima?.total2 || renderGrade(data.totalMarksOutOf?.secondSemester)}
                     onChange={(value) => updateSummaryField('aggregatesMaxima', 'total2', value)}
@@ -1652,7 +1776,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                     isTableCell={true}
                   />
                 </td>
-                <td className="border border-black px-0.5 py-0.5 text-xs text-center">
+                <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} text-center`}>
                   <EditableField 
                     value={data.summaryValues?.aggregatesMaxima?.overall || ''}
                     onChange={(value) => updateSummaryField('aggregatesMaxima', 'overall', value)}
@@ -1665,8 +1789,8 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
               </tr>
               
               <tr>
-                <td className="border border-black px-0.5 py-0.5 text-xs font-bold">AGGREGATES</td>
-                <td className="border border-black px-0.5 py-0.5 text-xs text-center">
+                <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} font-bold`}>AGGREGATES</td>
+                <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} text-center`}>
                   <EditableField 
                     value={data.summaryValues?.aggregates?.period1 || ''}
                     onChange={(value) => updateSummaryField('aggregates', 'period1', value)}
@@ -1676,7 +1800,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                     isTableCell={true}
                   />
                 </td>
-                <td className="border border-black px-0.5 py-0.5 text-xs text-center">
+                <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} text-center`}>
                   <EditableField 
                     value={data.summaryValues?.aggregates?.period2 || ''}
                     onChange={(value) => updateSummaryField('aggregates', 'period2', value)}
@@ -1686,7 +1810,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                     isTableCell={true}
                   />
                 </td>
-                <td className="border border-black px-0.5 py-0.5 text-xs text-center">
+                <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} text-center`}>
                   <EditableField 
                     value={data.summaryValues?.aggregates?.exam1 || ''}
                     onChange={(value) => updateSummaryField('aggregates', 'exam1', value)}
@@ -1696,7 +1820,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                     isTableCell={true}
                   />
                 </td>
-                <td className="border border-black px-0.5 py-0.5 text-xs text-center">
+                <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} text-center`}>
                   <EditableField 
                     value={data.summaryValues?.aggregates?.total1 || renderGrade(data.totalMarksObtained?.firstSemester)}
                     onChange={(value) => updateSummaryField('aggregates', 'total1', value)}
@@ -1706,7 +1830,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                     isTableCell={true}
                   />
                 </td>
-                <td className="border border-black px-0.5 py-0.5 text-xs text-center">
+                <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} text-center`}>
                   <EditableField 
                     value={data.summaryValues?.aggregates?.period3 || ''}
                     onChange={(value) => updateSummaryField('aggregates', 'period3', value)}
@@ -1716,7 +1840,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                     isTableCell={true}
                   />
                 </td>
-                <td className="border border-black px-0.5 py-0.5 text-xs text-center">
+                <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} text-center`}>
                   <EditableField 
                     value={data.summaryValues?.aggregates?.period4 || ''}
                     onChange={(value) => updateSummaryField('aggregates', 'period4', value)}
@@ -1726,7 +1850,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                     isTableCell={true}
                   />
                 </td>
-                <td className="border border-black px-0.5 py-0.5 text-xs text-center">
+                <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} text-center`}>
                   <EditableField 
                     value={data.summaryValues?.aggregates?.exam2 || ''}
                     onChange={(value) => updateSummaryField('aggregates', 'exam2', value)}
@@ -1736,7 +1860,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                     isTableCell={true}
                   />
                 </td>
-                <td className="border border-black px-0.5 py-0.5 text-xs text-center">
+                <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} text-center`}>
                   <EditableField 
                     value={data.summaryValues?.aggregates?.total2 || renderGrade(data.totalMarksObtained?.secondSemester)}
                     onChange={(value) => updateSummaryField('aggregates', 'total2', value)}
@@ -1746,7 +1870,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                     isTableCell={true}
                   />
                 </td>
-                <td className="border border-black px-0.5 py-0.5 text-xs text-center">
+                <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} text-center`}>
                   <EditableField 
                     value={data.summaryValues?.aggregates?.overall || ''}
                     onChange={(value) => updateSummaryField('aggregates', 'overall', value)}
@@ -1759,8 +1883,8 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
               </tr>
 
               <tr>
-                <td className="border border-black px-0.5 py-0.5 text-xs font-bold">PERCENTAGE</td>
-                <td className="border border-black px-0.5 py-0.5 text-xs text-center">
+                <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} font-bold`}>PERCENTAGE</td>
+                <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} text-center`}>
                   <EditableField 
                     value={data.summaryValues?.percentage?.period1 || ''}
                     onChange={(value) => updateSummaryField('percentage', 'period1', value)}
@@ -1770,7 +1894,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                     isTableCell={true}
                   />
                 </td>
-                <td className="border border-black px-0.5 py-0.5 text-xs text-center">
+                <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} text-center`}>
                   <EditableField 
                     value={data.summaryValues?.percentage?.period2 || ''}
                     onChange={(value) => updateSummaryField('percentage', 'period2', value)}
@@ -1780,7 +1904,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                     isTableCell={true}
                   />
                 </td>
-                <td className="border border-black px-0.5 py-0.5 text-xs text-center">
+                <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} text-center`}>
                   <EditableField 
                     value={data.summaryValues?.percentage?.exam1 || ''}
                     onChange={(value) => updateSummaryField('percentage', 'exam1', value)}
@@ -1790,7 +1914,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                     isTableCell={true}
                   />
                 </td>
-                <td className="border border-black px-0.5 py-0.5 text-xs text-center">
+                <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} text-center`}>
                   <EditableField 
                     value={data.summaryValues?.percentage?.total1 || renderGrade(data.percentage?.firstSemester)}
                     onChange={(value) => updateSummaryField('percentage', 'total1', value)}
@@ -1800,7 +1924,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                     isTableCell={true}
                   />
                 </td>
-                <td className="border border-black px-0.5 py-0.5 text-xs text-center">
+                <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} text-center`}>
                   <EditableField 
                     value={data.summaryValues?.percentage?.period3 || ''}
                     onChange={(value) => updateSummaryField('percentage', 'period3', value)}
@@ -1810,7 +1934,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                     isTableCell={true}
                   />
                 </td>
-                <td className="border border-black px-0.5 py-0.5 text-xs text-center">
+                <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} text-center`}>
                   <EditableField 
                     value={data.summaryValues?.percentage?.period4 || ''}
                     onChange={(value) => updateSummaryField('percentage', 'period4', value)}
@@ -1820,7 +1944,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                     isTableCell={true}
                   />
                 </td>
-                <td className="border border-black px-0.5 py-0.5 text-xs text-center">
+                <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} text-center`}>
                   <EditableField 
                     value={data.summaryValues?.percentage?.exam2 || ''}
                     onChange={(value) => updateSummaryField('percentage', 'exam2', value)}
@@ -1830,7 +1954,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                     isTableCell={true}
                   />
                 </td>
-                <td className="border border-black px-0.5 py-0.5 text-xs text-center">
+                <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} text-center`}>
                   <EditableField 
                     value={data.summaryValues?.percentage?.total2 || renderGrade(data.percentage?.secondSemester)}
                     onChange={(value) => updateSummaryField('percentage', 'total2', value)}
@@ -1840,7 +1964,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                     isTableCell={true}
                   />
                 </td>
-                <td className="border border-black px-0.5 py-0.5 text-xs text-center">
+                <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} text-center`}>
                   <EditableField 
                     value={data.summaryValues?.percentage?.overall || ''}
                     onChange={(value) => updateSummaryField('percentage', 'overall', value)}
@@ -1853,8 +1977,8 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
               </tr>
 
               <tr>
-                <td className="border border-black px-0.5 py-0.5 text-xs">POSITION/OUT OF</td>
-                <td className="border border-black px-0.5 py-0.5 text-xs text-center">
+                <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize}`}>POSITION/OUT OF</td>
+                <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} text-center`}>
                   <EditableField 
                     value={data.summaryValues?.position?.period1 || ''}
                     onChange={(value) => updateSummaryField('position', 'period1', value)}
@@ -1864,7 +1988,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                     isTableCell={true}
                   />
                 </td>
-                <td className="border border-black px-0.5 py-0.5 text-xs text-center">
+                <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} text-center`}>
                   <EditableField 
                     value={data.summaryValues?.position?.period2 || ''}
                     onChange={(value) => updateSummaryField('position', 'period2', value)}
@@ -1874,7 +1998,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                     isTableCell={true}
                   />
                 </td>
-                <td className="border border-black px-0.5 py-0.5 text-xs text-center">
+                <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} text-center`}>
                   <EditableField 
                     value={data.summaryValues?.position?.exam1 || ''}
                     onChange={(value) => updateSummaryField('position', 'exam1', value)}
@@ -1884,7 +2008,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                     isTableCell={true}
                   />
                 </td>
-                <td className="border border-black px-0.5 py-0.5 text-xs text-center">
+                <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} text-center`}>
                   <EditableField 
                     value={data.summaryValues?.position?.total1 || `${data.position} / ${data.totalStudents}`}
                     onChange={(value) => updateSummaryField('position', 'total1', value)}
@@ -1894,7 +2018,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                     isTableCell={true}
                   />
                 </td>
-                <td className="border border-black px-0.5 py-0.5 text-xs text-center">
+                <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} text-center`}>
                   <EditableField 
                     value={data.summaryValues?.position?.period3 || ''}
                     onChange={(value) => updateSummaryField('position', 'period3', value)}
@@ -1904,7 +2028,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                     isTableCell={true}
                   />
                 </td>
-                <td className="border border-black px-0.5 py-0.5 text-xs text-center">
+                <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} text-center`}>
                   <EditableField 
                     value={data.summaryValues?.position?.period4 || ''}
                     onChange={(value) => updateSummaryField('position', 'period4', value)}
@@ -1914,7 +2038,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                     isTableCell={true}
                   />
                 </td>
-                <td className="border border-black px-0.5 py-0.5 text-xs text-center">
+                <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} text-center`}>
                   <EditableField 
                     value={data.summaryValues?.position?.exam2 || ''}
                     onChange={(value) => updateSummaryField('position', 'exam2', value)}
@@ -1924,7 +2048,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                     isTableCell={true}
                   />
                 </td>
-                <td className="border border-black px-0.5 py-0.5 text-xs text-center">
+                <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} text-center`}>
                   <EditableField 
                     value={data.summaryValues?.position?.total2 || `${data.position} / ${data.totalStudents}`}
                     onChange={(value) => updateSummaryField('position', 'total2', value)}
@@ -1934,7 +2058,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                     isTableCell={true}
                   />
                 </td>
-                <td className="border border-black px-0.5 py-0.5 text-xs text-center">
+                <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} text-center`}>
                   <EditableField 
                     value={data.summaryValues?.position?.overall || ''}
                     onChange={(value) => updateSummaryField('position', 'overall', value)}
@@ -1947,8 +2071,8 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
               </tr>
 
               <tr>
-                <td className="border border-black px-0.5 py-0.5 text-xs">APPLICATION</td>
-                <td className="border border-black px-0.5 py-0.5 text-xs text-center">
+                <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize}`}>APPLICATION</td>
+                <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} text-center`}>
                   <EditableField 
                     value={data.summaryValues?.application?.period1 || data.application || 'B'}
                     onChange={(value) => updateSummaryField('application', 'period1', value)}
@@ -1958,7 +2082,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                     isTableCell={true}
                   />
                 </td>
-                <td className="border border-black px-0.5 py-0.5 text-xs text-center">
+                <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} text-center`}>
                   <EditableField 
                     value={data.summaryValues?.application?.period2 || data.application || 'B'}
                     onChange={(value) => updateSummaryField('application', 'period2', value)}
@@ -1968,8 +2092,8 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                     isTableCell={true}
                   />
                 </td>
-                <td colSpan={2} className="border border-black px-0.5 py-0.5 text-xs bg-black">&nbsp;</td>
-                <td className="border border-black px-0.5 py-0.5 text-xs text-center">
+                <td colSpan={2} className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} bg-black`}>&nbsp;</td>
+                <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} text-center`}>
                   <EditableField 
                     value={data.summaryValues?.application?.period3 || data.application || 'B'}
                     onChange={(value) => updateSummaryField('application', 'period3', value)}
@@ -1979,7 +2103,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                     isTableCell={true}
                   />
                 </td>
-                <td className="border border-black px-0.5 py-0.5 text-xs text-center">
+                <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} text-center`}>
                   <EditableField 
                     value={data.summaryValues?.application?.period4 || data.application || 'B'}
                     onChange={(value) => updateSummaryField('application', 'period4', value)}
@@ -1989,13 +2113,13 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                     isTableCell={true}
                   />
                 </td>
-                <td colSpan={2} className="border border-black px-0.5 py-0.5 text-xs bg-black">&nbsp;</td>
-                <td className="border border-black px-0.5 py-0.5 text-xs bg-black">&nbsp;</td>
+                <td colSpan={2} className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} bg-black`}>&nbsp;</td>
+                <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} bg-black`}>&nbsp;</td>
               </tr>
 
               <tr>
-                <td className="border border-black px-0.5 py-0.5 text-xs">BEHAVIOUR</td>
-                <td className="border border-black px-0.5 py-0.5 text-xs text-center">
+                <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize}`}>BEHAVIOUR</td>
+                <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} text-center`}>
                   <EditableField 
                     value={data.summaryValues?.behaviour?.period1 || data.behaviour || 'B'}
                     onChange={(value) => updateSummaryField('behaviour', 'period1', value)}
@@ -2005,7 +2129,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                     isTableCell={true}
                   />
                 </td>
-                <td className="border border-black px-0.5 py-0.5 text-xs text-center">
+                <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} text-center`}>
                   <EditableField 
                     value={data.summaryValues?.behaviour?.period2 || data.behaviour || 'B'}
                     onChange={(value) => updateSummaryField('behaviour', 'period2', value)}
@@ -2015,8 +2139,8 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                     isTableCell={true}
                   />
                 </td>
-                <td colSpan={2} className="border border-black px-0.5 py-0.5 text-xs bg-black">&nbsp;</td>
-                <td className="border border-black px-0.5 py-0.5 text-xs text-center">
+                <td colSpan={2} className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} bg-black`}>&nbsp;</td>
+                <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} text-center`}>
                   <EditableField 
                     value={data.summaryValues?.behaviour?.period3 || data.behaviour || 'B'}
                     onChange={(value) => updateSummaryField('behaviour', 'period3', value)}
@@ -2026,7 +2150,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                     isTableCell={true}
                   />
                 </td>
-                <td className="border border-black px-0.5 py-0.5 text-xs text-center">
+                <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} text-center`}>
                   <EditableField 
                     value={data.summaryValues?.behaviour?.period4 || data.behaviour || 'B'}
                     onChange={(value) => updateSummaryField('behaviour', 'period4', value)}
@@ -2036,20 +2160,20 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                     isTableCell={true}
                   />
                 </td>
-                <td colSpan={2} className="border border-black px-0.5 py-0.5 text-xs bg-black">&nbsp;</td>
-                <td className="border border-black px-0.5 py-0.5 text-xs bg-black">&nbsp;</td>
+                <td colSpan={2} className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} bg-black`}>&nbsp;</td>
+                <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize} bg-black`}>&nbsp;</td>
               </tr>
 
               <tr>
-                <td className="border border-black px-0.5 py-0.5 text-xs">GUARDIAN SIGNATURE</td>
-                <td className="border border-black px-0.5 py-0.5 text-xs">&nbsp;</td>
-                <td className="border border-black px-0.5 py-0.5 text-xs">&nbsp;</td>
-                <td className="border border-black px-0.5 py-0.5 text-xs">&nbsp;</td>
-                <td className="border border-black px-0.5 py-0.5 text-xs">&nbsp;</td>
-                <td className="border border-black px-0.5 py-0.5 text-xs">&nbsp;</td>
-                <td className="border border-black px-0.5 py-0.5 text-xs">&nbsp;</td>
-                <td className="border border-black px-0.5 py-0.5 text-xs">&nbsp;</td>
-                <td colSpan={3} className="border border-black px-0.5 py-0.5 text-xs">&nbsp;</td>
+                <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize}`}>GUARDIAN SIGNATURE</td>
+                <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize}`}>&nbsp;</td>
+                <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize}`}>&nbsp;</td>
+                <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize}`}>&nbsp;</td>
+                <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize}`}>&nbsp;</td>
+                <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize}`}>&nbsp;</td>
+                <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize}`}>&nbsp;</td>
+                <td className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize}`}>&nbsp;</td>
+                <td colSpan={3} className={`border border-black ${getDynamicSizing.cellPadding} ${getDynamicSizing.fontSize}`}>&nbsp;</td>
               </tr>
             </tbody>
           </table>
@@ -2163,6 +2287,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                 {/* QR Code for Verification - Below NOTE text, bottom left */}
                 {documentId && (
                   <div 
+                    className="print:block print-qr-force-visible print-qr-container"
                     style={{
                       position: 'absolute',
                       top: '25px',
@@ -2171,24 +2296,55 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                       flexDirection: 'column',
                       alignItems: 'flex-start',
                       gap: '2px',
-                      zIndex: 30
+                      zIndex: 30,
+                      backgroundColor: 'white',
+                      padding: '2px'
                     }}
                   >
                     <QRCodeComponent 
                       documentId={documentId}
                       size={45}
-                      className="print-visible"
+                      className="print:block print:visible print-qr-force-visible qr-container"
                     />
                     <div 
+                      className="print:block print-qr-force-visible"
                       style={{
                         fontSize: '6px',
-                        color: '#000',
+                        color: '#000 !important',
                         textAlign: 'center',
                         fontWeight: 'bold',
-                        width: '45px'
+                        width: '45px',
+                        backgroundColor: 'white'
                       }}
                     >
                       Verify Document
+                    </div>
+                  </div>
+                )}
+                
+                {/* Alternative QR position for print - below text */}
+                {documentId && (
+                  <div 
+                    className="hidden print:block mt-2"
+                    style={{
+                      display: 'none'
+                    }}
+                  >
+                    <div className="flex items-start space-x-2">
+                      <QRCodeComponent 
+                        documentId={documentId}
+                        size={45}
+                        className="print:block print-qr-force-visible qr-container"
+                      />
+                      <div 
+                        style={{
+                          fontSize: '6px',
+                          color: '#000',
+                          fontWeight: 'bold'
+                        }}
+                      >
+                        Verify Document
+                      </div>
                     </div>
                   </div>
                 )}

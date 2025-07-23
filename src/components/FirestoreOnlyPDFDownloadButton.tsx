@@ -96,6 +96,7 @@ const FirestoreOnlyPDFDownloadButton: React.FC<FirestoreOnlyPDFDownloadButtonPro
               firestoreId: firestoreId, // ONLY send Firestore ID
               frontendUrl: frontendUrl,
               waitSelector: '#bulletin-template',
+              waitForImages: true, // Wait for all images including QR codes
               pdfOptions: {
                 format: 'A4',
                 printBackground: true,

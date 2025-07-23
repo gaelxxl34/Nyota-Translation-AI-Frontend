@@ -166,6 +166,40 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
   documentId: propDocumentId // Accept documentId as prop
 }) => {
 
+  // Normalize subject data to ensure all required properties exist
+  const normalizeSubjectData = (subjects: any[]): SubjectGrade[] => {
+    if (!subjects || !Array.isArray(subjects)) return [];
+    
+    return subjects.map(subject => ({
+      subject: subject.subject || '',
+      firstSemester: {
+        period1: subject.firstSemester?.period1 ?? '',
+        period2: subject.firstSemester?.period2 ?? '',
+        exam: subject.firstSemester?.exam ?? '',
+        total: subject.firstSemester?.total ?? ''
+      },
+      secondSemester: {
+        period3: subject.secondSemester?.period3 ?? '',
+        period4: subject.secondSemester?.period4 ?? '',
+        exam: subject.secondSemester?.exam ?? '',
+        total: subject.secondSemester?.total ?? ''
+      },
+      overallTotal: subject.overallTotal ?? '',
+      maxima: subject.maxima || {
+        periodMaxima: 20,
+        examMaxima: 40,
+        totalMaxima: 80
+      },
+      secondSitting: subject.secondSitting
+    }));
+  };
+
+  // Normalize the input data to prevent errors
+  const normalizedData = {
+    ...data,
+    subjects: normalizeSubjectData(data.subjects || [])
+  };
+
   // Editable field component with auto-save
   const EditableField: React.FC<{
     value: string | number;
@@ -547,7 +581,7 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
     return String(grade);
   };
 
-  const subjects = data.subjects || defaultSubjects;
+  const subjects = normalizedData.subjects || defaultSubjects;
   
   // Drag and drop state
   const [draggedGroupIndex, setDraggedGroupIndex] = useState<number | null>(null);
@@ -637,7 +671,7 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
 
   // Sort subjects before grouping (memoized for performance)
   const sortedSubjects = useMemo(() => {
-    return sortSubjectsByMaxima([...(data.subjects || [])]);
+    return sortSubjectsByMaxima([...(normalizedData.subjects || [])]);
   }, [subjects]);
 
   // Group subjects by their maxima values (memoized for performance)
@@ -868,7 +902,7 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
         {/* Header with Logos and Titles */}
         <div className="flex items-center justify-between p-1 border-b border-gray-300">
           <img
-            src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Flag_of_the_Democratic_Republic_of_the_Congo.svg/640px-Flag_of_the_Democratic_Republic_of_the_Congo.svg.png"
+            src="/flag.png"
             alt="DRC Flag"
             className="h-10"
           />
@@ -879,7 +913,7 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
             </p>
           </div>
           <img
-            src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTXsF5nQx4tanE26gNkogT9BDi0w7A9niMRlg&s"
+            src="/Coat.png"
             alt="Emblem"
             className="h-10"
           />
@@ -2135,6 +2169,7 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
                 {/* QR Code for Verification - Below NOTE text, bottom left */}
                 {documentId && (
                   <div 
+                    className="print-qr-force-visible"
                     style={{
                       position: 'absolute',
                       top: '25px',
@@ -2143,15 +2178,18 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
                       flexDirection: 'column',
                       alignItems: 'flex-start',
                       gap: '2px',
-                      zIndex: 30
+                      zIndex: 30,
+                      backgroundColor: 'white',
+                      padding: '2px'
                     }}
                   >
                     <QRCodeComponent 
                       documentId={documentId}
                       size={60}
-                      className="print-visible"
+                      className="print-qr-force-visible qr-container"
                     />
                     <div 
+                      className="print-qr-force-visible"
                       style={{
                         fontSize: '7px',
                         color: '#000',

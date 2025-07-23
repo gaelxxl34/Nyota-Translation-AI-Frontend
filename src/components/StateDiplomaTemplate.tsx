@@ -402,7 +402,7 @@ const StateDiplomaTemplate: React.FC<StateDiplomaTemplateProps> = ({
                 {/* Flag Left */}
                 <img
                   id="diploma-flag"
-                  src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Flag_of_the_Democratic_Republic_of_the_Congo.svg/2560px-Flag_of_the_Democratic_Republic_of_the_Congo.svg.png"
+                  src="/flag.png"
                   alt="DRC Flag"
                   className="h-12 sm:h-20 object-contain flex-shrink-0"
                 />
@@ -433,7 +433,7 @@ const StateDiplomaTemplate: React.FC<StateDiplomaTemplateProps> = ({
                 {/* Coat of arms Right */}
                 <img
                   id="diploma-coat"
-                  src="https://upload.wikimedia.org/wikipedia/commons/0/05/Coat_of_Arms_Democratic_Republic_of_Congo.png"
+                  src="/Coat.png"
                   alt="DRC Coat of Arms"
                   className="h-12 sm:h-20 object-contain flex-shrink-0"
                 />

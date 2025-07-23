@@ -86,11 +86,24 @@ const CardOnlyPage: React.FC = () => {
   const formType = studentData.formType || 'form6';
 
   const renderTemplate = () => {
+    // Extract documentId from studentData with multiple fallbacks
+    const documentId = studentData?.documentId || studentData?.firestoreId || studentData?.id;
+    
+    console.log('🆔 CardOnlyPage - Rendering template with documentId:', documentId);
+    console.log('🔍 CardOnlyPage - StudentData keys:', Object.keys(studentData || {}));
+    console.log('🔍 CardOnlyPage - Checking ID fields:', {
+      documentId: studentData?.documentId,
+      firestoreId: studentData?.firestoreId,
+      id: studentData?.id,
+      finalDocumentId: documentId
+    });
+    
     switch (formType) {
       case 'form4':
         return (
           <Form4Template 
             data={studentData} 
+            documentId={documentId}
             isEditable={false}
             onDataChange={() => {}} // No-op for PDF generation
           />
@@ -99,6 +112,7 @@ const CardOnlyPage: React.FC = () => {
         return (
           <Form6Template 
             data={studentData} 
+            documentId={documentId}
             isEditable={false}
             onDataChange={() => {}} // No-op for PDF generation
           />
@@ -107,6 +121,7 @@ const CardOnlyPage: React.FC = () => {
         return (
           <StateDiplomaTemplate 
             data={studentData} 
+            documentId={documentId}
             isEditable={false}
             onDataChange={() => {}} // No-op for PDF generation
           />
@@ -114,6 +129,7 @@ const CardOnlyPage: React.FC = () => {
         return (
           <Form6Template 
             data={studentData} 
+            documentId={documentId}
             isEditable={false}
             onDataChange={() => {}} // No-op for PDF generation
           />
