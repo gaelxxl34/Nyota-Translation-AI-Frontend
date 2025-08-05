@@ -552,14 +552,7 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
   };
 
   try {
-  // Default subject rows if no data provided (for template display)
-  const defaultSubjects: SubjectGrade[] = Array.from({ length: 15 }, () => ({
-    subject: '',
-    firstSemester: { period1: '', period2: '', exam: '', total: '' },
-    secondSemester: { period3: '', period4: '', exam: '', total: '' },
-    overallTotal: '',
-    secondSitting: { marks: '', max: '' }
-  }));
+  // We'll use empty array as default when normalizedData.subjects is empty
 
   // Safe grade rendering function to handle both strings and numbers
   const renderGrade = (grade: number | string | null | undefined): string => {
@@ -581,7 +574,7 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
     return String(grade);
   };
 
-  const subjects = normalizedData.subjects || defaultSubjects;
+  // Use normalizedData.subjects directly in sortedSubjects useMemo
   
   // Drag and drop state
   const [draggedGroupIndex, setDraggedGroupIndex] = useState<number | null>(null);
@@ -672,7 +665,7 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
   // Sort subjects before grouping (memoized for performance)
   const sortedSubjects = useMemo(() => {
     return sortSubjectsByMaxima([...(normalizedData.subjects || [])]);
-  }, [subjects]);
+  }, [normalizedData.subjects]);
 
   // Group subjects by their maxima values (memoized for performance)
   const subjectGroups = useMemo(() => {
@@ -731,10 +724,18 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
   };
 
   const addSubjectToGroup = (groupIndex: number) => {
-    if (!onDataChange) return;
+    if (!onDataChange) {
+      console.error("Cannot add subject: onDataChange function not provided");
+      return;
+    }
+    
+    console.log("Adding subject to group:", groupIndex);
     
     const currentGroups = subjectGroups;
-    if (groupIndex < 0 || groupIndex >= currentGroups.length) return;
+    if (groupIndex < 0 || groupIndex >= currentGroups.length) {
+      console.error(`Cannot add subject: Invalid group index ${groupIndex}`);
+      return;
+    }
     
     const targetGroup = currentGroups[groupIndex];
     const newSubjects = [...(data.subjects || [])];
@@ -750,15 +751,29 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
     };
     
     newSubjects.push(newSubject);
+    console.log("Added new subject:", newSubject);
+    console.log("Updated subjects array:", newSubjects);
+    
     onDataChange({ ...data, subjects: newSubjects });
+    console.log("Subject added to group successfully");
     // Added new subject to group
   };
 
   const deleteSubject = (subjectIndex: number) => {
-    if (!onDataChange) return;
+    if (!onDataChange) {
+      console.error("Cannot delete subject: onDataChange function not provided");
+      return;
+    }
+    
+    // Log the data.subjects before deletion for debugging
+    console.log("Current subjects:", data.subjects);
+    console.log("Attempting to delete subject at index:", subjectIndex);
     
     const currentSubjects = [...(data.subjects || [])];
-    if (subjectIndex < 0 || subjectIndex >= currentSubjects.length) return;
+    if (subjectIndex < 0 || subjectIndex >= currentSubjects.length) {
+      console.error(`Cannot delete subject: Invalid index ${subjectIndex}`);
+      return;
+    }
     
     const subject = currentSubjects[subjectIndex];
     const subjectName = subject.subject || 'Unnamed Subject';
@@ -771,7 +786,10 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
     // Remove the subject at the specified index
     currentSubjects.splice(subjectIndex, 1);
     
+    // Update the data
     onDataChange({ ...data, subjects: currentSubjects });
+    console.log(`Subject "${subjectName}" deleted successfully`);
+    console.log("Updated subjects:", currentSubjects);
     // Deleted subject
   };
 
@@ -1385,7 +1403,17 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
                   // Subject rows for this group
                   group.subjects.forEach((subject, subjectIndex) => {
                     // Find the original subject index in the flat subjects array
-                    const originalSubjectIndex = (data.subjects || []).findIndex(s => s === subject);
+                    // Using a more robust way to identify subjects that doesn't rely on reference equality
+                    const originalSubjectIndex = (data.subjects || []).findIndex(s => {
+                      // Compare by essential properties instead of reference
+                      return s.subject === subject.subject &&
+                             s.firstSemester?.period1 === subject.firstSemester?.period1 &&
+                             s.firstSemester?.period2 === subject.firstSemester?.period2 &&
+                             s.firstSemester?.exam === subject.firstSemester?.exam &&
+                             s.secondSemester?.period3 === subject.secondSemester?.period3 &&
+                             s.secondSemester?.period4 === subject.secondSemester?.period4 &&
+                             s.secondSemester?.exam === subject.secondSemester?.exam;
+                    });
                     
                     groupRows.push(
                       <tr key={`subject-${groupIndex}-${subjectIndex}`}>
@@ -1405,6 +1433,7 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
                                 onClick={() => deleteSubject(originalSubjectIndex)}
                                 className="ml-2 w-4 h-4 bg-red-500 hover:bg-red-600 text-white rounded text-[8px] flex items-center justify-center flex-shrink-0"
                                 title="Delete subject"
+                                style={{zIndex: 10}}
                               >
                                 ×
                               </button>
