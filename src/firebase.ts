@@ -3,7 +3,7 @@
 
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { getFirestore, enableIndexedDbPersistence, enableMultiTabIndexedDbPersistence } from 'firebase/firestore';
 import { getAnalytics } from 'firebase/analytics';
 
 // Your web app's Firebase configuration
@@ -26,6 +26,31 @@ export const auth = getAuth(app);
 
 // Initialize Cloud Firestore and get a reference to the service
 export const db = getFirestore(app);
+
+// Enable offline persistence for Firestore
+// This helps with mobile connectivity issues
+if (typeof window !== 'undefined') {
+  // Try to enable multi-tab persistence first (works in most modern browsers)
+  enableMultiTabIndexedDbPersistence(db).catch((err) => {
+    if (err.code === 'failed-precondition') {
+      // Multiple tabs open, persistence can only be enabled in one tab at a time.
+      console.warn('⚠️ Multi-tab persistence failed, trying single-tab persistence');
+      enableIndexedDbPersistence(db).catch((error) => {
+        if (error.code === 'unimplemented') {
+          // The current browser doesn't support persistence
+          console.warn('⚠️ Firestore persistence is not available in this browser');
+        } else {
+          console.error('❌ Failed to enable Firestore persistence:', error);
+        }
+      });
+    } else if (err.code === 'unimplemented') {
+      // The current browser doesn't support all required features
+      console.warn('⚠️ Firestore multi-tab persistence is not available in this browser');
+    } else {
+      console.error('❌ Failed to enable Firestore multi-tab persistence:', err);
+    }
+  });
+}
 
 // Initialize Firebase Analytics
 export const analytics = getAnalytics(app);

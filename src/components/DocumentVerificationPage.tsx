@@ -29,7 +29,14 @@ const DocumentVerificationPage: React.FC<DocumentVerificationPageProps> = ({
     const params = new URLSearchParams(window.location.search);
     const documentId = params.get('doc');
     
+    console.log('🔍 DocumentVerificationPage - Starting verification');
+    console.log('🔍 DocumentId from URL:', documentId);
+    console.log('📱 User Agent:', navigator.userAgent);
+    console.log('🌐 Online:', navigator.onLine);
+    console.log('📍 Location:', window.location.href);
+    
     if (!documentId) {
+      console.error('❌ No documentId in URL query params');
       setError(t('verification.error.invalidUrl'));
       setIsLoading(false);
       return;
@@ -37,19 +44,30 @@ const DocumentVerificationPage: React.FC<DocumentVerificationPageProps> = ({
 
     const fetchVerificationData = async () => {
       try {
+        console.log('📤 Fetching verification data for:', documentId);
         const data = await getVerificationData(documentId);
+        
+        console.log('📥 Received verification data:', data);
         
         if (data) {
           setDocumentData(data);
           setIsVerified(true);
+          console.log('✅ Document verified successfully');
         } else {
+          console.error('❌ No data returned from verification');
           setError(t('verification.error.notFound'));
         }
       } catch (err) {
         console.error('❌ Verification error:', err);
+        console.error('❌ Error details:', {
+          message: (err as Error)?.message,
+          stack: (err as Error)?.stack,
+          name: (err as Error)?.name
+        });
         setError(t('verification.error.generic'));
       } finally {
         setIsLoading(false);
+        console.log('🏁 Verification process complete');
       }
     };
 
@@ -287,7 +305,19 @@ const DocumentVerificationPage: React.FC<DocumentVerificationPageProps> = ({
                   </svg>
                 </motion.div>
                 <h3 className="text-xl font-semibold text-red-900 mb-2">{t('verification.error.title')}</h3>
-                <p className="text-red-600 mb-6">{error}</p>
+                <p className="text-red-600 mb-4">{error}</p>
+                
+                {/* Network status indicator for mobile debugging */}
+                <div className="mb-6 p-4 bg-gray-50 rounded-lg text-sm text-left">
+                  <p className="font-semibold mb-2">Diagnostic Information:</p>
+                  <p>Network Status: <span className={navigator.onLine ? 'text-green-600' : 'text-red-600'}>
+                    {navigator.onLine ? '✓ Online' : '✗ Offline'}
+                  </span></p>
+                  <p className="text-xs text-gray-500 mt-2">
+                    If you're online and still seeing this error, please try the retry button below.
+                  </p>
+                </div>
+                
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
