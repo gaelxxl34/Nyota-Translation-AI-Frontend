@@ -1,0 +1,209 @@
+// College Transcript PDF Download Button
+// Created for testing the College Annual Transcript template PDF conversion
+
+import React, { useState } from 'react';
+
+interface CourseGrade {
+  courseNumber: number;
+  courseName: string;
+  creditHours: string;
+  grade: string;
+  // Optional fields for weighted format (4-column table)
+  units?: string;
+  maxGrade?: string;
+  weightedGrade?: string;
+}
+
+interface SummaryRow {
+  label: string;           // e.g., "Total cours", "Mémoire", "Stage", "Total général"
+  values: {
+    grade?: string;        // The actual score (e.g., "240/350" or "121")
+    maxGrade?: string;     // Maximum possible score (e.g., "175")
+    units?: string;        // For 4-column format (e.g., "58")
+    hours?: string;        // For volume horaire in summary (e.g., "870")
+  };
+  type: 'subtotal' | 'component' | 'total' | 'percentage' | 'average';
+  isBold?: boolean;        // Whether to render in bold
+  colSpan?: number;        // Number of columns to span for label
+}
+
+interface CollegeTranscriptData {
+  country: string;
+  institutionType: string;
+  institutionName: string;
+  institutionAbbreviation: string;
+  institutionEmail: string;
+  departmentName: string;
+  documentTitle: string;
+  documentNumber: string;
+  studentName: string;
+  matricule: string;
+  hasFollowedCourses: string;
+  section: string;
+  option: string;
+  level: string;
+  academicYear: string;
+  session: string;
+  courses: CourseGrade[];
+  // Optional: Table format (simple = 3-column, weighted = 4-column)
+  tableFormat?: 'simple' | 'weighted';
+  // Optional: Dynamic summary rows (Total, Mémoire, Stage, etc.)
+  summaryRows?: SummaryRow[];
+  // Legacy fields - kept for backward compatibility
+  totalGrade?: string;
+  percentage?: string;
+  decision: string;
+  issueLocation: string;
+  issueDate: string;
+  secretary: string;
+  secretaryTitle: string;
+  chiefOfWorks: string;
+  chiefOfWorksTitle: string;
+}
+
+interface CollegeTranscriptPDFDownloadButtonProps {
+  data: CollegeTranscriptData;
+  documentId?: string;
+  className?: string;
+}
+
+const CollegeTranscriptPDFDownloadButton: React.FC<CollegeTranscriptPDFDownloadButtonProps> = ({ 
+  data, 
+  documentId = '',
+  className = ''
+}) => {
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const generatePDF = async () => {
+    setIsGenerating(true);
+    setErrorMessage(null);
+
+    try {
+      // Force local development URLs when running on localhost
+      const isLocalDevelopment = window.location.hostname === 'localhost';
+      const currentProtocol = window.location.protocol;
+      const currentHostname = window.location.hostname;
+      
+      // Get environment variables
+      const envApiUrl = import.meta.env.VITE_API_BASE_URL;
+      const envFrontendUrl = import.meta.env.VITE_FRONTEND_URL;
+      
+      // Always use localhost:3001 when running on localhost
+      const backendUrl = isLocalDevelopment 
+        ? 'http://localhost:3001'
+        : (envApiUrl || `${currentProtocol}//${currentHostname}`);
+      
+      const frontendUrl = isLocalDevelopment
+        ? 'http://localhost:5173'
+        : (envFrontendUrl || `${currentProtocol}//${currentHostname}`);
+
+      console.log('📄 Generating College Transcript PDF with document ID:', documentId);
+
+      // Prepare the transcript data
+      const transcriptData = {
+        ...data,
+        formType: 'collegeTranscript',
+        documentId: documentId || `TRANSCRIPT-${Date.now()}`,
+        firestoreId: documentId || `TRANSCRIPT-${Date.now()}`,
+        id: documentId || `TRANSCRIPT-${Date.now()}`,
+      };
+
+      // Send request to backend
+      const response = await fetch(`${backendUrl}/api/college-transcript-pdf`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          transcriptData: transcriptData,
+          frontendUrl: frontendUrl,
+          waitForImages: true,
+          pdfOptions: {
+            format: 'A4',
+            landscape: false, // Portrait orientation
+            printBackground: true,
+            margin: { 
+              top: '5mm', 
+              right: '5mm', 
+              bottom: '5mm', 
+              left: '5mm' 
+            },
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ College Transcript PDF generation failed:', errorText);
+        throw new Error(`PDF generation failed: ${response.statusText}`);
+      }
+
+      // Get the PDF blob
+      const blob = await response.blob();
+      
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      
+      // Generate filename from student name
+      const studentNameClean = data.studentName.replace(/[^a-zA-Z0-9]/g, '_').toUpperCase();
+      link.href = url;
+      link.download = `COLLEGE_TRANSCRIPT_${studentNameClean}.pdf`;
+      
+      document.body.appendChild(link);
+      link.click();
+      
+      // Clean up
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      console.log('✅ College Transcript PDF downloaded successfully');
+      setIsGenerating(false);
+
+    } catch (error) {
+      console.error('❌ Error generating College Transcript PDF:', error);
+      setErrorMessage(error instanceof Error ? error.message : 'Unknown error occurred');
+      setIsGenerating(false);
+    }
+  };
+
+  return (
+    <div className={`flex flex-col items-center ${className}`}>
+      <button
+        onClick={generatePDF}
+        disabled={isGenerating}
+        className={`
+          px-6 py-3 rounded-lg font-semibold text-white
+          transition-all duration-200 shadow-lg
+          ${isGenerating 
+            ? 'bg-gray-400 cursor-not-allowed' 
+            : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 hover:shadow-xl'
+          }
+        `}
+      >
+        {isGenerating ? (
+          <div className="flex items-center space-x-2">
+            <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span>Generating PDF...</span>
+          </div>
+        ) : (
+          <div className="flex items-center space-x-2">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <span>Download College Transcript PDF</span>
+          </div>
+        )}
+      </button>
+      {errorMessage && (
+        <p className="mt-2 text-sm text-red-600">{errorMessage}</p>
+      )}
+    </div>
+  );
+};
+
+export default CollegeTranscriptPDFDownloadButton;

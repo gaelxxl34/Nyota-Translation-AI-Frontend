@@ -262,6 +262,10 @@
         "title": "Form 6 Bulletin", 
         "subtitle": "4ième Humanité / 6ième Secondaire"
       },
+      "collegeTranscript": {
+        "title": "College Transcript",
+        "subtitle": "University annual transcript"
+      },
       "stateDiploma": {
         "title": "State Diploma",
         "subtitle": "Official State Certificate"

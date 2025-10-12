@@ -5,6 +5,9 @@ import React, { useEffect, useState } from 'react';
 import Form4Template from './Form4Template';
 import Form6Template from './Form6Template';
 import StateDiplomaTemplate from './StateDiplomaTemplate';
+import BachelorDiplomaTemplate from './BachelorDiplomaTemplate';
+import CollegeAnnualTranscriptTemplate from './CollegeAnnualTranscriptTemplate';
+import CollegeAttestationTemplate from './CollegeAttestationTemplate';
 
 const CardOnlyPage: React.FC = () => {
   const [studentData, setStudentData] = useState<any>(null);
@@ -29,6 +32,20 @@ const CardOnlyPage: React.FC = () => {
         return true;
       }
 
+      // Check for college transcript data
+      if (window.pdfTranscriptData) {
+        setStudentData(window.pdfTranscriptData);
+        setIsLoading(false);
+        return true;
+      }
+
+      // Check for college attestation data
+      if (window.pdfAttestationData) {
+        setStudentData(window.pdfAttestationData);
+        setIsLoading(false);
+        return true;
+      }
+
       return false;
     };
 
@@ -41,6 +58,20 @@ const CardOnlyPage: React.FC = () => {
       };
 
       window.addEventListener('studentDataLoaded', handleStudentDataLoaded as EventListener);
+
+      // Also listen for college transcript data event
+      const handleTranscriptDataLoaded = (event: CustomEvent) => {
+        setStudentData(event.detail);
+        setIsLoading(false);
+      };
+      window.addEventListener('pdf-transcript-data-ready', handleTranscriptDataLoaded as EventListener);
+
+      // Also listen for college attestation data event
+      const handleAttestationDataLoaded = (event: CustomEvent) => {
+        setStudentData(event.detail);
+        setIsLoading(false);
+      };
+      window.addEventListener('pdf-attestation-data-ready', handleAttestationDataLoaded as EventListener);
 
       // Also check periodically for 10 seconds
       let attempts = 0;
@@ -59,6 +90,8 @@ const CardOnlyPage: React.FC = () => {
       // Cleanup
       return () => {
         window.removeEventListener('studentDataLoaded', handleStudentDataLoaded as EventListener);
+        window.removeEventListener('pdf-transcript-data-ready', handleTranscriptDataLoaded as EventListener);
+        window.removeEventListener('pdf-attestation-data-ready', handleAttestationDataLoaded as EventListener);
         clearInterval(interval);
       };
     }
@@ -130,7 +163,35 @@ const CardOnlyPage: React.FC = () => {
             isEditable={false}
             onDataChange={() => {}} // No-op for PDF generation
           />
-        );      default:
+        );
+      case 'bachelorDiploma':
+        return (
+          <BachelorDiplomaTemplate 
+            data={studentData} 
+            documentId={documentId}
+            isEditable={false}
+            onDataChange={() => {}} // No-op for PDF generation
+          />
+        );
+      case 'collegeTranscript':
+        return (
+          <CollegeAnnualTranscriptTemplate 
+            data={studentData} 
+            documentId={documentId}
+            isEditable={false}
+            onDataChange={() => {}} // No-op for PDF generation
+          />
+        );
+      case 'collegeAttestation':
+        return (
+          <CollegeAttestationTemplate 
+            data={studentData} 
+            documentId={documentId}
+            isEditable={false}
+            onDataChange={() => {}} // No-op for PDF generation
+          />
+        );
+      default:
         return (
           <Form6Template 
             data={studentData} 
@@ -157,6 +218,9 @@ declare global {
   interface Window {
     studentData?: any;
     injectedStudentData?: any;
+    pdfTranscriptData?: any;
+    pdfAttestationData?: any;
+    isPdfGenerationMode?: boolean;
   }
 }
 

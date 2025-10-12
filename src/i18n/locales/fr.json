@@ -262,6 +262,10 @@
         "title": "Bulletin Form 6",
         "subtitle": "4ième Humanité / 6ième Secondaire"
       },
+      "collegeTranscript": {
+        "title": "Relevé Universitaire",
+        "subtitle": "Relevé annuel des cours"
+      },
       "stateDiploma": {
         "title": "Diplôme d'État",
         "subtitle": "Certificat Officiel d'État"

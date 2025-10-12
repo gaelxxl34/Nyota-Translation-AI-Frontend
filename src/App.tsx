@@ -52,7 +52,7 @@ const getPageFromPath = (pathname: string): PageType => {
 
 // Helper function to get path from page
 const getPathFromPage = (page: PageType): string => {
-  const paths = {
+  const paths: Record<PageType, string> = {
     'landing': '/',
     'login': '/login',
     'register': '/register',
@@ -138,7 +138,7 @@ const AuthAwareRouter: React.FC = () => {
 
   // Route protection logic
   const isProtectedRoute = (page: PageType): boolean => {
-    return ['dashboard'].includes(page);
+  return ['dashboard'].includes(page);
   };
 
   const isAuthRoute = (page: PageType): boolean => {
