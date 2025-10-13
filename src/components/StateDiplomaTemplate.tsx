@@ -116,8 +116,8 @@ const StateDiplomaTemplate: React.FC<StateDiplomaTemplateProps> = ({
     section: "SECTION NAME",
     option: "OPTION NAME",
     issueDate: "JANUARY 1, 2023",
-    serialNumbers: ['T', 'S', '0', '7', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
-    serialCode: "0000000"
+    serialNumbers: ['T', 'S', '0', '7', '5', '2', '0', '7', '2', '4', '0', '7', '0', '3', '7', '0', '7', '0'], // First 4 (TS 07) + 14 individual boxes
+    serialCode: "3564229"
   };
 
   // State for PDF generation mode data
@@ -141,7 +141,44 @@ const StateDiplomaTemplate: React.FC<StateDiplomaTemplateProps> = ({
 
   // Update current data when props change
   useEffect(() => {
-    const newData = pdfData || data || defaultData;
+    let newData = pdfData || data || defaultData;
+    
+    console.log('🔍 StateDiploma - Raw incoming data:', { 
+      serialNumbers: newData.serialNumbers,
+      serialNumbersType: typeof newData.serialNumbers,
+      isArray: Array.isArray(newData.serialNumbers),
+      serialCode: newData.serialCode 
+    });
+    
+    // Normalize serialNumbers: convert string to array if needed
+    if (newData.serialNumbers) {
+      if (typeof newData.serialNumbers === 'string') {
+        // Convert string to array of characters, removing spaces
+        const cleanString = (newData.serialNumbers as string).replace(/\s+/g, '');
+        console.log('📝 Converting string to array:', cleanString);
+        newData = {
+          ...newData,
+          serialNumbers: cleanString.split('').slice(0, 18) // Take first 18 characters
+        };
+      } else if (Array.isArray(newData.serialNumbers) && newData.serialNumbers.length < 18) {
+        // Pad array to 18 elements if too short
+        console.log('📝 Padding array from', newData.serialNumbers.length, 'to 18');
+        const paddedArray = [...newData.serialNumbers];
+        while (paddedArray.length < 18) {
+          paddedArray.push('0');
+        }
+        newData = {
+          ...newData,
+          serialNumbers: paddedArray
+        };
+      }
+    }
+    
+    console.log('✅ StateDiploma - Final normalized data:', { 
+      serialNumbers: newData.serialNumbers,
+      serialNumbersLength: newData.serialNumbers?.length 
+    });
+    
     // Update data when props change or PDF data arrives
     setCurrentData(newData);
   }, [pdfData, data, defaultData]);
@@ -368,7 +405,7 @@ const StateDiplomaTemplate: React.FC<StateDiplomaTemplateProps> = ({
   };
 
   const numberBoxStyle: React.CSSProperties = {
-    width: screenWidth < 640 ? '20px' : '28px', // Smaller on mobile
+    width: screenWidth < 640 ? '18px' : '24px', // Smaller on mobile
     height: screenWidth < 640 ? '16px' : '20px',
     border: '1px solid #333',
     display: 'flex',
@@ -378,8 +415,20 @@ const StateDiplomaTemplate: React.FC<StateDiplomaTemplateProps> = ({
     fontWeight: 'bold',
   };
 
-  const serialBoxStyle: React.CSSProperties = {
-    width: screenWidth < 640 ? '80px' : '100px', // Smaller on mobile
+  const firstSerialBoxStyle: React.CSSProperties = {
+    width: screenWidth < 640 ? '60px' : '80px', // Wider first box for "TS 07"
+    height: screenWidth < 640 ? '16px' : '20px',
+    border: '1px solid #333',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    fontSize: screenWidth < 640 ? '10px' : '13px',
+    fontWeight: 'bold',
+    letterSpacing: '2px'
+  };
+
+  const serialCodeBoxStyle: React.CSSProperties = {
+    width: screenWidth < 640 ? '90px' : '110px', // Wider for 7-digit code
     height: screenWidth < 640 ? '16px' : '20px',
     border: '1px solid #333',
     color: '#ff6b6b',
@@ -388,7 +437,7 @@ const StateDiplomaTemplate: React.FC<StateDiplomaTemplateProps> = ({
     alignItems: 'center',
     fontSize: screenWidth < 640 ? '10px' : '12px',
     fontWeight: 'bold',
-    letterSpacing: '1px'
+    letterSpacing: '2px'
   };
 
   return (
@@ -761,35 +810,48 @@ const StateDiplomaTemplate: React.FC<StateDiplomaTemplateProps> = ({
                 THE RECIPIENT
               </div>
             </div>
-          </div>                {/* Reference Numbers */}
+          </div>
+                
+                {/* Reference Numbers */}
                 <div style={{ margin: screenWidth < 640 ? '10px 0' : '15px 0', textAlign: 'center' }}>
                   <div
                     style={{
                       display: 'flex',
                       justifyContent: 'center',
                       alignItems: 'center',
-                      gap: screenWidth < 640 ? '4px' : '8px',
+                      gap: screenWidth < 640 ? '3px' : '5px',
                       flexWrap: 'wrap'
                     }}
                   >
-                    <div style={{ display: 'flex', gap: screenWidth < 640 ? '1px' : '2px', alignItems: 'center', flexWrap: 'wrap' }}>
-                      {/* Display first 4 characters as "TS 07" format */}
-                      <div style={numberBoxStyle}>{diplomaData.serialNumbers[0] || '0'}</div>
-                      <div style={numberBoxStyle}>{diplomaData.serialNumbers[1] || '0'}</div>
-                      <div style={{ margin: '0 4px', fontWeight: 'bold', fontSize: screenWidth < 640 ? '11px' : '13px' }}> </div>
-                <div style={numberBoxStyle}>{diplomaData.serialNumbers[2] || '0'}</div>
-                <div style={numberBoxStyle}>{diplomaData.serialNumbers[3] || '0'}</div>
-                
-                {/* Display remaining 12 characters as individual cells */}
-                {diplomaData.serialNumbers.slice(4, 16).map((char, index) => (
-                  <div key={index + 4} style={numberBoxStyle}>{char || '0'}</div>
-                ))}
-                
-                {/* Final 7-character code */}
-                <div style={serialBoxStyle}>{diplomaData.serialCode}</div>
-              </div>
-            </div>
-          </div>
+                    <div style={{ display: 'flex', gap: screenWidth < 640 ? '3px' : '5px', alignItems: 'center', flexWrap: 'nowrap' }}>
+                      {/* First section: Wide box with "TS 07" */}
+                      <div style={firstSerialBoxStyle}>
+                        {(diplomaData.serialNumbers && diplomaData.serialNumbers[0]) || 'T'}
+                        {(diplomaData.serialNumbers && diplomaData.serialNumbers[1]) || 'S'}
+                        {' '}
+                        {(diplomaData.serialNumbers && diplomaData.serialNumbers[2]) || '0'}
+                        {(diplomaData.serialNumbers && diplomaData.serialNumbers[3]) || '7'}
+                      </div>
+                      
+                      {/* Second section: 14 individual boxes for digits */}
+                      {Array.from({ length: 14 }, (_, i) => {
+                        const index = i + 4;
+                        const char = diplomaData.serialNumbers && diplomaData.serialNumbers[index];
+                        console.log(`📦 Box ${i + 1}/14 (index ${index}):`, char || '(undefined, showing 0)');
+                        return (
+                          <div key={index} style={numberBoxStyle}>
+                            {char || '0'}
+                          </div>
+                        );
+                      })}
+                      
+                      {/* Third section: Wide box for 7-digit code */}
+                      <div style={serialCodeBoxStyle}>
+                        {diplomaData.serialCode || '0000000'}
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
                 {/* Note */}
                 <div style={{

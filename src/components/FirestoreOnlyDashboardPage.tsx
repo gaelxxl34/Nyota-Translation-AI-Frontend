@@ -426,8 +426,22 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
       option: data?.option || 'OPTION NAME',
       issueDate: data?.issueDate || 'JANUARY 1, 2023',
       referenceNumber: data?.referenceNumber || 'T S 0 7',
-      serialNumbers: data?.serialNumbers || ['T', 'S', '0', '7', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
-      serialCode: data?.serialCode || '0000000'
+      serialNumbers: (() => {
+        // Priority 1: Use serialNumbers if it's a proper array with data
+        if (data?.serialNumbers && Array.isArray(data.serialNumbers) && data.serialNumbers.length >= 4) {
+          return data.serialNumbers;
+        }
+        // Priority 2: Try to extract from referenceNumber if it exists and has data
+        if (data?.referenceNumber && typeof data.referenceNumber === 'string') {
+          const cleanRef = data.referenceNumber.replace(/\s+/g, ''); // Remove all spaces
+          if (cleanRef.length >= 4) {
+            return cleanRef.split(''); // Convert string to array of characters
+          }
+        }
+        // Fallback: Return default array
+        return ['T', 'S', '0', '7', '5', '2', '0', '7', '2', '4', '0', '7', '0', '3', '7', '0', '7', '0'];
+      })(),
+      serialCode: data?.serialCode || '3564229'
     };
 
     // State Diploma transformed data ready
