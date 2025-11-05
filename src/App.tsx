@@ -16,6 +16,7 @@ import PrivacyPolicyPage from './components/PrivacyPolicyPage';
 import ForgotPasswordPage from './components/ForgotPasswordPage';
 import CardOnlyPage from './components/CardOnlyPage';
 import DocumentVerificationPage from './components/DocumentVerificationPage';
+import HighSchoolAttestationTestPage from './components/HighSchoolAttestationTestPage';
 
 // Simple page routing state
 /**
@@ -30,7 +31,8 @@ type PageType =
   | 'privacy'
   | 'forgot-password'
   | 'card-only'
-  | 'verify';
+  | 'verify'
+  | 'highschool-attestation-test';
 
 /**
  * Navigation function type for all pages
@@ -47,6 +49,7 @@ const getPageFromPath = (pathname: string): PageType => {
   if (pathname === '/forgot-password') return 'forgot-password';
   if (pathname === '/card-only') return 'card-only';
   if (pathname === '/verify' || pathname.startsWith('/verify?')) return 'verify';
+  if (pathname === '/highschool-attestation-test') return 'highschool-attestation-test';
   return 'landing';
 };
 
@@ -62,6 +65,7 @@ const getPathFromPage = (page: PageType): string => {
     'forgot-password': '/forgot-password',
     'card-only': '/card-only',
     'verify': '/verify',
+    'highschool-attestation-test': '/highschool-attestation-test',
   };
   return paths[page] || '/';
 };
@@ -172,6 +176,8 @@ const AuthAwareRouter: React.FC = () => {
         return <ForgotPasswordPage onNavigate={navigateToPage} />;
       case 'verify':
         return <DocumentVerificationPage onNavigate={navigateToPage} />;
+      case 'highschool-attestation-test':
+        return <HighSchoolAttestationTestPage />;
       case 'landing':
       default:
         return <LandingPage onNavigate={navigateToPage} />;
@@ -179,13 +185,16 @@ const AuthAwareRouter: React.FC = () => {
   };
 
   return (
-    <div className={currentPage === 'card-only' || currentPage === 'verify' ? "min-h-screen bg-white" : "min-h-screen bg-gray-50"}>
+    <div className={currentPage === 'card-only' || currentPage === 'verify' || currentPage === 'highschool-attestation-test' ? "min-h-screen bg-white" : "min-h-screen bg-gray-50"}>
       {currentPage === 'card-only' ? (
         // Card-only page doesn't need splash screen
         <CardOnlyPage />
       ) : currentPage === 'verify' ? (
         // Verification page doesn't need splash screen
         <DocumentVerificationPage onNavigate={navigateToPage} />
+      ) : currentPage === 'highschool-attestation-test' ? (
+        // Test page doesn't need splash screen
+        <HighSchoolAttestationTestPage />
       ) : (
         // All other pages get splash screen
         <PageWithSplash currentPage={currentPage}>

@@ -8,6 +8,7 @@ import StateDiplomaTemplate from './StateDiplomaTemplate';
 import BachelorDiplomaTemplate from './BachelorDiplomaTemplate';
 import CollegeAnnualTranscriptTemplate from './CollegeAnnualTranscriptTemplate';
 import CollegeAttestationTemplate from './CollegeAttestationTemplate';
+import HighSchoolAttestationTemplate from './HighSchoolAttestationTemplate';
 
 const CardOnlyPage: React.FC = () => {
   const [studentData, setStudentData] = useState<any>(null);
@@ -185,6 +186,15 @@ const CardOnlyPage: React.FC = () => {
       case 'collegeAttestation':
         return (
           <CollegeAttestationTemplate 
+            data={studentData} 
+            documentId={documentId}
+            isEditable={false}
+            onDataChange={() => {}} // No-op for PDF generation
+          />
+        );
+      case 'highSchoolAttestation':
+        return (
+          <HighSchoolAttestationTemplate 
             data={studentData} 
             documentId={documentId}
             isEditable={false}

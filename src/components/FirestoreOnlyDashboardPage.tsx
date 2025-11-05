@@ -22,6 +22,9 @@ import StateDiplomaPDFDownloadButton from './StateDiplomaPDFDownloadButton';
 import BachelorDiplomaPDFDownloadButton from './BachelorDiplomaPDFDownloadButton';
 import CollegeTranscriptPDFDownloadButton from './CollegeTranscriptPDFDownloadButton';
 import CollegeAttestationPDFDownloadButton from './CollegeAttestationPDFDownloadButton';
+import HighSchoolAttestationTemplate from './HighSchoolAttestationTemplate';
+import type { HighSchoolAttestationData } from './HighSchoolAttestationTemplate';
+import HighSchoolAttestationPDFDownloadButton from './HighSchoolAttestationPDFDownloadButton';
 import Swal from 'sweetalert2';
 
 interface BulletinRecord {
@@ -32,7 +35,7 @@ interface BulletinRecord {
     uploadedAt: any;
     lastModified: any;
     status: string;
-    formType?: 'form4' | 'form6' | 'collegeTranscript' | 'collegeAttestation' | 'stateDiploma' | 'bachelorDiploma';
+    formType?: 'form4' | 'form6' | 'collegeTranscript' | 'collegeAttestation' | 'stateDiploma' | 'bachelorDiploma' | 'highSchoolAttestation';
   };
   editedData: any;
   originalData: any;
@@ -59,7 +62,7 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadStage, setUploadStage] = useState<string>('');
-  const [selectedFormType, setSelectedFormType] = useState<'form4' | 'form6' | 'collegeTranscript' | 'collegeAttestation' | 'stateDiploma' | 'bachelorDiploma'>('form6');
+  const [selectedFormType, setSelectedFormType] = useState<'form4' | 'form6' | 'collegeTranscript' | 'collegeAttestation' | 'stateDiploma' | 'bachelorDiploma' | 'highSchoolAttestation'>('form6');
   const [tableSize, setTableSize] = useState<'auto' | 'normal' | '11px' | '12px' | '13px' | '14px' | '15px'>('auto'); // Track table size for PDF generation
   
   // Preview states
@@ -716,6 +719,51 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
     };
   };
 
+  // Transform Firestore data for High School Attestation
+  const transformDataForHighSchoolAttestation = (data: any): HighSchoolAttestationData => {
+    const baseData: HighSchoolAttestationData = {
+      schoolName: 'School Name',
+      schoolAddress: 'School Address',
+      province: 'Province',
+      division: 'Division',
+      documentTitle: 'School Attendance Certificate',
+      studentName: 'STUDENT FULL NAME',
+      studentGender: 'M',
+      birthDate: 'January 1, 2000',
+      birthPlace: 'Birthplace',
+      mainContent: 'This is to certify that the above-named student has attended this institution during the academic year.',
+      purpose: 'This certificate is issued for official purposes.',
+      issueLocation: 'City',
+      issueDate: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+      signatoryName: 'Director Name',
+      signatoryTitle: 'School Director',
+    };
+
+    if (!data) {
+      return baseData;
+    }
+
+    return {
+      ...baseData,
+      schoolName: data?.schoolName || data?.school || baseData.schoolName,
+      schoolAddress: data?.schoolAddress || baseData.schoolAddress,
+      province: data?.province || baseData.province,
+      division: data?.division || baseData.division,
+      documentTitle: data?.documentTitle || baseData.documentTitle,
+      studentName: data?.studentName || baseData.studentName,
+      studentGender: data?.studentGender || (data?.gender?.toLowerCase() === 'female' ? 'F' : 'M'),
+      birthDate: data?.birthDate || baseData.birthDate,
+      birthPlace: data?.birthPlace || baseData.birthPlace,
+      mainContent: data?.mainContent || baseData.mainContent,
+      purpose: data?.purpose || baseData.purpose,
+      issueLocation: data?.issueLocation || data?.city || baseData.issueLocation,
+      issueDate: data?.issueDate || baseData.issueDate,
+      signatoryName: data?.signatoryName || data?.directorName || baseData.signatoryName,
+      signatoryTitle: data?.signatoryTitle || data?.directorTitle || baseData.signatoryTitle,
+    };
+  };
+
+
   // Transform Firestore data to Form6Template format
   const transformDataForTemplate = (data: any) => {
     if (!data) return {};
@@ -1208,6 +1256,20 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                 </div>
                 <div className="text-xs mt-1 opacity-75">University degree certificate</div>
               </button>
+              <button
+                onClick={() => setSelectedFormType('highSchoolAttestation')}
+                className={`flex-1 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  selectedFormType === 'highSchoolAttestation'
+                    ? 'bg-rose-600 text-white shadow-lg scale-105'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200'
+                }`}
+              >
+                <div className="flex items-center justify-center space-x-2">
+                  <span>✅</span>
+                  <span>High School Attestation</span>
+                </div>
+                <div className="text-xs mt-1 opacity-75">School attendance certificate</div>
+              </button>
             </div>
           </div>
           <div 
@@ -1357,7 +1419,8 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                            selectedFormType === 'form6' ? 'Form 6' : 
                            selectedFormType === 'collegeTranscript' ? 'College Transcript' :
                            selectedFormType === 'stateDiploma' ? 'State Diploma' :
-                           selectedFormType === 'bachelorDiploma' ? 'Bachelor Diploma' : selectedFormType}
+                           selectedFormType === 'bachelorDiploma' ? 'Bachelor Diploma' :
+                           selectedFormType === 'highSchoolAttestation' ? 'High School Attestation' : selectedFormType}
                         </p>
                       </div>
                     </div>
@@ -1452,6 +1515,11 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                             <>
                               {displayData?.institutionName || 'University'} {displayData?.specialization ? ' • ' + displayData.specialization : ''}
                             </>
+                          ) : (bulletin.metadata.formType || 'form6') === 'highSchoolAttestation' ? (
+                            // For High School Attestation, show school name and province
+                            <>
+                              {displayData?.schoolName || 'School'} {displayData?.province ? ' • ' + displayData.province : ''}
+                            </>
                           ) : (bulletin.metadata.formType || 'form6') === 'collegeTranscript' ? (
                             // For College Transcript, show institution and level
                             <>
@@ -1488,6 +1556,8 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                             ? 'bg-purple-100 text-purple-800'
                             : (bulletin.metadata.formType || 'form6') === 'bachelorDiploma'
                             ? 'bg-amber-100 text-amber-800'
+                            : (bulletin.metadata.formType || 'form6') === 'highSchoolAttestation'
+                            ? 'bg-rose-100 text-rose-800'
                             : 'bg-blue-100 text-blue-800'
                           }
                         `}>
@@ -1501,6 +1571,8 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                             ? 'State Diploma'
                             : (bulletin.metadata.formType || 'form6') === 'bachelorDiploma'
                             ? 'Bachelor Diploma'
+                            : (bulletin.metadata.formType || 'form6') === 'highSchoolAttestation'
+                            ? 'High School Attestation'
                             : 'Form 6'
                           }
                         </span>
@@ -1586,6 +1658,8 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                       ? 'State Diploma'
                       : (selectedBulletin.metadata.formType || 'form6') === 'bachelorDiploma'
                       ? 'Bachelor Diploma'
+                      : (selectedBulletin.metadata.formType || 'form6') === 'highSchoolAttestation'
+                      ? 'High School Attestation'
                       : 'Form 6'
                     }
                   </span>
@@ -1602,6 +1676,11 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                     // For Bachelor Diploma, show institution and specialization
                     <>
                       {getBulletinDisplayData(selectedBulletin)?.institutionName || 'University'} {getBulletinDisplayData(selectedBulletin)?.specialization ? ' • ' + getBulletinDisplayData(selectedBulletin)?.specialization : ''}
+                    </>
+                  ) : (selectedBulletin.metadata.formType || 'form6') === 'highSchoolAttestation' ? (
+                    // For High School Attestation, show school name and province
+                    <>
+                      {getBulletinDisplayData(selectedBulletin)?.schoolName || 'School'} {getBulletinDisplayData(selectedBulletin)?.province ? ' • ' + getBulletinDisplayData(selectedBulletin)?.province : ''}
                     </>
                   ) : (selectedBulletin.metadata.formType || 'form6') === 'collegeTranscript' ? (
                     // For College Transcript, show institution and level
@@ -1658,6 +1737,12 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                       data={transformDataForBachelorDiploma(getBulletinDisplayData(selectedBulletin))}
                       documentId={selectedBulletin.id}
                       className="inline-flex items-center justify-center w-full px-5 py-2.5 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-all duration-200 shadow-md hover:shadow-lg font-medium text-sm"
+                    />
+                  ) : (selectedBulletin.metadata.formType || 'form6') === 'highSchoolAttestation' ? (
+                    <HighSchoolAttestationPDFDownloadButton
+                      data={transformDataForHighSchoolAttestation(getBulletinDisplayData(selectedBulletin))}
+                      documentId={selectedBulletin.id}
+                      className="inline-flex items-center justify-center w-full px-5 py-2.5 bg-rose-600 text-white rounded-lg hover:bg-rose-700 transition-all duration-200 shadow-md hover:shadow-lg font-medium text-sm"
                     />
                   ) : (selectedBulletin.metadata.formType || 'form6') === 'collegeTranscript' ? (
                     <CollegeTranscriptPDFDownloadButton
@@ -1773,6 +1858,13 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                 ) : (selectedBulletin.metadata.formType || 'form6') === 'bachelorDiploma' ? (
                   <BachelorDiplomaTemplate 
                     data={transformDataForBachelorDiploma(getBulletinDisplayData(selectedBulletin))} 
+                    isEditable={isEditing}
+                    onDataChange={handleFieldUpdate}
+                    documentId={selectedBulletin.id} // Pass Firestore document ID as documentId for QR codes
+                  />
+                ) : (selectedBulletin.metadata.formType || 'form6') === 'highSchoolAttestation' ? (
+                  <HighSchoolAttestationTemplate 
+                    data={transformDataForHighSchoolAttestation(getBulletinDisplayData(selectedBulletin))} 
                     isEditable={isEditing}
                     onDataChange={handleFieldUpdate}
                     documentId={selectedBulletin.id} // Pass Firestore document ID as documentId for QR codes

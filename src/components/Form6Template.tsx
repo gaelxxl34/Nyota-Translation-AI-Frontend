@@ -406,7 +406,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
   // Calculate dynamic sizing based on total subjects count with manual override support
   const getDynamicSizing = useMemo(() => {
     const totalSubjects = (data.subjects || []).filter(s => s.subject || s.maxima).length;
-    const maxBaseRows = 18; // Increased from 15 to allow more subjects at normal size
+    const maxBaseRows = 15; // Reduced from 18 to make normal size more compact
     
     // Determine sizing tier
     let sizingTier: 'normal' | '11px' | '12px' | '13px' | '14px' | '15px';
@@ -416,10 +416,10 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
       sizingTier = manualSizeOverride;
       console.log(`📏 Form6 Manual Sizing: Using manual override "${sizingTier}" for ${totalSubjects} subjects`);
     } else {
-      // Automatic sizing based on subject count
+      // Automatic sizing based on subject count - more aggressive compression
       if (totalSubjects <= maxBaseRows) {
-        sizingTier = 'normal';
-      } else if (totalSubjects <= 30) {
+        sizingTier = '13px'; // Start with 13px instead of normal for better fit
+      } else if (totalSubjects <= 25) {
         sizingTier = '12px';
       } else {
         sizingTier = '11px';
@@ -430,47 +430,47 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
     // Apply the sizing configuration
     let sizing;
     if (sizingTier === 'normal') {
-      // Normal sizing for smaller tables - keeping original size
+      // Normal sizing - now more compact than before
       sizing = {
-        cellPadding: 'px-0.5 py-0.5',
+        cellPadding: 'px-0.5 py-[1px]', // Reduced padding
         fontSize: 'text-xs',
-        headerPadding: 'px-0.5 py-0.5',
+        headerPadding: 'px-0.5 py-[1px]',
         headerFontSize: 'text-xs',
         compactMode: false
       };
     } else if (sizingTier === '15px') {
       // 15px sizing
       sizing = {
-        cellPadding: 'px-0.5 py-1',
+        cellPadding: 'px-0.5 py-[2px]',
         fontSize: 'text-[15px]',
-        headerPadding: 'px-0.5 py-1',
+        headerPadding: 'px-0.5 py-[2px]',
         headerFontSize: 'text-[15px]',
         compactMode: false
       };
     } else if (sizingTier === '14px') {
       // 14px sizing
       sizing = {
-        cellPadding: 'px-0.5 py-0.5',
+        cellPadding: 'px-0.5 py-[1px]',
         fontSize: 'text-[14px]',
-        headerPadding: 'px-0.5 py-0.5',
+        headerPadding: 'px-0.5 py-[1px]',
         headerFontSize: 'text-[14px]',
         compactMode: false
       };
     } else if (sizingTier === '13px') {
-      // 13px sizing
+      // 13px sizing - default for moderate tables
       sizing = {
-        cellPadding: 'px-0.5 py-0.5',
+        cellPadding: 'px-0.5 py-[0.5px]', // Very tight padding
         fontSize: 'text-[13px]',
-        headerPadding: 'px-0.5 py-0.5',
+        headerPadding: 'px-0.5 py-[0.5px]',
         headerFontSize: 'text-[13px]',
-        compactMode: false
+        compactMode: true
       };
     } else if (sizingTier === '12px') {
       // 12px sizing for medium tables
       sizing = {
-        cellPadding: 'px-0.5 py-[1px]', // Reduced padding but not zero
+        cellPadding: 'px-0.5 py-[0.5px]', // Very tight padding
         fontSize: 'text-[12px]',
-        headerPadding: 'px-0.5 py-[1px]',
+        headerPadding: 'px-0.5 py-[0.5px]',
         headerFontSize: 'text-[12px]',
         compactMode: true
       };
@@ -926,50 +926,88 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
 
   try {
     return (
-    <div className={`bg-white relative ${className}`}>        {/* A4 Container with proper dimensions + relative positioning for QR code */}
+    <div className={`bg-white relative ${className}`}>
+        {/* Print-specific CSS */}
+        <style>{`
+          @media print {
+            @page {
+              size: A4;
+              margin: 10mm;
+            }
+            
+            /* Prevent page breaks inside critical sections */
+            .print\\:break-inside-avoid {
+              break-inside: avoid;
+              page-break-inside: avoid;
+            }
+            
+            /* Allow table to span multiple pages if needed */
+            table {
+              page-break-inside: auto;
+            }
+            
+            tr {
+              page-break-inside: avoid;
+              page-break-after: auto;
+            }
+            
+            /* Ensure content is not cut off */
+            html, body {
+              height: auto;
+              overflow: visible;
+            }
+            
+            /* Hide size control in print */
+            .table-size-control {
+              display: none !important;
+            }
+          }
+        `}</style>
+        
+        {/* A4 Container with proper dimensions + relative positioning for QR code */}
         <div 
           id="bulletin-template"
           data-testid="bulletin-template"
           className="mx-auto bg-white shadow-lg print:shadow-none"
           style={{
             width: '210mm',
-            minHeight: isEditable ? 'auto' : '297mm',
-            height: isEditable ? 'auto' : '297mm',
+            minHeight: '297mm',
+            height: 'auto', // Changed from fixed height to auto to accommodate variable content
             maxWidth: '210mm',
             fontSize: '6pt',
             lineHeight: '1.0',
             fontFamily: 'Arial, sans-serif',
-            overflow: isEditable ? 'visible' : 'hidden'
+            overflow: 'visible' // Changed from hidden to visible to show all content
           }}
         >
         {/* Outer table wrapper for guaranteed PDF borders */}
-        <table className="w-full border-2 border-black print:border-black print:border-1 border-collapse" style={{minHeight: isEditable ? 'auto' : '297mm'}}>
+        <table className="w-full border-2 border-black print:border-black print:border-1 border-collapse" style={{minHeight: '297mm', height: 'auto'}}>
           <tbody>
             <tr>
-              <td className="p-0 align-top" style={{minHeight: isEditable ? 'auto' : '297mm'}}>
+              <td className="p-0 align-top" style={{minHeight: '297mm', height: 'auto'}}>
                 {/* All content wrapped in table cell */}
         {/* Header with Logos and Titles */}
-        <div className="flex items-center justify-between p-1 border-b border-gray-300">
+        <div className="flex items-center justify-between p-0.5 border-b border-gray-300">
           <img
             src="/flag.png"
             alt="DRC Flag"
-            className="h-10"
+            className="h-8"
           />
           <div className="text-center">
-            <h1 className="text-sm font-bold">Democratic Republic of the Congo</h1>
-            <p className="text-sm uppercase font-medium">
+            <h1 className="text-xs font-bold leading-tight">Democratic Republic of the Congo</h1>
+            <p className="text-xs uppercase font-medium leading-tight">
               MINISTRY OF PRIMARY, SECONDARY & TECHNICAL EDUCATION
             </p>
           </div>
           <img
             src="/Coat.png"
             alt="Emblem"
-            className="h-10"
+            className="h-8"
           />
         </div>
 
         {/* ID Number Row */}
-        <div className="p-1 border-t border-b border-gray-700">
+        <div className="p-0.5 border-t border-b border-gray-700">
           <table className="w-full table-fixed">
             <tbody>
               <tr>
@@ -981,7 +1019,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
         </div>
 
         {/* Province Row */}
-        <div className="p-1 border-t border-b border-gray-700">
+        <div className="p-0.5 border-t border-b border-gray-700">
           <div className="flex items-center text-xs">
             <strong className="mr-2">PROVINCE:</strong> 
             <EditableField 
@@ -1000,11 +1038,11 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
         </div>
 
         {/* Student Info Section */}
-        <div className="p-1 border-b border-gray-300">
+        <div className="p-0.5 border-b border-gray-300">
           <table className="w-full border-collapse text-xs">
             <tbody>
               <tr>
-                <td className="px-1 py-0.5 w-1/2 border-r border-gray-300 align-top">
+                <td className="px-0.5 py-0.5 w-1/2 border-r border-gray-300 align-top">
                   <div className="flex items-center">
                     <strong className="mr-1">CITY:</strong> 
                     <EditableField 
@@ -1020,7 +1058,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                     />
                   </div>
                 </td>
-                <td className="px-1 py-0.5 align-top">
+                <td className="px-0.5 py-0.5 align-top">
                   <div className="flex items-center flex-nowrap">
                     <strong className="mr-1 flex-shrink-0">STUDENT:</strong> 
                     <EditableField 
@@ -1044,7 +1082,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                 </td>
               </tr>
               <tr>
-                <td className="px-1 py-0.5 border-r border-gray-300 align-top">
+                <td className="px-0.5 py-0.5 border-r border-gray-300 align-top">
                   <div className="flex items-center">
                     <strong className="mr-1">MUNICIPALITY:</strong> 
                     <EditableField 
@@ -1060,7 +1098,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                     />
                   </div>
                 </td>
-                <td className="px-1 py-0.5 align-top">
+                <td className="px-0.5 py-0.5 align-top">
                   <div className="flex items-center">
                     <strong className="mr-1">BORN IN:</strong> 
                     <EditableField 
@@ -1092,7 +1130,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                 </td>
               </tr>
               <tr>
-                <td className="px-1 py-0.5 border-r border-gray-300 align-top">
+                <td className="px-0.5 py-0.5 border-r border-gray-300 align-top">
                   <div className="flex items-center">
                     <strong className="mr-1">SCHOOL:</strong> 
                     <EditableField 
@@ -1108,7 +1146,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                     />
                   </div>
                 </td>
-                <td className="px-1 py-0.5 align-top">
+                <td className="px-0.5 py-0.5 align-top">
                   <div className="flex items-center">
                     <strong className="mr-1">CLASS:</strong> 
                     <EditableField 
@@ -1126,7 +1164,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                 </td>
               </tr>
               <tr>
-                <td className="px-1 py-0.5 align-top">
+                <td className="px-0.5 py-0.5 align-top">
                   <div className="flex items-center">
                     <strong className="mr-2">CODE:</strong>
                     <div className="inline-flex">
@@ -1143,7 +1181,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
                     </div>
                   </div>
                 </td>
-                <td className="px-1 py-0.5 align-top">
+                <td className="px-0.5 py-0.5 align-top">
                   <div className="flex items-center">
                     <strong className="mr-2">N° PERM.</strong>
                     <div className="inline-flex">
@@ -1166,8 +1204,8 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
         </div>
 
         {/* Report Card Header */}
-        <div className="px-1 py-0.5 border-t border-black">
-          <p className="text-xs font-semibold uppercase text-center">
+        <div className="px-0.5 py-0.5 border-t border-black">
+          <p className="text-xs font-semibold uppercase text-center leading-tight">
             REPORT CARD - {data.class || '6TH YEAR HUMANITIES MATH – PHYSICS'} | SCHOOL YEAR: <EditableField 
               value={data.academicYear || ''} 
               isEditable={isEditable}
@@ -1224,8 +1262,8 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
               >
                 <option value="auto">Auto ({(() => {
                   const totalSubjects = (data.subjects || []).filter(s => s.subject || s.maxima).length;
-                  if (totalSubjects <= 18) return 'Normal';
-                  if (totalSubjects <= 30) return '12px';
+                  if (totalSubjects <= 15) return '13px';
+                  if (totalSubjects <= 25) return '12px';
                   return '11px';
                 })()})</option>
                 <option value="normal">Normal (text-xs)</option>
@@ -1238,7 +1276,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
             </div>
           </div>
           
-          <table className="table-fixed w-full border-collapse" style={{ fontSize: getDynamicSizing.fontSize.replace('text-', ''), lineHeight: getDynamicSizing.compactMode ? '1.1' : '1.0' }}>
+          <table className="table-fixed w-full border-collapse" style={{ fontSize: getDynamicSizing.fontSize.replace('text-', ''), lineHeight: getDynamicSizing.compactMode ? '1.0' : '1.1' }}>
             <thead>
               {/* Semester Group Headers */}
               <tr className="text-center">
