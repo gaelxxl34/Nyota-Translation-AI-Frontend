@@ -1649,6 +1649,8 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                             ? 'bg-amber-100 text-amber-800'
                             : (bulletin.metadata.formType || 'form6') === 'highSchoolAttestation'
                             ? 'bg-rose-100 text-rose-800'
+                            : (bulletin.metadata.formType || 'form6') === 'stateExamAttestation'
+                            ? 'bg-cyan-100 text-cyan-800'
                             : 'bg-blue-100 text-blue-800'
                           }
                         `}>
@@ -1664,6 +1666,8 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                             ? 'Bachelor Diploma'
                             : (bulletin.metadata.formType || 'form6') === 'highSchoolAttestation'
                             ? 'High School Attestation'
+                            : (bulletin.metadata.formType || 'form6') === 'stateExamAttestation'
+                            ? 'State Exam Attestation'
                             : 'Form 6'
                           }
                         </span>
@@ -1737,6 +1741,10 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                       ? 'bg-purple-100 text-purple-800'
                       : (selectedBulletin.metadata.formType || 'form6') === 'bachelorDiploma'
                       ? 'bg-amber-100 text-amber-800'
+                      : (selectedBulletin.metadata.formType || 'form6') === 'highSchoolAttestation'
+                      ? 'bg-rose-100 text-rose-800'
+                      : (selectedBulletin.metadata.formType || 'form6') === 'stateExamAttestation'
+                      ? 'bg-cyan-100 text-cyan-800'
                       : 'bg-blue-100 text-blue-800'
                   }`}>
                     {(selectedBulletin.metadata.formType || 'form6') === 'form4' 
@@ -1751,6 +1759,8 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                       ? 'Bachelor Diploma'
                       : (selectedBulletin.metadata.formType || 'form6') === 'highSchoolAttestation'
                       ? 'High School Attestation'
+                      : (selectedBulletin.metadata.formType || 'form6') === 'stateExamAttestation'
+                      ? 'State Exam Attestation'
                       : 'Form 6'
                     }
                   </span>
