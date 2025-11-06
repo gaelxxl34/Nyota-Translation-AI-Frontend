@@ -1611,6 +1611,11 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                             <>
                               {displayData?.schoolName || 'School'} {displayData?.province ? ' • ' + displayData.province : ''}
                             </>
+                          ) : (bulletin.metadata.formType || 'form6') === 'stateExamAttestation' ? (
+                            // For State Exam Attestation, show school name and exam session
+                            <>
+                              {displayData?.schoolName || 'School'} {displayData?.examSession ? ' • ' + displayData.examSession : ''}
+                            </>
                           ) : (bulletin.metadata.formType || 'form6') === 'collegeTranscript' ? (
                             // For College Transcript, show institution and level
                             <>
@@ -1782,6 +1787,11 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                     // For High School Attestation, show school name and province
                     <>
                       {getBulletinDisplayData(selectedBulletin)?.schoolName || 'School'} {getBulletinDisplayData(selectedBulletin)?.province ? ' • ' + getBulletinDisplayData(selectedBulletin)?.province : ''}
+                    </>
+                  ) : (selectedBulletin.metadata.formType || 'form6') === 'stateExamAttestation' ? (
+                    // For State Exam Attestation, show school name and exam session
+                    <>
+                      {getBulletinDisplayData(selectedBulletin)?.schoolName || 'School'} {getBulletinDisplayData(selectedBulletin)?.examSession ? ' • ' + getBulletinDisplayData(selectedBulletin)?.examSession : ''}
                     </>
                   ) : (selectedBulletin.metadata.formType || 'form6') === 'collegeTranscript' ? (
                     // For College Transcript, show institution and level
