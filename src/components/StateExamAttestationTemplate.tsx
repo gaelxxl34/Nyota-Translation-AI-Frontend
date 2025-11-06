@@ -561,7 +561,7 @@ const StateExamAttestationTemplate: React.FC<StateExamAttestationTemplateProps> 
                       position: 'absolute',
                       left: '50%',
                       transform: 'translateX(-50%)',
-                      top: screenWidth < 640 ? '10px' : '0px',
+                      top: screenWidth < 640 ? '-65px' : '-85px',
                       zIndex: 10
                     }}
                   />

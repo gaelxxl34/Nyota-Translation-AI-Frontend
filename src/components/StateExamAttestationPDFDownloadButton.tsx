@@ -20,15 +20,46 @@ const StateExamAttestationPDFDownloadButton: React.FC<StateExamAttestationPDFDow
     setError(null);
 
     try {
+      // Force local development URLs when running on localhost
+      const isLocalDevelopment = window.location.hostname === 'localhost';
+      const currentProtocol = window.location.protocol;
+      const currentHostname = window.location.hostname;
+      
+      // Get environment variables
+      const envApiUrl = import.meta.env.VITE_API_BASE_URL;
+      const envFrontendUrl = import.meta.env.VITE_FRONTEND_URL;
+      
+      // Always use localhost:3001 when running on localhost
+      const backendUrl = isLocalDevelopment 
+        ? 'http://localhost:3001'
+        : (envApiUrl || `${currentProtocol}//${currentHostname}`);
+      
+      const frontendUrl = isLocalDevelopment
+        ? 'http://localhost:5173'
+        : (envFrontendUrl || `${currentProtocol}//${currentHostname}`);
+
       // Send request to backend to generate PDF
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001'}/api/state-exam-attestation-pdf`, {
+      const response = await fetch(`${backendUrl}/api/state-exam-attestation-pdf`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           data,
-          documentId: documentId || 'ATTESTATION-' + Date.now()
+          documentId: documentId || 'ATTESTATION-' + Date.now(),
+          frontendUrl: frontendUrl,
+          waitForImages: true, // Wait for QR codes to load
+          pdfOptions: {
+            format: 'A4',
+            landscape: true,
+            printBackground: true,
+            margin: { 
+              top: '8mm', 
+              right: '8mm', 
+              bottom: '12mm', 
+              left: '8mm' 
+            }
+          }
         }),
       });
 
