@@ -443,7 +443,7 @@ const StateDiplomaTemplate: React.FC<StateDiplomaTemplateProps> = ({
   return (
     <div className="w-full overflow-x-auto">
       <div className="min-w-full sm:min-w-0">
-        <div id="state-diploma-template" data-testid="state-diploma-template" style={diplomaContainerStyle}>
+        <div id="state-diploma-template" style={diplomaContainerStyle}>
           <div style={borderWrapperStyle}>
             <div style={diplomaContentStyle}>
               {/* Header */}

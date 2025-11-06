@@ -25,6 +25,9 @@ import CollegeAttestationPDFDownloadButton from './CollegeAttestationPDFDownload
 import HighSchoolAttestationTemplate from './HighSchoolAttestationTemplate';
 import type { HighSchoolAttestationData } from './HighSchoolAttestationTemplate';
 import HighSchoolAttestationPDFDownloadButton from './HighSchoolAttestationPDFDownloadButton';
+import StateExamAttestationTemplate from './StateExamAttestationTemplate';
+import type { StateExamAttestationData } from './StateExamAttestationTemplate';
+import StateExamAttestationPDFDownloadButton from './StateExamAttestationPDFDownloadButton';
 import Swal from 'sweetalert2';
 
 interface BulletinRecord {
@@ -35,7 +38,7 @@ interface BulletinRecord {
     uploadedAt: any;
     lastModified: any;
     status: string;
-    formType?: 'form4' | 'form6' | 'collegeTranscript' | 'collegeAttestation' | 'stateDiploma' | 'bachelorDiploma' | 'highSchoolAttestation';
+    formType?: 'form4' | 'form6' | 'collegeTranscript' | 'collegeAttestation' | 'stateDiploma' | 'bachelorDiploma' | 'highSchoolAttestation' | 'stateExamAttestation';
   };
   editedData: any;
   originalData: any;
@@ -62,7 +65,7 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadStage, setUploadStage] = useState<string>('');
-  const [selectedFormType, setSelectedFormType] = useState<'form4' | 'form6' | 'collegeTranscript' | 'collegeAttestation' | 'stateDiploma' | 'bachelorDiploma' | 'highSchoolAttestation'>('form6');
+  const [selectedFormType, setSelectedFormType] = useState<'form4' | 'form6' | 'collegeTranscript' | 'collegeAttestation' | 'stateDiploma' | 'bachelorDiploma' | 'highSchoolAttestation' | 'stateExamAttestation'>('form6');
   const [tableSize, setTableSize] = useState<'auto' | 'normal' | '11px' | '12px' | '13px' | '14px' | '15px'>('auto'); // Track table size for PDF generation
   
   // Preview states
@@ -763,6 +766,78 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
     };
   };
 
+  // Transform Firestore data for State Exam Attestation
+  const transformDataForStateExamAttestation = (data: any): StateExamAttestationData => {
+    const baseData: StateExamAttestationData = {
+      attestationNumber: 'N°000000000/2021',
+      studentName: 'STUDENT NAME',
+      birthPlace: 'BIRTHPLACE',
+      birthDate: {
+        day: '01',
+        month: '01',
+        year: '2003'
+      },
+      schoolName: 'SCHOOL NAME',
+      schoolCode: '000000000000',
+      examSession: '2021',
+      section: 'TECHNICAL',
+      option: 'COMMERCIAL AND MANAGEMENT',
+      percentage: '56',
+      issuePlace: 'KINSHASA',
+      issueDate: {
+        day: '21',
+        month: '10',
+        year: '2021'
+      },
+      validUntil: {
+        day: '21',
+        month: '02',
+        year: '2022'
+      },
+      inspectorName: 'INSPECTOR NAME'
+    };
+
+    if (!data) {
+      return baseData;
+    }
+
+    // Helper to parse date strings into day/month/year object
+    const parseDateString = (dateStr: string | any): { day: string; month: string; year: string } => {
+      if (typeof dateStr === 'object' && dateStr.day && dateStr.month && dateStr.year) {
+        return dateStr;
+      }
+      if (typeof dateStr === 'string') {
+        const parts = dateStr.split('/');
+        if (parts.length === 3) {
+          return {
+            day: parts[0].padStart(2, '0'),
+            month: parts[1].padStart(2, '0'),
+            year: parts[2].padStart(4, '0')
+          };
+        }
+      }
+      return { day: '01', month: '01', year: '2000' };
+    };
+
+    return {
+      ...baseData,
+      attestationNumber: data?.attestationNumber || baseData.attestationNumber,
+      studentName: data?.studentName || baseData.studentName,
+      birthPlace: data?.birthPlace || baseData.birthPlace,
+      birthDate: data?.birthDate ? parseDateString(data.birthDate) : baseData.birthDate,
+      schoolName: data?.schoolName || data?.school || baseData.schoolName,
+      schoolCode: data?.schoolCode || baseData.schoolCode,
+      examSession: data?.examSession || data?.academicYear || baseData.examSession,
+      section: data?.section || baseData.section,
+      option: data?.option || baseData.option,
+      percentage: data?.percentage?.toString() || baseData.percentage,
+      issuePlace: data?.issuePlace || data?.issueLocation || baseData.issuePlace,
+      issueDate: data?.issueDate ? parseDateString(data.issueDate) : baseData.issueDate,
+      validUntil: data?.validUntil ? parseDateString(data.validUntil) : baseData.validUntil,
+      inspectorName: data?.inspectorName || data?.signatoryName || baseData.inspectorName,
+    };
+  };
+
 
   // Transform Firestore data to Form6Template format
   const transformDataForTemplate = (data: any) => {
@@ -1270,6 +1345,20 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                 </div>
                 <div className="text-xs mt-1 opacity-75">School attendance certificate</div>
               </button>
+              <button
+                onClick={() => setSelectedFormType('stateExamAttestation')}
+                className={`flex-1 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  selectedFormType === 'stateExamAttestation'
+                    ? 'bg-cyan-600 text-white shadow-lg scale-105'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200'
+                }`}
+              >
+                <div className="flex items-center justify-center space-x-2">
+                  <span>📋</span>
+                  <span>State Exam Attestation</span>
+                </div>
+                <div className="text-xs mt-1 opacity-75">Provisional pass certificate</div>
+              </button>
             </div>
           </div>
           <div 
@@ -1418,9 +1507,11 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                           {selectedFormType === 'form4' ? 'Form 4' : 
                            selectedFormType === 'form6' ? 'Form 6' : 
                            selectedFormType === 'collegeTranscript' ? 'College Transcript' :
+                           selectedFormType === 'collegeAttestation' ? 'College Attestation' :
                            selectedFormType === 'stateDiploma' ? 'State Diploma' :
                            selectedFormType === 'bachelorDiploma' ? 'Bachelor Diploma' :
-                           selectedFormType === 'highSchoolAttestation' ? 'High School Attestation' : selectedFormType}
+                           selectedFormType === 'highSchoolAttestation' ? 'High School Attestation' :
+                           selectedFormType === 'stateExamAttestation' ? 'State Exam Attestation' : selectedFormType}
                         </p>
                       </div>
                     </div>
@@ -1744,6 +1835,12 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                       documentId={selectedBulletin.id}
                       className="inline-flex items-center justify-center w-full px-5 py-2.5 bg-rose-600 text-white rounded-lg hover:bg-rose-700 transition-all duration-200 shadow-md hover:shadow-lg font-medium text-sm"
                     />
+                  ) : (selectedBulletin.metadata.formType || 'form6') === 'stateExamAttestation' ? (
+                    <StateExamAttestationPDFDownloadButton
+                      data={transformDataForStateExamAttestation(getBulletinDisplayData(selectedBulletin))}
+                      documentId={selectedBulletin.id}
+                      className="inline-flex items-center justify-center w-full px-5 py-2.5 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-all duration-200 shadow-md hover:shadow-lg font-medium text-sm"
+                    />
                   ) : (selectedBulletin.metadata.formType || 'form6') === 'collegeTranscript' ? (
                     <CollegeTranscriptPDFDownloadButton
                       data={transformDataForCollegeTranscript(getBulletinDisplayData(selectedBulletin))}
@@ -1865,6 +1962,13 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                 ) : (selectedBulletin.metadata.formType || 'form6') === 'highSchoolAttestation' ? (
                   <HighSchoolAttestationTemplate 
                     data={transformDataForHighSchoolAttestation(getBulletinDisplayData(selectedBulletin))} 
+                    isEditable={isEditing}
+                    onDataChange={handleFieldUpdate}
+                    documentId={selectedBulletin.id} // Pass Firestore document ID as documentId for QR codes
+                  />
+                ) : (selectedBulletin.metadata.formType || 'form6') === 'stateExamAttestation' ? (
+                  <StateExamAttestationTemplate 
+                    data={transformDataForStateExamAttestation(getBulletinDisplayData(selectedBulletin))} 
                     isEditable={isEditing}
                     onDataChange={handleFieldUpdate}
                     documentId={selectedBulletin.id} // Pass Firestore document ID as documentId for QR codes
