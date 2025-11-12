@@ -193,35 +193,63 @@ const StateExamAttestationTemplate: React.FC<StateExamAttestationTemplateProps> 
   const attestationData = currentData;
 
   const handleFieldChange = (field: keyof StateExamAttestationData | string, value: string) => {
-    const updatedData = { ...attestationData };
-    
-    if (field.startsWith('birthDate.')) {
-      const dateField = field.split('.')[1] as 'day' | 'month' | 'year';
-      updatedData.birthDate = {
-        ...updatedData.birthDate,
-        [dateField]: value
-      };
-    } else if (field.startsWith('issueDate.')) {
-      const dateField = field.split('.')[1] as 'day' | 'month' | 'year';
-      updatedData.issueDate = {
-        ...updatedData.issueDate,
-        [dateField]: value
-      };
-    } else if (field.startsWith('validUntil.')) {
-      const dateField = field.split('.')[1] as 'day' | 'month' | 'year';
-      updatedData.validUntil = {
-        ...updatedData.validUntil,
-        [dateField]: value
-      };
-    } else {
-      (updatedData as any)[field] = value;
-    }
-    
-    setCurrentData(updatedData);
-    
-    if (onDataChange) {
-      onDataChange(updatedData);
-    }
+    setCurrentData(prevData => {
+      const updatedData = { ...prevData };
+      
+      if (field.startsWith('birthDate.')) {
+        const dateField = field.split('.')[1] as 'day' | 'month' | 'year';
+        updatedData.birthDate = {
+          ...updatedData.birthDate,
+          [dateField]: value
+        };
+      } else if (field.startsWith('issueDate.')) {
+        const dateField = field.split('.')[1] as 'day' | 'month' | 'year';
+        updatedData.issueDate = {
+          ...updatedData.issueDate,
+          [dateField]: value
+        };
+      } else if (field.startsWith('validUntil.')) {
+        const dateField = field.split('.')[1] as 'day' | 'month' | 'year';
+        updatedData.validUntil = {
+          ...updatedData.validUntil,
+          [dateField]: value
+        };
+      } else {
+        (updatedData as any)[field] = value;
+      }
+      
+      // Call onDataChange with the updated data
+      if (onDataChange) {
+        onDataChange(updatedData);
+      }
+      
+      return updatedData;
+    });
+  };
+
+  // Helper function to handle date field changes (for combined date inputs)
+  const handleDateFieldChange = (dateType: 'birthDate' | 'issueDate' | 'validUntil', value: string) => {
+    setCurrentData(prevData => {
+      const parts = value.split('/');
+      const updatedData = { ...prevData };
+      
+      if (parts.length === 3) {
+        updatedData[dateType] = {
+          day: parts[0].padStart(2, '0'),
+          month: parts[1].padStart(2, '0'),
+          year: parts[2].padStart(4, '0')
+        };
+        
+        // Call onDataChange with the complete updated data
+        if (onDataChange) {
+          onDataChange(updatedData);
+        }
+        
+        return updatedData;
+      }
+      
+      return prevData;
+    });
   };
 
   useEffect(() => {
@@ -396,14 +424,7 @@ const StateExamAttestationTemplate: React.FC<StateExamAttestationTemplateProps> 
                     <span style={{ whiteSpace: 'nowrap' }}>ON</span>
                     <EditableField
                       value={`${attestationData.birthDate.day}/${attestationData.birthDate.month}/${attestationData.birthDate.year}`}
-                      onChange={(value) => {
-                        const parts = value.split('/');
-                        if (parts.length === 3) {
-                          handleFieldChange('birthDate.day', parts[0].padStart(2, '0'));
-                          handleFieldChange('birthDate.month', parts[1].padStart(2, '0'));
-                          handleFieldChange('birthDate.year', parts[2].padStart(4, '0'));
-                        }
-                      }}
+                      onChange={(value) => handleDateFieldChange('birthDate', value)}
                       style={{...infoFieldStyle, flex: 1, minWidth: '100px', fontFamily: '"Courier New", monospace'}}
                       isEditable={isEditable}
                       placeholder="02/10/2003"
@@ -509,14 +530,7 @@ const StateExamAttestationTemplate: React.FC<StateExamAttestationTemplateProps> 
                     <span>, ON</span>
                     <EditableField
                       value={`${attestationData.issueDate.day}/${attestationData.issueDate.month}/${attestationData.issueDate.year}`}
-                      onChange={(value) => {
-                        const parts = value.split('/');
-                        if (parts.length === 3) {
-                          handleFieldChange('issueDate.day', parts[0].padStart(2, '0'));
-                          handleFieldChange('issueDate.month', parts[1].padStart(2, '0'));
-                          handleFieldChange('issueDate.year', parts[2].padStart(4, '0'));
-                        }
-                      }}
+                      onChange={(value) => handleDateFieldChange('issueDate', value)}
                       style={{...infoFieldStyle, minWidth: '100px', fontFamily: '"Courier New", monospace'}}
                       isEditable={isEditable}
                       placeholder="21/10/2021"
@@ -534,14 +548,7 @@ const StateExamAttestationTemplate: React.FC<StateExamAttestationTemplateProps> 
                     <span>VALID UNTIL</span>
                     <EditableField
                       value={`${attestationData.validUntil.day}/${attestationData.validUntil.month}/${attestationData.validUntil.year}`}
-                      onChange={(value) => {
-                        const parts = value.split('/');
-                        if (parts.length === 3) {
-                          handleFieldChange('validUntil.day', parts[0].padStart(2, '0'));
-                          handleFieldChange('validUntil.month', parts[1].padStart(2, '0'));
-                          handleFieldChange('validUntil.year', parts[2].padStart(4, '0'));
-                        }
-                      }}
+                      onChange={(value) => handleDateFieldChange('validUntil', value)}
                       style={{...infoFieldStyle, minWidth: '100px', fontFamily: '"Courier New", monospace'}}
                       isEditable={isEditable}
                       placeholder="21/02/2022"
