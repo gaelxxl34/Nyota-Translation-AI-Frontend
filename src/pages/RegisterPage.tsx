@@ -84,26 +84,6 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onNavigate }) => {
                   </p>
                 </div>
 
-                {/* Physical Address */}
-                <div className="bg-gray-50 rounded-lg p-4 mb-4">
-                  <div className="flex items-center mb-2">
-                    <svg className="w-5 h-5 text-purple-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    <span className="font-medium text-gray-900">Visit Us</span>
-                  </div>
-                  <div className="text-gray-700">
-                    <p className="font-medium">ICT Department</p>
-                    <p>International University of East Africa (IUEA)</p>
-                    <p>Kansanga Campus</p>
-                    <p>Kampala, Uganda</p>
-                  </div>
-                  <p className="text-sm text-gray-600 mt-2">
-                    Walk-ins welcome during business hours
-                  </p>
-                </div>
-
                 {/* Email Contact */}
                 <div className="bg-gray-50 rounded-lg p-4">
                   <div className="flex items-center mb-2">
@@ -118,24 +98,6 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onNavigate }) => {
                   <p className="text-sm text-gray-600 mt-1">
                     Send us your details for priority access
                   </p>
-                </div>
-              </div>
-
-              {/* IUEA Branding */}
-              <div className="border-t border-gray-200 pt-6">
-                <div className="flex items-center justify-center space-x-3">
-                  <img
-                    src="/iuea-Logo.png"
-                    alt="IUEA Logo"
-                    className="h-8 w-auto"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).style.display = 'none';
-                    }}
-                  />
-                  <div className="text-center">
-                    <p className="text-sm font-medium text-gray-900">Powered by IUEA Innovations</p>
-                    <p className="text-xs text-gray-600">International University of East Africa</p>
-                  </div>
                 </div>
               </div>
 
