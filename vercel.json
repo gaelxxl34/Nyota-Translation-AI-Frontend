@@ -53,10 +53,10 @@
       ]
     },
     {
-      "source": "/og-image.png",
+      "source": "/og-image.jpg",
       "headers": [
         { "key": "Cache-Control", "value": "public, max-age=86400" },
-        { "key": "Content-Type", "value": "image/png" }
+        { "key": "Content-Type", "value": "image/jpeg" }
       ]
     },
     {
