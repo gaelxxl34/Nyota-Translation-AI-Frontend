@@ -14,6 +14,9 @@ import {
 } from 'firebase/auth';
 import { auth } from './firebase';
 
+// User role type
+type UserRole = 'superadmin' | 'translator' | 'partner' | 'support' | 'user' | null;
+
 // User interface extending Firebase User with additional fields
 interface AuthUser extends User {
   displayName: string | null;
@@ -26,6 +29,7 @@ interface AuthContextType {
   currentUser: AuthUser | null;
   loading: boolean;
   idToken: string | null;
+  userRole: UserRole;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, name: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -55,6 +59,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [idToken, setIdToken] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<UserRole>(null);
   const [error, setError] = useState<string | null>(null);
 
   // Clear error message
@@ -112,9 +117,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Sign in user
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       
-      // Get ID token for API authentication
-      const token = await userCredential.user.getIdToken();
-      setIdToken(token);
+      // Force refresh to get latest claims after login
+      const tokenResult = await userCredential.user.getIdTokenResult(true);
+      setIdToken(tokenResult.token);
+      
+      // Set user role from claims
+      const role = (tokenResult.claims.role as UserRole) || 'user';
+      setUserRole(role);
+      console.log(`✅ User logged in with role: ${role}`);
       
       // User logged in successfully
     } catch (err) {
@@ -149,6 +159,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setError(null);
       await signOut(auth);
       setIdToken(null);
+      setUserRole(null);
       // User logged out successfully
     } catch (err) {
       const authError = err as AuthError;
@@ -190,19 +201,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       try {
         if (user) {
           setCurrentUser(user as AuthUser);
-          // Get fresh ID token
-          const token = await user.getIdToken();
-          setIdToken(token);
+          // Get token result (no force refresh - use cached token for speed)
+          const tokenResult = await user.getIdTokenResult(false);
+          setIdToken(tokenResult.token);
+          // Get role from claims
+          const role = (tokenResult.claims.role as UserRole) || 'user';
+          setUserRole(role);
+          console.log(`✅ Auth state: User authenticated with role: ${role}`);
           // User authenticated
         } else {
           setCurrentUser(null);
           setIdToken(null);
+          setUserRole(null);
           // User not authenticated
         }
       } catch (err) {
         console.error('🚨 Auth state change error:', err);
         setCurrentUser(null);
         setIdToken(null);
+        setUserRole(null);
       } finally {
         setLoading(false);
       }
@@ -238,6 +255,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     currentUser,
     loading,
     idToken,
+    userRole,
     login,
     register,
     logout,

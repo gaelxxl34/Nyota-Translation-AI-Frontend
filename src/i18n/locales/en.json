@@ -5,79 +5,149 @@
     "brandName": "Nyota Translation Center"
   },
   "hero": {
-    "title": "Transform French",
-    "titleHighlight": "School Bulletins",
-    "titleContinue": "Into English Reports",
-    "subtitle": "Upload your French school bulletin and get an instant, professionally translated English report card powered by advanced AI technology.",
+    "badge": "Now Available: Academic Transcripts",
+    "title": "Translate Your Documents",
+    "titleHighlight": "With Ease",
+    "subtitle": "AI-powered translation with expert human review. Fast, accurate, and secure document translation services for academic, official, and business documents.",
+    "currentService": "French ↔ English Academic Transcripts",
+    "currentServiceDesc": "Now available - Start translating today",
     "startTranslation": "Start Translation",
-    "alreadyHaveAccount": "Already have an account?"
+    "alreadyHaveAccount": "Sign In",
+    "moreLanguages": "More Languages Soon",
+    "imageAlt": "Document translation illustration",
+    "trustAI": "AI-Powered",
+    "trustExpert": "Expert Review",
+    "trustSecure": "100% Secure"
+  },
+  "services": {
+    "badge": "Our Services",
+    "title": "Document Translation Services",
+    "subtitle": "Professional translation services for all your document needs. Starting with academic transcripts, expanding to more document types.",
+    "statusAvailable": "Available",
+    "statusComing": "Coming Soon",
+    "academic": {
+      "title": "Academic Transcripts",
+      "description": "French system transcripts translated to English format with expert verification.",
+      "feature1": "School bulletins & report cards",
+      "feature2": "University transcripts",
+      "feature3": "Diplomas & certificates"
+    },
+    "official": {
+      "title": "Official Documents",
+      "description": "Government-issued documents translated with certified accuracy.",
+      "feature1": "Birth & marriage certificates",
+      "feature2": "Legal documents",
+      "feature3": "Immigration papers"
+    },
+    "business": {
+      "title": "Business Documents",
+      "description": "Corporate and business documents for international operations.",
+      "feature1": "Contracts & agreements",
+      "feature2": "Financial reports",
+      "feature3": "Marketing materials"
+    },
+    "personal": {
+      "title": "Personal Documents",
+      "description": "Personal correspondence and documents for individual needs.",
+      "feature1": "Letters & emails",
+      "feature2": "Medical records",
+      "feature3": "Personal statements"
+    }
+  },
+  "languages": {
+    "badge": "Supported Languages",
+    "title": "Multiple Language Pairs",
+    "subtitle": "Translate documents between multiple language pairs. We're constantly expanding our language support.",
+    "available": "Available",
+    "comingSoon": "Coming Soon",
+    "moreComingSoon": "More language pairs are being added regularly. Contact us for specific language requests.",
+    "french": "French",
+    "english": "English",
+    "spanish": "Spanish",
+    "portuguese": "Portuguese",
+    "arabic": "Arabic",
+    "swahili": "Swahili",
+    "chinese": "Chinese"
   },
   "features": {
-    "sectionTitle": "Why Choose Nyota Translation Center?",
-    "sectionSubtitle": "Experience the fastest and most accurate way to translate your French school bulletins into professional English reports.",
-    "easyUpload": {
-      "title": "Easy Upload",
-      "description": "Simply upload your French bulletin as an image or PDF file"
+    "badge": "Why Choose Us",
+    "sectionTitle": "The Nyota Advantage",
+    "sectionSubtitle": "Combining AI speed with human expertise for unmatched translation quality.",
+    "hybrid": {
+      "aiTitle": "AI Translation",
+      "aiDesc": "Fast & consistent processing",
+      "expertTitle": "Expert Review",
+      "expertDesc": "Human accuracy & context",
+      "result": "Perfect Results"
     },
     "aiPowered": {
       "title": "AI-Powered Translation",
-      "description": "Advanced AI extracts and translates content with high accuracy"
+      "description": "Advanced AI extracts and translates content with high accuracy, ensuring fast turnaround times."
     },
-    "professionalReport": {
-      "title": "Professional Report",
-      "description": "Get a clean, formatted English report card ready to use"
+    "expertReview": {
+      "title": "Expert Human Review",
+      "description": "Specialized translators review every document to ensure accuracy and cultural context."
     },
-    "trust": {
-      "badge": "Academically Incubated Project",
-      "title": "Backed by Academic Excellence",
-      "description": "Nyota Translation Center is an incubated project by the International University of East Africa (IUEA), ensuring the highest standards of innovation and reliability in educational translation technology.",
-      "indicators": {
-        "academic": "Academic Excellence",
-        "innovation": "Advanced Innovation",
-        "reliable": "Proven Reliability"
-      },
-      "iuea": {
-        "name": "IUEA",
-        "subtitle": "International University of East Africa"
-      },
-      "partnership": "This academic incubation provides rigorous oversight and validation, ensuring our technology meets the highest academic standards while delivering cutting-edge translation solutions for your educational success."
+    "multiLanguage": {
+      "title": "Multi-Language Support",
+      "description": "Translate between multiple language pairs with more languages added regularly."
+    },
+    "multiDocument": {
+      "title": "Multiple Document Types",
+      "description": "Academic transcripts, official documents, business papers, and more."
+    },
+    "secure": {
+      "title": "Secure & Private",
+      "description": "Your documents are encrypted and handled with strict confidentiality."
+    },
+    "fast": {
+      "title": "Fast Turnaround",
+      "description": "Get your translated documents quickly without sacrificing quality."
     }
   },
-  "speed": {
-    "sectionTitle": "Lightning Fast Results",
-    "sectionSubtitle": "See how Nyota compares to traditional translation services",
-    "traditional": "Traditional Services",
-    "nyota": "Nyota Translation Center",
-    "timeTraditional": "2-3 weeks",
-    "timeNyota": "5 minutes",
-    "accuracy": "99.5% accurate translations",
-    "availability": "Available 24/7"
-  },
   "howItWorks": {
+    "badge": "Simple Process",
     "sectionTitle": "How It Works",
-    "sectionSubtitle": "Get your translated report card in just 4 simple steps",
+    "sectionSubtitle": "Get your professionally translated document in 5 simple steps",
+    "aiPowered": "AI-Powered",
+    "expertReview": "Expert Verified",
     "steps": {
       "upload": {
-        "title": "Upload Bulletin",
-        "description": "Upload your French school bulletin as PDF or image"
+        "title": "Upload Document",
+        "description": "Upload your document in PDF or image format"
       },
-      "extract": {
-        "title": "AI Auto-Extract",
-        "description": "Our AI automatically extracts all relevant information"
+      "aiTranslate": {
+        "title": "AI Translation",
+        "description": "Our AI extracts and translates content instantly"
       },
-      "review": {
-        "title": "Review & Correct",
-        "description": "Review the extracted data and make any corrections"
+      "expertReview": {
+        "title": "Expert Review",
+        "description": "Specialized translators verify accuracy and context"
+      },
+      "qualityCheck": {
+        "title": "Quality Check",
+        "description": "Final review ensures perfect formatting and accuracy"
       },
       "download": {
-        "title": "Download PDF",
-        "description": "Download your professionally formatted English report"
+        "title": "Download",
+        "description": "Get your professionally translated document"
       }
     }
   },
+  "partners": {
+    "badge": "Trusted Partners",
+    "title": "Trusted By Leading Institutions",
+    "subtitle": "We partner with respected organizations to deliver excellence in translation services.",
+    "visitWebsite": "Visit Website",
+    "becomePartner": "Interested in partnering with us?",
+    "contactUs": "Contact Us",
+    "iuea": {
+      "description": "Academic partner providing educational expertise and validation."
+    }
+  },
   "templates": {
-    "sectionTitle": "Choose Your Template",
-    "sectionSubtitle": "Preview the professional English report cards that our AI will generate from your French bulletins",
+    "sectionTitle": "Document Templates",
+    "sectionSubtitle": "Preview the professional formats we generate for your translated documents",
     "featured": "Most Popular",
     "useTemplate": "Use This Template",
     "fullPreview": "See Full Preview",
@@ -96,15 +166,15 @@
     "templatePreview": "Template Preview",
     "form4": {
       "title": "Form 4 Template",
-      "subtitle": "Perfect for secondary school students in their 4th year"
+      "subtitle": "Secondary school report cards"
     },
     "form6": {
       "title": "Form 6 Template",
-      "subtitle": "Ideal for final year students and A-level certificates"
+      "subtitle": "A-level certificates and final year reports"
     },
     "stateDiploma": {
       "title": "State Diploma",
-      "subtitle": "Official government-issued certificates and diplomas"
+      "subtitle": "Official government-issued certificates"
     },
     "status": {
       "printReady": "A4 Print Ready",
@@ -114,67 +184,28 @@
   },
   "pricing": {
     "sectionTitle": "Simple, Transparent Pricing",
-    "sectionSubtitle": "Pay per bulletin with no hidden fees or monthly subscriptions",
+    "sectionSubtitle": "Pay per document with no hidden fees or monthly subscriptions",
     "mostPopular": "Most Popular",
-    "perBulletin": "per bulletin",
+    "perBulletin": "per document",
     "noSubscription": "No subscription required • Pay as you go",
     "whatsIncluded": "What's included:",
     "features": {
-      "aiExtraction": "AI-powered extraction and translation",
-      "editableReview": "Editable in-browser review interface",
-      "instantDownload": "Instant PDF download",
-      "multipleFormats": "Multiple template formats available",
+      "aiExtraction": "AI-powered translation",
+      "editableReview": "Expert human review",
+      "instantDownload": "Fast delivery",
+      "multipleFormats": "Multiple output formats",
       "secureProcessing": "Secure and private processing"
     },
     "startTranslation": "Start Translation",
     "securePayment": "Secure payment processing with multiple options"
   },
-  "speedComparison": {
-    "badge": "Speed Comparison",
-    "title": "Manual vs AI-Powered Translation",
-    "subtitle": "See the dramatic difference between outdated manual translation methods and Nyota's cutting-edge AI technology",
-    "traditional": {
-      "label": "Traditional Manual Translation",
-      "method": "Outdated manual typing approach",
-      "unit": "days",
-      "description": "Typical timeframe for manual translation services",
-      "processTitle": "Manual Process Steps",
-      "step1": "Manual data entry and typing",
-      "step2": "Human translation (prone to errors)",
-      "step3": "Multiple review cycles",
-      "step4": "Final formatting and delivery",
-      "start": "Day 1",
-      "end": "Day 21+"
-    },
-    "nyota": {
-      "label": "Nyota AI Translation",
-      "method": "Advanced AI-powered automation",
-      "unit": "minutes",
-      "description": "Instant AI-powered translation and formatting",
-      "processTitle": "AI Process Steps",
-      "step1": "Upload document (any format)",
-      "step2": "AI extraction and translation",
-      "step3": "Instant formatted output",
-      "start": "Upload",
-      "end": "Complete"
-    },
-    "impact": {
-      "title": "The Transformation Impact",
-      "subtitle": "Discover how Nyota revolutionizes the translation experience",
-      "timeSaved": "Time Saved",
-      "fasterProcess": "Faster Process",
-      "accuracy": "AI Accuracy",
-      "availability": "Always Available",
-      "revolutionize": "Revolutionizing Education Translation"
-    }
-  },
   "footer": {
-    "description": "Transform French school bulletins into professional English reports with AI-powered accuracy and speed.",
+    "description": "Professional document translation powered by AI and verified by expert translators. Fast, accurate, and secure.",
     "quickLinks": "Quick Links",
     "connect": "Connect With Us",
     "links": {
       "about": "About",
-      "features": "Features", 
+      "features": "Features",
       "pricing": "Pricing",
       "privacy": "Privacy Policy",
       "terms": "Terms of Service"
@@ -184,14 +215,14 @@
       "phone": "Phone"
     },
     "copyright": "© 2025 Nyota Innovations. All rights reserved.",
-    "incubatedBy": "Incubated by IUEA Innovation Hub"
+    "partnerWith": "Partner: IUEA"
   },
   "trustIndicators": {
-    "title": "Trusted by families worldwide",
+    "title": "Trusted worldwide",
     "badges": {
       "secure": "Secure & Private",
       "fast": "Fast Processing",
-      "accurate": "High Accuracy"
+      "accurate": "Expert Verified"
     },
     "poweredBy": "Powered by Nyota Innovations"
   },
@@ -212,7 +243,7 @@
     },
     "register": {
       "title": "Create your account",
-      "subtitle": "Join NTC to start translating bulletins",
+      "subtitle": "Join NTC to start translating documents",
       "nameLabel": "Full name",
       "namePlaceholder": "Enter your full name",
       "emailLabel": "Email address",
@@ -248,18 +279,18 @@
       "signOut": "Sign Out"
     },
     "header": {
-      "title": "My Bulletins",
-      "subtitle": "Upload French school bulletins, view and edit extracted data, then download English report cards."
+      "title": "My Documents",
+      "subtitle": "Upload documents, view translations, and download your translated files."
     },
     "upload": {
-      "title": "📤 Upload New Bulletin",
-      "selectType": "Select Bulletin Type",
+      "title": "📤 Upload New Document",
+      "selectType": "Select Document Type",
       "form4": {
         "title": "Form 4 Bulletin",
         "subtitle": "4ième Secondaire / 2ième Humanité"
       },
       "form6": {
-        "title": "Form 6 Bulletin", 
+        "title": "Form 6 Bulletin",
         "subtitle": "4ième Humanité / 6ième Secondaire"
       },
       "collegeTranscript": {
@@ -270,28 +301,28 @@
         "title": "State Diploma",
         "subtitle": "Official State Certificate"
       },
-      "dragDrop": "Drag and drop your bulletin here or click to select",
+      "dragDrop": "Drag and drop your document here or click to select",
       "uploading": "Uploading...",
-      "processing": "Processing Your Bulletin",
+      "processing": "Processing Your Document",
       "completed": "Complete",
       "selectFile": "Select File",
       "supportedFormats": "Supports PNG, JPG, JPEG, GIF, WEBP (max 10MB)",
       "preparingUpload": "Preparing upload..."
     },
     "bulletinsList": {
-      "title": "Your Bulletins",
-      "noUploads": "No bulletins uploaded yet. Upload your first bulletin above!",
+      "title": "Your Documents",
+      "noUploads": "No documents uploaded yet. Upload your first document above!",
       "student": "Student",
       "uploaded": "Uploaded",
       "status": "Status",
       "actions": "Actions",
       "view": "View",
-      "edit": "Edit", 
+      "edit": "Edit",
       "download": "Download",
       "delete": "Delete"
     },
     "editor": {
-      "title": "Edit Bulletin Data",
+      "title": "Edit Document Data",
       "save": "Save Changes",
       "cancel": "Cancel",
       "saving": "Saving...",
@@ -301,10 +332,10 @@
   },
   "verification": {
     "pageTitle": "Document Verification",
-    "pageSubtitle": "Verify the authenticity of academic documents with our blockchain-powered verification system",
+    "pageSubtitle": "Verify the authenticity of translated documents with our secure verification system",
     "loading": {
       "title": "Verifying Document...",
-      "description": "Please wait while we verify the document authenticity on the blockchain"
+      "description": "Please wait while we verify the document authenticity"
     },
     "error": {
       "title": "Verification Failed",
@@ -323,12 +354,12 @@
       "generationDate": "Generation Date"
     },
     "blockchain": {
-      "title": "🔗 Powered by Blockchain",
-      "description": "This document verification is secured by blockchain technology, ensuring authenticity and preventing tampering."
+      "title": "🔗 Secure Verification",
+      "description": "This document verification ensures authenticity and prevents tampering."
     },
     "institution": {
-      "title": "International University of East Africa (IUEA)",
-      "description": "This document has been verified as authentic and was generated through our secure blockchain-powered system."
+      "title": "Nyota Translation Center",
+      "description": "This document has been verified as authentic and was generated through our secure system."
     },
     "contact": {
       "title": "Need Help or Have Questions?",

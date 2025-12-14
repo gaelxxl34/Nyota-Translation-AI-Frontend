@@ -5,193 +5,224 @@
     "brandName": "Nyota Translation Center"
   },
   "hero": {
-    "title": "Transformez les",
-    "titleHighlight": "Bulletins Scolaires Français",
-    "titleContinue": "En Rapports Anglais",
-    "subtitle": "Téléchargez votre bulletin scolaire français et obtenez instantanément un bulletin de notes anglais traduit professionnellement grâce à une technologie IA avancée.",
+    "badge": "Disponible: Relevés Académiques",
+    "title": "Traduisez vos Documents",
+    "titleHighlight": "en Toute Simplicité",
+    "subtitle": "Traduction alimentée par l'IA avec révision par des experts humains. Services de traduction rapides, précis et sécurisés pour les documents académiques, officiels et commerciaux.",
+    "currentService": "Français ↔ Anglais Relevés Académiques",
+    "currentServiceDesc": "Disponible maintenant - Commencez à traduire",
     "startTranslation": "Commencer la Traduction",
-    "alreadyHaveAccount": "Vous avez déjà un compte ?"
+    "alreadyHaveAccount": "Se Connecter",
+    "moreLanguages": "Plus de Langues Bientôt",
+    "imageAlt": "Illustration de traduction de documents",
+    "trustAI": "Propulsé par l'IA",
+    "trustExpert": "Révision d'Expert",
+    "trustSecure": "100% Sécurisé"
   },
-  "features": {
-    "sectionTitle": "Pourquoi Choisir Nyota Translation Center ?",
-    "sectionSubtitle": "Découvrez le moyen le plus rapide et le plus précis de traduire vos bulletins scolaires français en rapports anglais professionnels.",
-    "easyUpload": {
-      "title": "Téléchargement Facile",
-      "description": "Téléchargez simplement votre bulletin français sous forme d'image ou de fichier PDF"
+  "services": {
+    "badge": "Nos Services",
+    "title": "Services de Traduction de Documents",
+    "subtitle": "Services de traduction professionnels pour tous vos besoins documentaires. En commençant par les relevés académiques, nous élargissons à plus de types de documents.",
+    "statusAvailable": "Disponible",
+    "statusComing": "Bientôt",
+    "academic": {
+      "title": "Relevés Académiques",
+      "description": "Relevés du système français traduits en format anglais avec vérification d'experts.",
+      "feature1": "Bulletins scolaires",
+      "feature2": "Relevés universitaires",
+      "feature3": "Diplômes & certificats"
     },
-    "aiPowered": {
-      "title": "Traduction IA",
-      "description": "L'IA avancée extrait et traduit le contenu avec une grande précision"
+    "official": {
+      "title": "Documents Officiels",
+      "description": "Documents gouvernementaux traduits avec précision certifiée.",
+      "feature1": "Actes de naissance & mariage",
+      "feature2": "Documents juridiques",
+      "feature3": "Documents d'immigration"
     },
-    "professionalReport": {
-      "title": "Rapport Professionnel",
-      "description": "Obtenez un bulletin de notes anglais propre et formaté, prêt à utiliser"
+    "business": {
+      "title": "Documents Commerciaux",
+      "description": "Documents d'entreprise pour les opérations internationales.",
+      "feature1": "Contrats & accords",
+      "feature2": "Rapports financiers",
+      "feature3": "Matériel marketing"
     },
-    "trust": {
-      "badge": "Projet Incubé Académiquement",
-      "title": "Soutenu par l'Excellence Académique",
-      "description": "Nyota Translation Center est un projet incubé par International University of East Africa (IUEA), garantissant les plus hauts standards d'innovation et de fiabilité dans la technologie de traduction éducative.",
-      "indicators": {
-        "academic": "Excellence Académique",
-        "innovation": "Innovation Avancée",
-        "reliable": "Fiabilité Éprouvée"
-      },
-      "iuea": {
-        "name": "IUEA",
-        "subtitle": "International University of East Africa"
-      },
-      "partnership": "Cette incubation académique fournit une supervision rigoureuse et une validation, garantissant que notre technologie répond aux plus hauts standards académiques tout en offrant des solutions de traduction de pointe pour votre réussite éducative."
+    "personal": {
+      "title": "Documents Personnels",
+      "description": "Correspondance personnelle et documents pour besoins individuels.",
+      "feature1": "Lettres & emails",
+      "feature2": "Dossiers médicaux",
+      "feature3": "Déclarations personnelles"
     }
   },
-  "speed": {
-    "sectionTitle": "Résultats Ultra-Rapides",
-    "sectionSubtitle": "Voyez comment Nyota se compare aux services de traduction traditionnels",
-    "traditional": "Services Traditionnels",
-    "nyota": "Nyota Translation Center",
-    "timeTraditional": "2-3 semaines",
-    "timeNyota": "5 minutes",
-    "accuracy": "Traductions précises à 99,5%",
-    "availability": "Disponible 24h/24 et 7j/7"
+  "languages": {
+    "badge": "Langues Supportées",
+    "title": "Plusieurs Paires de Langues",
+    "subtitle": "Traduisez des documents entre plusieurs paires de langues. Nous élargissons constamment notre support linguistique.",
+    "available": "Disponible",
+    "comingSoon": "Bientôt",
+    "moreComingSoon": "Plus de paires de langues sont ajoutées régulièrement. Contactez-nous pour des demandes spécifiques.",
+    "french": "Français",
+    "english": "Anglais",
+    "spanish": "Espagnol",
+    "portuguese": "Portugais",
+    "arabic": "Arabe",
+    "swahili": "Swahili",
+    "chinese": "Chinois"
+  },
+  "features": {
+    "badge": "Pourquoi Nous Choisir",
+    "sectionTitle": "L'Avantage Nyota",
+    "sectionSubtitle": "Combinant la vitesse de l'IA avec l'expertise humaine pour une qualité de traduction inégalée.",
+    "hybrid": {
+      "aiTitle": "Traduction IA",
+      "aiDesc": "Traitement rapide & cohérent",
+      "expertTitle": "Révision Expert",
+      "expertDesc": "Précision humaine & contexte",
+      "result": "Résultats Parfaits"
+    },
+    "aiPowered": {
+      "title": "Traduction par IA",
+      "description": "L'IA avancée extrait et traduit le contenu avec une haute précision, assurant des délais rapides."
+    },
+    "expertReview": {
+      "title": "Révision par Experts",
+      "description": "Des traducteurs spécialisés révisent chaque document pour assurer précision et contexte culturel."
+    },
+    "multiLanguage": {
+      "title": "Support Multi-Langues",
+      "description": "Traduisez entre plusieurs paires de langues avec plus de langues ajoutées régulièrement."
+    },
+    "multiDocument": {
+      "title": "Types de Documents Multiples",
+      "description": "Relevés académiques, documents officiels, papiers commerciaux, et plus."
+    },
+    "secure": {
+      "title": "Sécurisé & Privé",
+      "description": "Vos documents sont cryptés et traités avec une stricte confidentialité."
+    },
+    "fast": {
+      "title": "Délai Rapide",
+      "description": "Obtenez vos documents traduits rapidement sans sacrifier la qualité."
+    }
   },
   "howItWorks": {
+    "badge": "Processus Simple",
     "sectionTitle": "Comment Ça Marche",
-    "sectionSubtitle": "Obtenez votre bulletin traduit en seulement 4 étapes simples",
+    "sectionSubtitle": "Obtenez votre document traduit professionnellement en 5 étapes simples",
+    "aiPowered": "Propulsé par l'IA",
+    "expertReview": "Vérifié par Expert",
     "steps": {
       "upload": {
-        "title": "Télécharger le Bulletin",
-        "description": "Téléchargez votre bulletin scolaire français en PDF ou image"
+        "title": "Télécharger Document",
+        "description": "Téléchargez votre document en format PDF ou image"
       },
-      "extract": {
-        "title": "Extraction IA Auto",
-        "description": "Notre IA extrait automatiquement toutes les informations pertinentes"
+      "aiTranslate": {
+        "title": "Traduction IA",
+        "description": "Notre IA extrait et traduit le contenu instantanément"
       },
-      "review": {
-        "title": "Réviser et Corriger",
-        "description": "Vérifiez les données extraites et apportez les corrections nécessaires"
+      "expertReview": {
+        "title": "Révision Expert",
+        "description": "Des traducteurs spécialisés vérifient la précision et le contexte"
+      },
+      "qualityCheck": {
+        "title": "Contrôle Qualité",
+        "description": "Révision finale assure formatage et précision parfaits"
       },
       "download": {
-        "title": "Télécharger PDF",
-        "description": "Téléchargez votre rapport anglais formaté professionnellement"
+        "title": "Télécharger",
+        "description": "Obtenez votre document traduit professionnellement"
       }
     }
   },
+  "partners": {
+    "badge": "Partenaires de Confiance",
+    "title": "Fait Confiance par des Institutions Leaders",
+    "subtitle": "Nous nous associons à des organisations respectées pour offrir l'excellence en services de traduction.",
+    "visitWebsite": "Visiter le Site",
+    "becomePartner": "Intéressé à devenir partenaire?",
+    "contactUs": "Contactez-Nous",
+    "iuea": {
+      "description": "Partenaire académique fournissant expertise éducative et validation."
+    }
+  },
   "templates": {
-    "sectionTitle": "Choisissez Votre Modèle",
-    "sectionSubtitle": "Prévisualisez les bulletins de notes anglais professionnels que notre IA générera à partir de vos bulletins français",
-    "featured": "Le Plus Populaire",
-    "useTemplate": "Utiliser Ce Modèle",
-    "fullPreview": "Voir l'Aperçu Complet",
+    "sectionTitle": "Modèles de Documents",
+    "sectionSubtitle": "Prévisualisez les formats professionnels que nous générons pour vos documents traduits",
+    "featured": "Plus Populaire",
+    "useTemplate": "Utiliser ce Modèle",
+    "fullPreview": "Voir Aperçu Complet",
     "navigation": {
       "previous": "Modèle précédent",
       "next": "Modèle suivant",
       "goToSlide": "Aller à la diapositive"
     },
-    "pauseAutoplay": "Suspendre la Lecture Automatique",
-    "resumeAutoplay": "Reprendre la Lecture Automatique",
-    "chooseTemplate": "Choisir le Type de Modèle",
+    "pauseAutoplay": "Pause Auto-lecture",
+    "resumeAutoplay": "Reprendre Auto-lecture",
+    "chooseTemplate": "Choisir Type de Modèle",
     "previewOptions": "Options d'Aperçu",
-    "showPreview": "Afficher l'Aperçu",
-    "hidePreview": "Masquer l'Aperçu",
-    "currentlyShowing": "Actuellement affiché :",
+    "showPreview": "Montrer Aperçu",
+    "hidePreview": "Masquer Aperçu",
+    "currentlyShowing": "Actuellement affiché:",
     "templatePreview": "Aperçu du Modèle",
     "form4": {
-      "title": "Modèle Formulaire 4",
-      "subtitle": "Parfait pour les élèves du secondaire en 4ème année"
+      "title": "Modèle Form 4",
+      "subtitle": "Bulletins école secondaire"
     },
     "form6": {
-      "title": "Modèle Formulaire 6",
-      "subtitle": "Idéal pour les élèves de dernière année et les certificats A-level"
+      "title": "Modèle Form 6",
+      "subtitle": "Certificats A-level et rapports de fin d'année"
     },
     "stateDiploma": {
       "title": "Diplôme d'État",
-      "subtitle": "Certificats et diplômes officiels émis par le gouvernement"
+      "subtitle": "Certificats officiels du gouvernement"
     },
     "status": {
       "printReady": "Prêt pour Impression A4",
-      "printReadyMobile": "Prêt Impression",
+      "printReadyMobile": "Prêt pour Impression",
       "officialTemplate": "Modèle Officiel"
     }
   },
   "pricing": {
     "sectionTitle": "Tarification Simple et Transparente",
-    "sectionSubtitle": "Payez par bulletin sans frais cachés ni abonnements mensuels",
-    "mostPopular": "Le Plus Populaire",
-    "perBulletin": "par bulletin",
-    "noSubscription": "Aucun abonnement requis • Payez à l'utilisation",
-    "whatsIncluded": "Ce qui est inclus :",
+    "sectionSubtitle": "Payez par document sans frais cachés ni abonnements mensuels",
+    "mostPopular": "Plus Populaire",
+    "perBulletin": "par document",
+    "noSubscription": "Pas d'abonnement requis • Payez à l'utilisation",
+    "whatsIncluded": "Ce qui est inclus:",
     "features": {
-      "aiExtraction": "Extraction et traduction alimentées par IA",
-      "editableReview": "Interface de révision modifiable dans le navigateur",
-      "instantDownload": "Téléchargement PDF instantané",
-      "multipleFormats": "Plusieurs formats de modèles disponibles",
+      "aiExtraction": "Traduction propulsée par l'IA",
+      "editableReview": "Révision par expert humain",
+      "instantDownload": "Livraison rapide",
+      "multipleFormats": "Formats de sortie multiples",
       "secureProcessing": "Traitement sécurisé et privé"
     },
     "startTranslation": "Commencer la Traduction",
     "securePayment": "Traitement de paiement sécurisé avec plusieurs options"
   },
-  "speedComparison": {
-    "badge": "Comparaison de Vitesse",
-    "title": "Traduction Manuelle vs IA",
-    "subtitle": "Découvrez la différence dramatique entre les méthodes de traduction manuelle obsolètes et la technologie IA de pointe de Nyota",
-    "traditional": {
-      "label": "Traduction Manuelle Traditionnelle",
-      "method": "Approche de saisie manuelle obsolète",
-      "unit": "jours",
-      "description": "Délai typique pour les services de traduction manuelle",
-      "processTitle": "Étapes du Processus Manuel",
-      "step1": "Saisie de données et frappe manuelle",
-      "step2": "Traduction humaine (sujette aux erreurs)",
-      "step3": "Plusieurs cycles de révision",
-      "step4": "Formatage final et livraison",
-      "start": "Jour 1",
-      "end": "Jour 21+"
-    },
-    "nyota": {
-      "label": "Traduction IA Nyota",
-      "method": "Automatisation avancée alimentée par l'IA",
-      "unit": "minutes",
-      "description": "Traduction et formatage instantanés alimentés par l'IA",
-      "processTitle": "Étapes du Processus IA",
-      "step1": "Télécharger le document (tout format)",
-      "step2": "Extraction et traduction par IA",
-      "step3": "Sortie formatée instantanée",
-      "start": "Téléchargement",
-      "end": "Terminé"
-    },
-    "impact": {
-      "title": "L'Impact de la Transformation",
-      "subtitle": "Découvrez comment Nyota révolutionne l'expérience de traduction",
-      "timeSaved": "Temps Économisé",
-      "fasterProcess": "Processus Plus Rapide",
-      "accuracy": "Précision IA",
-      "availability": "Toujours Disponible",
-      "revolutionize": "Révolutionner la Traduction Éducative"
-    }
-  },
   "footer": {
-    "description": "Transformez les bulletins scolaires français en rapports anglais professionnels avec une précision et une rapidité alimentées par l'IA.",
+    "description": "Traduction professionnelle de documents propulsée par l'IA et vérifiée par des traducteurs experts. Rapide, précise et sécurisée.",
     "quickLinks": "Liens Rapides",
-    "connect": "Connectez-vous avec Nous",
+    "connect": "Connectez-vous Avec Nous",
     "links": {
-      "about": "À propos",
+      "about": "À Propos",
       "features": "Fonctionnalités",
       "pricing": "Tarification",
       "privacy": "Politique de Confidentialité",
       "terms": "Conditions d'Utilisation"
     },
     "contact": {
-      "email": "E-mail",
+      "email": "Email",
       "phone": "Téléphone"
     },
     "copyright": "© 2025 Nyota Innovations. Tous droits réservés.",
-    "incubatedBy": "Incubé par IUEA Innovation Hub"
+    "partnerWith": "Partenaire: IUEA"
   },
   "trustIndicators": {
-    "title": "Approuvé par des familles du monde entier",
+    "title": "Confiance mondiale",
     "badges": {
-      "secure": "Sécurisé et Privé",
+      "secure": "Sécurisé & Privé",
       "fast": "Traitement Rapide",
-      "accurate": "Haute Précision"
+      "accurate": "Vérifié par Expert"
     },
     "poweredBy": "Propulsé par Nyota Innovations"
   },
@@ -199,42 +230,42 @@
     "login": {
       "title": "Bon retour",
       "subtitle": "Connectez-vous à votre compte pour continuer",
-      "emailLabel": "Adresse e-mail",
-      "emailPlaceholder": "Entrez votre e-mail",
+      "emailLabel": "Adresse email",
+      "emailPlaceholder": "Entrez votre email",
       "passwordLabel": "Mot de passe",
       "passwordPlaceholder": "Entrez votre mot de passe",
       "rememberMe": "Se souvenir de moi",
-      "forgotPassword": "Mot de passe oublié ?",
+      "forgotPassword": "Mot de passe oublié?",
       "signInButton": "Se connecter",
       "signingIn": "Connexion en cours...",
-      "noAccount": "Vous n'avez pas de compte ?",
+      "noAccount": "Vous n'avez pas de compte?",
       "createAccount": "Créer un nouveau compte"
     },
     "register": {
       "title": "Créez votre compte",
-      "subtitle": "Rejoignez NTC pour commencer à traduire des bulletins",
+      "subtitle": "Rejoignez NTC pour commencer à traduire des documents",
       "nameLabel": "Nom complet",
       "namePlaceholder": "Entrez votre nom complet",
-      "emailLabel": "Adresse e-mail",
-      "emailPlaceholder": "Entrez votre e-mail",
+      "emailLabel": "Adresse email",
+      "emailPlaceholder": "Entrez votre email",
       "passwordLabel": "Mot de passe",
       "passwordPlaceholder": "Créez un mot de passe",
       "passwordHint": "Doit contenir au moins 6 caractères",
       "confirmPasswordLabel": "Confirmer le mot de passe",
       "confirmPasswordPlaceholder": "Confirmez votre mot de passe",
       "termsText": "J'accepte les",
-      "termsLink": "Conditions générales",
-      "and": "et la",
-      "privacyLink": "Politique de confidentialité",
+      "termsLink": "Conditions Générales",
+      "and": "et",
+      "privacyLink": "Politique de Confidentialité",
       "createButton": "Créer un compte",
       "creatingAccount": "Création du compte...",
-      "haveAccount": "Vous avez déjà un compte ?",
-      "signInInstead": "Se connecter plutôt"
+      "haveAccount": "Vous avez déjà un compte?",
+      "signInInstead": "Connectez-vous plutôt"
     },
     "forgotPassword": {
-      "title": "Mot de passe oublié",
-      "subtitle": "Entrez votre adresse e-mail et nous vous enverrons un lien pour réinitialiser votre mot de passe.",
-      "backToLogin": "Retour à la connexion"
+      "title": "Mot de Passe Oublié",
+      "subtitle": "Entrez votre adresse email et nous vous enverrons un lien pour réinitialiser votre mot de passe.",
+      "backToLogin": "Retour à la Connexion"
     },
     "validation": {
       "passwordsNoMatch": "Les mots de passe ne correspondent pas",
@@ -245,15 +276,15 @@
   "dashboard": {
     "navigation": {
       "title": "Nyota Translation Center",
-      "signOut": "Se Déconnecter"
+      "signOut": "Déconnexion"
     },
     "header": {
-      "title": "Mes Bulletins",
-      "subtitle": "Téléchargez des bulletins scolaires français, visualisez et modifiez les données extraites, puis téléchargez les bulletins de notes anglais."
+      "title": "Mes Documents",
+      "subtitle": "Téléchargez des documents, visualisez les traductions et téléchargez vos fichiers traduits."
     },
     "upload": {
-      "title": "📤 Télécharger un Nouveau Bulletin",
-      "selectType": "Sélectionner le Type de Bulletin",
+      "title": "📤 Télécharger Nouveau Document",
+      "selectType": "Sélectionner Type de Document",
       "form4": {
         "title": "Bulletin Form 4",
         "subtitle": "4ième Secondaire / 2ième Humanité"
@@ -264,23 +295,23 @@
       },
       "collegeTranscript": {
         "title": "Relevé Universitaire",
-        "subtitle": "Relevé annuel des cours"
+        "subtitle": "Relevé annuel universitaire"
       },
       "stateDiploma": {
         "title": "Diplôme d'État",
-        "subtitle": "Certificat Officiel d'État"
+        "subtitle": "Certificat d'État Officiel"
       },
-      "dragDrop": "Glissez et déposez votre bulletin ici ou cliquez pour sélectionner",
+      "dragDrop": "Glissez et déposez votre document ici ou cliquez pour sélectionner",
       "uploading": "Téléchargement en cours...",
-      "processing": "Traitement de Votre Bulletin",
+      "processing": "Traitement de Votre Document",
       "completed": "Terminé",
-      "selectFile": "Sélectionner un Fichier",
+      "selectFile": "Sélectionner Fichier",
       "supportedFormats": "Supporte PNG, JPG, JPEG, GIF, WEBP (max 10MB)",
       "preparingUpload": "Préparation du téléchargement..."
     },
     "bulletinsList": {
-      "title": "Vos Bulletins",
-      "noUploads": "Aucun bulletin téléchargé pour le moment. Téléchargez votre premier bulletin ci-dessus !",
+      "title": "Vos Documents",
+      "noUploads": "Aucun document téléchargé encore. Téléchargez votre premier document ci-dessus!",
       "student": "Étudiant",
       "uploaded": "Téléchargé",
       "status": "Statut",
@@ -291,24 +322,24 @@
       "delete": "Supprimer"
     },
     "editor": {
-      "title": "Modifier les Données du Bulletin",
-      "save": "Sauvegarder les Modifications",
+      "title": "Modifier Données du Document",
+      "save": "Enregistrer les Modifications",
       "cancel": "Annuler",
-      "saving": "Sauvegarde...",
-      "success": "Modifications sauvegardées avec succès !",
+      "saving": "Enregistrement...",
+      "success": "Modifications enregistrées avec succès!",
       "backToList": "← Retour à la Liste"
     }
   },
   "verification": {
     "pageTitle": "Vérification de Document",
-    "pageSubtitle": "Vérifiez l'authenticité des documents académiques avec notre système de vérification alimenté par blockchain",
+    "pageSubtitle": "Vérifiez l'authenticité des documents traduits avec notre système de vérification sécurisé",
     "loading": {
       "title": "Vérification du Document...",
-      "description": "Veuillez patienter pendant que nous vérifions l'authenticité du document sur la blockchain"
+      "description": "Veuillez patienter pendant que nous vérifions l'authenticité du document"
     },
     "error": {
-      "title": "Échec de la Vérification",
-      "invalidUrl": "URL de vérification invalide. ID de document manquant.",
+      "title": "Vérification Échouée",
+      "invalidUrl": "URL de vérification invalide. ID du document manquant.",
       "notFound": "Document non trouvé ou vérification échouée.",
       "generic": "Erreur lors de la vérification du document. Veuillez réessayer.",
       "tryAgain": "Réessayer"
@@ -323,20 +354,20 @@
       "generationDate": "Date de Génération"
     },
     "blockchain": {
-      "title": "🔗 Alimenté par Blockchain",
-      "description": "Cette vérification de document est sécurisée par la technologie blockchain, garantissant l'authenticité et empêchant la falsification."
+      "title": "🔗 Vérification Sécurisée",
+      "description": "Cette vérification de document assure l'authenticité et empêche la falsification."
     },
     "institution": {
-      "title": "International University of East Africa (IUEA)",
-      "description": "Ce document a été vérifié comme authentique et a été généré grâce à notre système sécurisé alimenté par blockchain."
+      "title": "Nyota Translation Center",
+      "description": "Ce document a été vérifié comme authentique et a été généré par notre système sécurisé."
     },
     "contact": {
-      "title": "Besoin d'Aide ou Avez des Questions ?",
-      "description": "Pour toute demande concernant cette vérification de document, veuillez contacter directement Nyota Translation Center.",
+      "title": "Besoin d'Aide ou de Questions?",
+      "description": "Pour toute question concernant cette vérification de document, veuillez contacter Nyota Translation Center directement.",
       "email": "contact@nyotainnovation.com",
       "phone": "+256749117690",
-      "sendEmail": "Envoyer un E-mail",
-      "callUs": "Nous Appeler",
+      "sendEmail": "Envoyer un Email",
+      "callUs": "Appelez-Nous",
       "backHome": "Retour à l'Accueil"
     },
     "invalid": {

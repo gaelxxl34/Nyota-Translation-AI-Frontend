@@ -24,6 +24,8 @@
     "react-dom": "^19.1.0",
     "react-helmet-async": "^2.0.5",
     "react-i18next": "^15.6.0",
+    "react-is": "^19.2.3",
+    "recharts": "^3.5.1",
     "sweetalert2": "^11.22.2"
   },
   "devDependencies": {
