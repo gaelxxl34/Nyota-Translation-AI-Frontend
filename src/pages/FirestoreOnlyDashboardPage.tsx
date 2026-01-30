@@ -8,14 +8,9 @@ import { collection, query, where, getDocs, getFirestore, doc, updateDoc } from 
 import { useAuth } from '../AuthProvider';
 import { useLoading } from '../contexts/LoadingContext';
 import { useTranslation } from 'react-i18next';
-import { SEOHead, LanguageSwitcher } from '../components/common';
+import { SEOHead } from '../components/common';
 import {
-  DashboardHeader,
-  DocumentTypeSelector,
-  FileUploadZone,
-  FilePreviewModal,
-  DocumentList,
-  ErrorAlert
+  DashboardHeader
 } from '../components/dashboard';
 import {
   Form4Template,
@@ -46,7 +41,7 @@ import {
   transformDataForHighSchoolAttestation,
   transformDataForStateExamAttestation
 } from '../utils/bulletinTransformers';
-import type { BulletinRecord, FormType, FilterType, TableSize } from '../types/bulletin';
+import type { BulletinRecord, FormType, FilterType } from '../types/bulletin';
 import Swal from 'sweetalert2';
 
 const FirestoreOnlyDashboardPage: React.FC = () => {
