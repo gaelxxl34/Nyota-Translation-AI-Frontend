@@ -11,7 +11,7 @@ interface FirestoreOnlyPDFDownloadButtonProps {
   disabled?: boolean;
   onSuccess?: () => void;
   onError?: (error: string) => void;
-  tableSize?: 'auto' | 'normal' | '11px' | '12px' | '13px' | '14px' | '15px'; // Table size for PDF generation
+  iconOnly?: boolean; // Show only icon without text
 }
 
 const FirestoreOnlyPDFDownloadButton: React.FC<FirestoreOnlyPDFDownloadButtonProps> = ({ 
@@ -21,7 +21,7 @@ const FirestoreOnlyPDFDownloadButton: React.FC<FirestoreOnlyPDFDownloadButtonPro
   disabled = false,
   onSuccess,
   onError,
-  tableSize = 'auto' // Default to auto sizing
+  iconOnly = false
 }) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -95,11 +95,10 @@ const FirestoreOnlyPDFDownloadButton: React.FC<FirestoreOnlyPDFDownloadButtonPro
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              firestoreId: firestoreId, // ONLY send Firestore ID
+              firestoreId: firestoreId, // Backend will read tableSize from Firestore
               frontendUrl: frontendUrl,
               waitSelector: '#bulletin-template',
               waitForImages: true, // Wait for all images including QR codes
-              tableSize: tableSize, // Include table size for PDF generation
               pdfOptions: {
                 format: 'A4',
                 printBackground: true,
@@ -192,14 +191,14 @@ const FirestoreOnlyPDFDownloadButton: React.FC<FirestoreOnlyPDFDownloadButtonPro
         {isGenerating ? (
           <>
             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-            <span>Generating PDF...</span>
+            {!iconOnly && <span>Generating PDF...</span>}
           </>
         ) : (
           <>
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
-            <span>Download PDF</span>
+            {!iconOnly && <span>Download PDF</span>}
           </>
         )}
       </button>

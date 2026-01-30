@@ -26,12 +26,12 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
 
 const AdminDashboardPage: React.FC = () => {
-  const { logout } = useAuth();
+  const { logout, currentUser } = useAuth();
   
   // Initialize from URL
   const [currentPage, setCurrentPage] = useState<AdminPage>(() => {
     const subPage = getAdminSubPage(window.location.pathname);
-    const validPages: AdminPage[] = ['overview', 'users', 'partners', 'analytics', 'logs', 'settings'];
+    const validPages: AdminPage[] = ['overview', 'users', 'partners', 'statistics', 'analytics', 'logs', 'settings'];
     return validPages.includes(subPage as AdminPage) ? (subPage as AdminPage) : 'overview';
   });
 
@@ -48,7 +48,7 @@ const AdminDashboardPage: React.FC = () => {
   useEffect(() => {
     const handlePopState = () => {
       const subPage = getAdminSubPage(window.location.pathname);
-      const validPages: AdminPage[] = ['overview', 'users', 'partners', 'analytics', 'logs', 'settings'];
+      const validPages: AdminPage[] = ['overview', 'users', 'partners', 'statistics', 'analytics', 'logs', 'settings'];
       setCurrentPage(validPages.includes(subPage as AdminPage) ? (subPage as AdminPage) : 'overview');
     };
     window.addEventListener('popstate', handlePopState);
@@ -70,6 +70,121 @@ const AdminDashboardPage: React.FC = () => {
   // Analytics state
   const { analytics, fetchAnalytics } = useAdminAnalytics();
 
+  // Statistics state (revenue & document statistics)
+  interface DocumentStats {
+    totalDocuments: number;
+    totalRevenue: number;
+    pricePerDocument: number;
+    documentsByUser: Array<{
+      userId: string;
+      email: string;
+      count: number;
+      revenue: number;
+      documents?: Array<{
+        id: string;
+        studentName: string;
+        formType: string;
+        uploadedAt: Date;
+      }>;
+    }>;
+    documentsByFormType: Record<string, number>;
+    recentDocuments: Array<{
+      id: string;
+      studentName: string;
+      formType: string;
+      uploadedAt: string;
+      userEmail?: string;
+    }>;
+    isAdmin: boolean;
+  }
+  const [documentStats, setDocumentStats] = useState<DocumentStats | null>(null);
+  const [statsLoading, setStatsLoading] = useState(false);
+  const [statsError, setStatsError] = useState<string | null>(null);
+  const [expandedUsers, setExpandedUsers] = useState<Set<string>>(new Set());
+
+  // Fetch document statistics
+  const fetchDocumentStats = useCallback(async () => {
+    if (!currentUser) return;
+    
+    try {
+      setStatsLoading(true);
+      setStatsError(null);
+      
+      const idToken = await currentUser.getIdToken();
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/dashboard/stats`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${idToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch statistics: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      if (result.success) {
+        setDocumentStats(result.data);
+      } else {
+        throw new Error(result.error || 'Failed to fetch statistics');
+      }
+    } catch (err) {
+      console.error('❌ Failed to fetch dashboard stats:', err);
+      setStatsError(err instanceof Error ? err.message : 'Failed to load statistics');
+    } finally {
+      setStatsLoading(false);
+    }
+  }, [currentUser]);
+
+  // Toggle user expansion for statistics
+  const toggleUserExpansion = (userId: string) => {
+    setExpandedUsers(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(userId)) {
+        newSet.delete(userId);
+      } else {
+        newSet.add(userId);
+      }
+      return newSet;
+    });
+  };
+
+  // Format currency
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-UG', {
+      style: 'currency',
+      currency: 'UGX',
+      minimumFractionDigits: 0,
+    }).format(amount);
+  };
+
+  // Format date
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('fr-FR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
+  // Get form type label
+  const getFormTypeLabel = (formType: string) => {
+    const labels: Record<string, string> = {
+      form4: 'Form 4',
+      form6: 'Form 6',
+      collegeTranscript: 'College Transcript',
+      collegeAttestation: 'College Attestation',
+      stateDiploma: 'State Diploma',
+      bachelorDiploma: 'Bachelor Diploma',
+      highSchoolAttestation: 'High School Attestation',
+      stateExamAttestation: 'State Exam Attestation',
+    };
+    return labels[formType] || formType;
+  };
+
   // Fetch data on mount - only once
   useEffect(() => {
     fetchUsers();
@@ -78,6 +193,13 @@ const AdminDashboardPage: React.FC = () => {
     fetchAnalytics();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Fetch document statistics when statistics page is visited
+  useEffect(() => {
+    if (currentPage === 'statistics' && !documentStats && !statsLoading) {
+      fetchDocumentStats();
+    }
+  }, [currentPage, documentStats, statsLoading, fetchDocumentStats]);
 
   // Filter users when role filter changes (skip initial)
   const isInitialMount = React.useRef(true);
@@ -400,6 +522,171 @@ const AdminDashboardPage: React.FC = () => {
           </div>
         );
 
+      case 'statistics':
+        return (
+          <div className="space-y-6">
+            {statsLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+                <span className="ml-4 text-slate-400">Loading statistics...</span>
+              </div>
+            ) : statsError ? (
+              <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-6 text-center">
+                <p className="text-red-400 font-medium">{statsError}</p>
+                <button
+                  onClick={fetchDocumentStats}
+                  className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                >
+                  Retry
+                </button>
+              </div>
+            ) : documentStats ? (
+              <>
+                {/* Summary Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <StatsCard
+                    title="Total Documents"
+                    value={documentStats.totalDocuments}
+                    icon={
+                      <svg className="w-6 h-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    }
+                    iconBgColor="bg-blue-500/10"
+                    subtitle="Documents translated"
+                  />
+                  <StatsCard
+                    title="Total Users"
+                    value={documentStats.documentsByUser.length}
+                    icon={
+                      <svg className="w-6 h-6 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                      </svg>
+                    }
+                    iconBgColor="bg-green-500/10"
+                    subtitle="Active users"
+                  />
+                  <StatsCard
+                    title="Total Revenue"
+                    value={formatCurrency(documentStats.totalRevenue)}
+                    icon={
+                      <svg className="w-6 h-6 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    }
+                    iconBgColor="bg-yellow-500/10"
+                    subtitle={`@ ${formatCurrency(documentStats.pricePerDocument)} per document`}
+                  />
+                </div>
+
+                {/* Documents by Form Type */}
+                <div className="bg-slate-800 rounded-xl border border-slate-700 p-6">
+                  <h3 className="text-lg font-semibold text-white mb-4">📑 Documents by Type</h3>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {Object.entries(documentStats.documentsByFormType).map(([formType, count]) => (
+                      <div key={formType} className="bg-slate-700/50 rounded-lg p-4">
+                        <p className="text-sm text-slate-400">{getFormTypeLabel(formType)}</p>
+                        <p className="text-2xl font-bold text-white mt-1">{count}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Users and Documents */}
+                <div className="bg-slate-800 rounded-xl border border-slate-700 p-6">
+                  <h3 className="text-lg font-semibold text-white mb-4">👥 Users & Activity</h3>
+                  <div className="space-y-4">
+                    {documentStats.documentsByUser.map((user) => (
+                      <div key={user.userId} className="border border-slate-600 rounded-lg p-4">
+                        <div 
+                          className="flex items-center justify-between cursor-pointer"
+                          onClick={() => toggleUserExpansion(user.userId)}
+                        >
+                          <div className="flex-1">
+                            <p className="font-semibold text-white">{user.email}</p>
+                            <p className="text-sm text-slate-400 mt-1">
+                              {user.count} document{user.count !== 1 ? 's' : ''} • {formatCurrency(user.revenue)}
+                            </p>
+                          </div>
+                          <svg 
+                            className={`w-5 h-5 text-slate-400 transform transition-transform ${
+                              expandedUsers.has(user.userId) ? 'rotate-180' : ''
+                            }`}
+                            fill="none" 
+                            stroke="currentColor" 
+                            viewBox="0 0 24 24"
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </div>
+                        
+                        {expandedUsers.has(user.userId) && user.documents && (
+                          <div className="mt-4 pt-4 border-t border-slate-600">
+                            <p className="text-sm font-medium text-slate-300 mb-2">Documents:</p>
+                            <div className="space-y-2">
+                              {user.documents.map((doc) => (
+                                <div key={doc.id} className="bg-slate-700/50 rounded p-3 text-sm">
+                                  <p className="font-medium text-white">{doc.studentName}</p>
+                                  <p className="text-slate-400">
+                                    {getFormTypeLabel(doc.formType)} • {formatDate(doc.uploadedAt.toString())}
+                                  </p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Recent Documents */}
+                <div className="bg-slate-800 rounded-xl border border-slate-700 p-6">
+                  <h3 className="text-lg font-semibold text-white mb-4">🕒 Recent Activity</h3>
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-slate-600">
+                      <thead className="bg-slate-700/50">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
+                            Student Name
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
+                            Document Type
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
+                            User
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
+                            Date
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-600">
+                        {documentStats.recentDocuments.map((doc) => (
+                          <tr key={doc.id}>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">
+                              {doc.studentName}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
+                              {getFormTypeLabel(doc.formType)}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
+                              {doc.userEmail}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
+                              {formatDate(doc.uploadedAt)}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </>
+            ) : null}
+          </div>
+        );
+
       case 'analytics':
         return (
           <div className="space-y-6">
@@ -511,6 +798,8 @@ const AdminDashboardPage: React.FC = () => {
         return { title: 'User Management', subtitle: 'Manage all users, roles, and permissions' };
       case 'partners':
         return { title: 'Partner Organizations', subtitle: 'Manage schools and universities' };
+      case 'statistics':
+        return { title: 'Revenue & Statistics', subtitle: 'Document translations, users, and revenue' };
       case 'analytics':
         return { title: 'System Analytics', subtitle: 'Performance metrics and insights' };
       case 'logs':

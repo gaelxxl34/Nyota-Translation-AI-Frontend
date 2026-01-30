@@ -287,19 +287,35 @@
       "selectType": "Sélectionner Type de Document",
       "form4": {
         "title": "Bulletin Form 4",
-        "subtitle": "4ième Secondaire / 2ième Humanité"
+        "subtitle": "4ème Secondaire / 2ème Humanité"
       },
       "form6": {
         "title": "Bulletin Form 6",
-        "subtitle": "4ième Humanité / 6ième Secondaire"
+        "subtitle": "4ème Humanité / 6ème Secondaire"
       },
       "collegeTranscript": {
-        "title": "Relevé Universitaire",
-        "subtitle": "Relevé annuel universitaire"
+        "title": "Relevé de Notes Universitaire",
+        "subtitle": "Relevé académique annuel"
+      },
+      "collegeAttestation": {
+        "title": "Attestation de Fréquentation",
+        "subtitle": "Certificat de scolarité universitaire"
       },
       "stateDiploma": {
         "title": "Diplôme d'État",
-        "subtitle": "Certificat d'État Officiel"
+        "subtitle": "Certificat officiel d'État"
+      },
+      "bachelorDiploma": {
+        "title": "Diplôme de Licence",
+        "subtitle": "Certificat de grade universitaire"
+      },
+      "highSchoolAttestation": {
+        "title": "Attestation de Scolarité",
+        "subtitle": "Certificat de fréquentation scolaire"
+      },
+      "stateExamAttestation": {
+        "title": "Attestation de Réussite",
+        "subtitle": "Certificat provisoire d'examen d'État"
       },
       "dragDrop": "Glissez et déposez votre document ici ou cliquez pour sélectionner",
       "uploading": "Téléchargement en cours...",

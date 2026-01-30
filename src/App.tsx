@@ -12,7 +12,6 @@ import {
   LoginPage,
   RegisterPage,
   FirestoreOnlyDashboardPage,
-  DashboardPage,
   TermsAndConditionsPage,
   PrivacyPolicyPage,
   ForgotPasswordPage,
@@ -33,7 +32,6 @@ type PageType =
   | 'login'
   | 'register'
   | 'dashboard'
-  | 'stats'
   | 'terms'
   | 'privacy'
   | 'forgot-password'
@@ -54,7 +52,7 @@ const getPageFromPath = (pathname: string): PageType => {
   if (pathname === '/login') return 'login';
   if (pathname === '/register') return 'register';
   if (pathname === '/dashboard') return 'dashboard';
-  if (pathname === '/stats') return 'stats';
+  if (pathname === '/stats') return 'admin'; // Redirect stats to admin (will load /admin/statistics)
   if (pathname === '/terms') return 'terms';
   if (pathname === '/privacy') return 'privacy';
   if (pathname === '/forgot-password') return 'forgot-password';
@@ -80,7 +78,6 @@ const getPathFromPage = (page: PageType): string => {
     'login': '/login',
     'register': '/register',
     'dashboard': '/dashboard',
-    'stats': '/stats',
     'terms': '/terms',
     'privacy': '/privacy',
     'forgot-password': '/forgot-password',
@@ -205,7 +202,7 @@ const AuthAwareRouter: React.FC = () => {
 
   // Route protection logic
   const isProtectedRoute = (page: PageType): boolean => {
-    return ['dashboard', 'stats', 'admin', 'translator', 'partner', 'support'].includes(page);
+    return ['dashboard', 'admin', 'translator', 'partner', 'support'].includes(page);
   };
 
   // If user is authenticated but role not yet resolved, show branded loader to avoid flicker
@@ -247,8 +244,6 @@ const AuthAwareRouter: React.FC = () => {
         return <RegisterPage onNavigate={navigateToPage} />;
       case 'dashboard':
         return <FirestoreOnlyDashboardPage />;
-      case 'stats':
-        return <DashboardPage onNavigate={navigateToPage} />;
       case 'terms':
         return <TermsAndConditionsPage onNavigate={navigateToPage} />;
       case 'privacy':

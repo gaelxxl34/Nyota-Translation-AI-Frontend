@@ -28,6 +28,7 @@ interface StateDiplomaPDFDownloadButtonProps {
   documentId?: string; // Add optional document ID for QR codes
   className?: string;
   disabled?: boolean;
+  iconOnly?: boolean; // Show only icon without text
 }
 
 const StateDiplomaPDFDownloadButton: React.FC<StateDiplomaPDFDownloadButtonProps> = ({ 
@@ -35,6 +36,7 @@ const StateDiplomaPDFDownloadButton: React.FC<StateDiplomaPDFDownloadButtonProps
   documentId, // Accept document ID for QR codes
   className = '',
   disabled = false,
+  iconOnly = false,
 }) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -124,18 +126,18 @@ const StateDiplomaPDFDownloadButton: React.FC<StateDiplomaPDFDownloadButtonProps
       >
         {isGenerating ? (
           <span className="flex items-center">
-            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
-            Generating PDF...
+            {!iconOnly && <span className="ml-2">Generating PDF...</span>}
           </span>
         ) : (
           <span className="flex items-center">
-            <svg className="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
             </svg>
-            Download State Diploma PDF
+            {!iconOnly && <span className="ml-2">Download State Diploma PDF</span>}
           </span>
         )}
       </button>

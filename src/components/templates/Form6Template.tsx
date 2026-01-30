@@ -41,6 +41,9 @@ interface SubjectGrade {
 }
 
 interface BulletinData {
+  // Display Settings
+  tableSize?: 'auto' | 'normal' | '11px' | '12px' | '13px' | '14px' | '15px'; // Stored in Firestore
+  
   // Student Information
   province?: string;
   city?: string;
@@ -167,24 +170,17 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
   className = '',
   isEditable = false,
   onDataChange,
-  documentId: propDocumentId, // Accept documentId as prop
-  initialTableSize = 'auto', // Default to auto sizing
-  onTableSizeChange // Callback for size changes
+  documentId: propDocumentId // Accept documentId as prop
 }) => {
 
-  // Manual sizing override state - initialize with prop value
-  const [manualSizeOverride, setManualSizeOverride] = useState<'auto' | 'normal' | '11px' | '12px' | '13px' | '14px' | '15px'>(initialTableSize);
+  // Get tableSize from Firestore data (default to 'auto' if not set)
+  const currentTableSize = data.tableSize || 'auto';
 
-  // Sync with initialTableSize prop changes
-  useEffect(() => {
-    setManualSizeOverride(initialTableSize);
-  }, [initialTableSize]);
-
-  // Handle table size changes
+  // Handle table size changes - save to Firestore like any other field
   const handleTableSizeChange = (newSize: 'auto' | 'normal' | '11px' | '12px' | '13px' | '14px' | '15px') => {
-    setManualSizeOverride(newSize);
-    if (onTableSizeChange) {
-      onTableSizeChange(newSize);
+    if (onDataChange) {
+      // Pass the entire updated data object to prevent data loss
+      onDataChange({ ...data, tableSize: newSize });
     }
   };
 
@@ -203,10 +199,12 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
     const [isSaving, setIsSaving] = React.useState(false);
     const [showSuccess, setShowSuccess] = React.useState(false);
 
-    // Update edit value when prop value changes
+    // Update edit value when prop value changes (but not while editing)
     React.useEffect(() => {
-      setEditValue(String(value || ''));
-    }, [value]);
+      if (!isEditing) {
+        setEditValue(String(value || ''));
+      }
+    }, [value, isEditing]);
 
     const handleSave = async () => {
       if (!onChange || editValue === String(value || '')) {
@@ -382,18 +380,45 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
       return;
     }
     
-    // Summary field updated
-    
     const newSummaryValues = { ...data.summaryValues };
-    if (!newSummaryValues[section as keyof typeof newSummaryValues]) {
+    
+    // Initialize section if it doesn't exist OR if it's a string (old format)
+    if (!newSummaryValues[section as keyof typeof newSummaryValues] || 
+        typeof newSummaryValues[section as keyof typeof newSummaryValues] === 'string') {
       newSummaryValues[section as keyof typeof newSummaryValues] = {} as any;
     }
     
     (newSummaryValues[section as keyof typeof newSummaryValues] as any)[field] = value;
     
-    const updatedData = { ...data, summaryValues: newSummaryValues };
+    // Auto-calculate totals for AGGREGATES row (like subjects)
+    if (section === 'aggregates') {
+      const aggregates = newSummaryValues.aggregates || {};
+      
+      // Calculate first semester total (period1 + period2 + exam1)
+      if (field === 'period1' || field === 'period2' || field === 'exam1') {
+        const period1 = parseFloat(aggregates.period1 || '0') || 0;
+        const period2 = parseFloat(aggregates.period2 || '0') || 0;
+        const exam1 = parseFloat(aggregates.exam1 || '0') || 0;
+        aggregates.total1 = String(period1 + period2 + exam1);
+      }
+      
+      // Calculate second semester total (period3 + period4 + exam2)
+      if (field === 'period3' || field === 'period4' || field === 'exam2') {
+        const period3 = parseFloat(aggregates.period3 || '0') || 0;
+        const period4 = parseFloat(aggregates.period4 || '0') || 0;
+        const exam2 = parseFloat(aggregates.exam2 || '0') || 0;
+        aggregates.total2 = String(period3 + period4 + exam2);
+      }
+      
+      // Calculate overall total (total1 + total2)
+      const total1 = parseFloat(aggregates.total1 || '0') || 0;
+      const total2 = parseFloat(aggregates.total2 || '0') || 0;
+      aggregates.overall = String(total1 + total2);
+      
+      newSummaryValues.aggregates = aggregates;
+    }
     
-    // Data updated with summary values
+    const updatedData = { ...data, summaryValues: newSummaryValues };
     
     onDataChange(updatedData);
   };
@@ -411,10 +436,10 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
     // Determine sizing tier
     let sizingTier: 'normal' | '11px' | '12px' | '13px' | '14px' | '15px';
     
-    // Use manual override if set, otherwise use automatic sizing
-    if (manualSizeOverride !== 'auto') {
-      sizingTier = manualSizeOverride;
-      console.log(`📏 Form6 Manual Sizing: Using manual override "${sizingTier}" for ${totalSubjects} subjects`);
+    // Use tableSize from data if set, otherwise use automatic sizing
+    if (currentTableSize !== 'auto') {
+      sizingTier = currentTableSize;
+      console.log(`📏 Form6 Manual Sizing: Using size "${sizingTier}" from Firestore for ${totalSubjects} subjects`);
     } else {
       // Automatic sizing based on subject count - more aggressive compression
       if (totalSubjects <= maxBaseRows) {
@@ -486,7 +511,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
     }
     
     return sizing;
-  }, [data.subjects, manualSizeOverride]);
+  }, [data.subjects, currentTableSize]);
 
   // Sort subjects by maxima values (same logic as backend)
   const sortSubjectsByMaxima = (subjects: SubjectGrade[]) => {
@@ -520,14 +545,12 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
         return maximaA - maximaB;
       }
 
-      // If maxima are equal, sort alphabetically by subject name
-      const subjectA = a.subject || '';
-      const subjectB = b.subject || '';
-      return subjectA.localeCompare(subjectB);
+      // Keep original order when maxima are equal (no alphabetical sorting)
+      return 0;
     });
   };
 
-  // Sort subjects before grouping (memoized for performance)
+  // Sort subjects by maxima (preserve original order for equal maxima)
   const sortedSubjects = useMemo(() => {
     return sortSubjectsByMaxima([...(data.subjects || [])]);
   }, [data.subjects]);
@@ -1246,7 +1269,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
               </div>
             )}
             
-            {/* Size Control - always visible but hidden when printing */}
+            {/* Size Control - always visible for adjusting view */}
             <div 
               className="table-size-control flex items-center space-x-2" 
               style={{ display: 'flex' }}
@@ -1256,7 +1279,7 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
               </label>
               <select
                 id="sizeControl"
-                value={manualSizeOverride}
+                value={currentTableSize}
                 onChange={(e) => handleTableSizeChange(e.target.value as 'auto' | 'normal' | '11px' | '12px' | '13px' | '14px' | '15px')}
                 className="text-xs border border-gray-300 rounded px-2 py-1 bg-white focus:border-blue-500 focus:outline-none"
               >
@@ -2242,22 +2265,6 @@ const Form6Template: React.FC<Form6TemplateProps> = ({
           <div className="flex flex-col space-y-2">
             {/* Promotion Status Section */}
             <div className="space-y-2">
-              <p className="text-xs leading-tight">
-                Student can only be promoted to the next class after he has passed the supplementary exams in: 
-                <EditableField 
-                  value={data.shouldRepeat || (isEditable ? '' : ' ................................')} 
-                  isEditable={isEditable}
-                  placeholder="Enter subjects to repeat"
-                  field="shouldRepeat"
-                  className="inline"
-                  onChange={(value) => {
-                    if (onDataChange) {
-                      onDataChange({ ...data, shouldRepeat: value });
-                    }
-                  }}
-                />
-              </p>
-              
               <div className="flex justify-between items-center">
                 <p className="text-xs">The student is promoted to the next class (1)</p>
                 <p className="text-xs flex items-center">

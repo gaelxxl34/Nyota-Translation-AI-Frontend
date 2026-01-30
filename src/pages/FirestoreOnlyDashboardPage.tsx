@@ -1,6 +1,7 @@
 // FIRESTORE-ONLY Dashboard Page
 // Displays user's bulletins from Firestore with real-time editing
 // No localStorage dependency - everything comes from and goes to Firestore
+// Refactored to use reusable components for maintainability
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { collection, query, where, getDocs, getFirestore, doc, updateDoc } from 'firebase/firestore';
@@ -8,6 +9,14 @@ import { useAuth } from '../AuthProvider';
 import { useLoading } from '../contexts/LoadingContext';
 import { useTranslation } from 'react-i18next';
 import { SEOHead, LanguageSwitcher } from '../components/common';
+import {
+  DashboardHeader,
+  DocumentTypeSelector,
+  FileUploadZone,
+  FilePreviewModal,
+  DocumentList,
+  ErrorAlert
+} from '../components/dashboard';
 import {
   Form4Template,
   Form6Template,
@@ -18,10 +27,6 @@ import {
   HighSchoolAttestationTemplate,
   StateExamAttestationTemplate
 } from '../components/templates';
-import type { CollegeTranscriptData } from '../components/templates/CollegeAnnualTranscriptTemplate';
-import type { CollegeAttestationData } from '../components/templates/CollegeAttestationTemplate';
-import type { HighSchoolAttestationData } from '../components/templates/HighSchoolAttestationTemplate';
-import type { StateExamAttestationData } from '../components/templates/StateExamAttestationTemplate';
 import {
   FirestoreOnlyPDFDownloadButton,
   StateDiplomaPDFDownloadButton,
@@ -31,22 +36,18 @@ import {
   HighSchoolAttestationPDFDownloadButton,
   StateExamAttestationPDFDownloadButton
 } from '../components/pdf';
+import {
+  getBulletinDisplayData,
+  transformDataForTemplate,
+  transformDataForStateDiploma,
+  transformDataForBachelorDiploma,
+  transformDataForCollegeTranscript,
+  transformDataForCollegeAttestation,
+  transformDataForHighSchoolAttestation,
+  transformDataForStateExamAttestation
+} from '../utils/bulletinTransformers';
+import type { BulletinRecord, FormType, FilterType, TableSize } from '../types/bulletin';
 import Swal from 'sweetalert2';
-
-interface BulletinRecord {
-  id: string;
-  metadata: {
-    studentName: string;
-    fileName: string;
-    uploadedAt: any;
-    lastModified: any;
-    status: string;
-    formType?: 'form4' | 'form6' | 'collegeTranscript' | 'collegeAttestation' | 'stateDiploma' | 'bachelorDiploma' | 'highSchoolAttestation' | 'stateExamAttestation';
-  };
-  editedData: any;
-  originalData: any;
-  userId: string;
-}
 
 const FirestoreOnlyDashboardPage: React.FC = () => {
   const { currentUser } = useAuth();
@@ -68,8 +69,14 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadStage, setUploadStage] = useState<string>('');
-  const [selectedFormType, setSelectedFormType] = useState<'form4' | 'form6' | 'collegeTranscript' | 'collegeAttestation' | 'stateDiploma' | 'bachelorDiploma' | 'highSchoolAttestation' | 'stateExamAttestation'>('form6');
-  const [tableSize, setTableSize] = useState<'auto' | 'normal' | '11px' | '12px' | '13px' | '14px' | '15px'>('auto'); // Track table size for PDF generation
+  const [selectedFormType, setSelectedFormType] = useState<FormType>('form6');
+  
+  // Document list organization states
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterType, setFilterType] = useState<FilterType>('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(9); // 3x3 grid
+  const [isPreviewExpanded, setIsPreviewExpanded] = useState(true); // Toggle for selected bulletin preview
   
   // Preview states
   const [previewFile, setPreviewFile] = useState<File | null>(null);
@@ -139,6 +146,50 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
     loadUserBulletins();
   }, [loadUserBulletins]);
 
+  // Filter and paginate bulletins
+  const filteredBulletins = React.useMemo(() => {
+    let result = bulletins;
+    
+    // Filter by document type
+    if (filterType !== 'all') {
+      result = result.filter(b => (b.metadata.formType || 'form6') === filterType);
+    }
+    
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(b => {
+        const displayData = b.editedData || b.originalData;
+        const studentName = (displayData?.studentName || b.metadata.studentName || '').toLowerCase();
+        const fileName = (b.metadata.fileName || '').toLowerCase();
+        return studentName.includes(query) || fileName.includes(query);
+      });
+    }
+    
+    return result;
+  }, [bulletins, filterType, searchQuery]);
+
+  // Paginated bulletins
+  const paginatedBulletins = React.useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredBulletins.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredBulletins, currentPage, itemsPerPage]);
+
+  // Reset to page 1 when filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filterType, searchQuery]);
+
+  // Get document type counts
+  const documentTypeCounts = React.useMemo(() => {
+    const counts: Record<string, number> = { all: bulletins.length };
+    bulletins.forEach(b => {
+      const type = b.metadata.formType || 'form6';
+      counts[type] = (counts[type] || 0) + 1;
+    });
+    return counts;
+  }, [bulletins]);
+
   // Handle bulletin selection for viewing
   const handleSelectBulletin = (bulletin: BulletinRecord) => {
     setSelectedBulletin(bulletin);
@@ -156,23 +207,9 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
     if (!selectedBulletin) return;
 
     try {
-      // 🔧 DEBUG: Log the update attempt
-      console.log('🔄 handleFieldUpdate called');
-      console.log('📊 Updated data:', updatedData);
-      console.log('📝 Selected bulletin ID:', selectedBulletin.id);
-      console.log('📋 Data keys:', Object.keys(updatedData));
+      // Get current data (either edited or original)
+      const currentData = selectedBulletin.editedData || selectedBulletin.originalData;
       
-      // Check if updatedData has courses
-      if (updatedData.courses) {
-        console.log('📚 Number of courses:', updatedData.courses.length);
-        console.log('📚 First course:', updatedData.courses[0]);
-      }
-
-      // Check if updatedData has summaryRows
-      if (updatedData.summaryRows) {
-        console.log('📊 Number of summary rows:', updatedData.summaryRows.length);
-      }
-
       // Clean undefined values from the data (Firestore doesn't allow undefined)
       const cleanData = (obj: any): any => {
         if (obj === null || obj === undefined) return null;
@@ -188,35 +225,25 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
         return cleaned;
       };
 
-      const cleanedData = cleanData(updatedData);
-      console.log('🧹 Cleaned data (removed undefined values)');
+      // Merge updated data with current data to preserve all fields
+      const mergedData = {
+        ...currentData,
+        ...cleanData(updatedData)
+      };
 
-      // Auto-saving field update to Firestore
-      
       // Update the bulletin document in Firestore
       const bulletinRef = doc(db, 'bulletins', selectedBulletin.id);
       
-      console.log('💾 Saving to Firestore:', {
-        bulletinId: selectedBulletin.id,
-        dataKeys: Object.keys(cleanedData),
-        coursesCount: cleanedData.courses?.length,
-        summaryRowsCount: cleanedData.summaryRows?.length
-      });
-
       await updateDoc(bulletinRef, {
-        editedData: cleanedData,
+        editedData: mergedData,
         'metadata.lastModified': new Date(),
         'metadata.lastModifiedAt': new Date().toISOString()
       });
 
-      console.log('✅ Data saved to Firestore successfully');
-
-      // Data saved to Firestore successfully
-
       // Update local state to reflect the change
       setSelectedBulletin(prev => prev ? {
         ...prev,
-        editedData: cleanedData,
+        editedData: mergedData,
         metadata: {
           ...prev.metadata,
           lastModified: new Date()
@@ -228,7 +255,7 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
         bulletin.id === selectedBulletin.id 
           ? {
               ...bulletin,
-              editedData: cleanedData,
+              editedData: mergedData,
               metadata: {
                 ...bulletin.metadata,
                 lastModified: new Date()
@@ -391,550 +418,6 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
       
       setError(`Failed to delete bulletin: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-  };
-
-  // Get display data for bulletin (edited data if available, otherwise original)
-  const getBulletinDisplayData = (bulletin: BulletinRecord) => {
-    return bulletin.editedData || bulletin.originalData;
-  };
-
-  // Transform Firestore data to StateDiploma format
-  const transformDataForStateDiploma = (data: any) => {
-    // Transforming data for State Diploma template
-
-    const transformedData = {
-      studentName: data?.studentName || 'STUDENT NAME',
-      gender: data?.gender || 'male',
-      birthPlace: data?.birthPlace || 'BIRTHPLACE', 
-      birthDate: data?.birthDate || {
-        day: "01",
-        month: "01", 
-        year: "2000"
-      },
-      examSession: data?.examSession || data?.academicYear || 'JUNE 2023',
-      percentage: (() => {
-        // Handle both object format {total: "40.0%"} and string format "40%"
-        let rawPercentage;
-        if (typeof data?.percentage === 'object' && data?.percentage?.total) {
-          rawPercentage = data.percentage.total;
-        } else if (typeof data?.percentage === 'string') {
-          rawPercentage = data.percentage;
-        } else {
-          rawPercentage = data?.finalResultPercentage || '00.0%';
-        }
-        
-        // Extract just the integer part (ignore decimals completely)
-        const numericValue = parseFloat(rawPercentage.replace('%', '')) || 0;
-        const integerPercentage = Math.round(numericValue); // Round to nearest integer
-        const result = integerPercentage.toString() + '%';
-        
-        return result;
-      })(),
-      percentageText: data?.percentageText || 'PERCENTAGE IN WORDS',
-      section: data?.section || data?.class || 'SECTION NAME',
-      option: data?.option || 'OPTION NAME',
-      issueDate: data?.issueDate || 'JANUARY 1, 2023',
-      referenceNumber: data?.referenceNumber || 'T S 0 7',
-      serialNumbers: (() => {
-        // Priority 1: Use serialNumbers if it's a proper array with data
-        if (data?.serialNumbers && Array.isArray(data.serialNumbers) && data.serialNumbers.length >= 4) {
-          return data.serialNumbers;
-        }
-        // Priority 2: Try to extract from referenceNumber if it exists and has data
-        if (data?.referenceNumber && typeof data.referenceNumber === 'string') {
-          const cleanRef = data.referenceNumber.replace(/\s+/g, ''); // Remove all spaces
-          if (cleanRef.length >= 4) {
-            return cleanRef.split(''); // Convert string to array of characters
-          }
-        }
-        // Fallback: Return default array
-        return ['T', 'S', '0', '7', '5', '2', '0', '7', '2', '4', '0', '7', '0', '3', '7', '0', '7', '0'];
-      })(),
-      serialCode: data?.serialCode || '3564229'
-    };
-
-    // State Diploma transformed data ready
-    return transformedData;
-  };
-
-  // Transform Firestore data to BachelorDiploma format
-  const transformDataForBachelorDiploma = (data: any) => {
-    // Transforming data for Bachelor Diploma template
-    
-    const transformedData = {
-      // Institution info
-      institutionName: data?.institutionName || 'INSTITUT SUPERIEUR DE COMMERCE DE GOMA',
-      institutionLocation: data?.institutionLocation || 'GOMA',
-      
-      // Diploma details
-      diplomaNumber: data?.diplomaNumber || '0000',
-      
-      // Student info
-      studentName: data?.studentName || 'STUDENT NAME',
-      birthPlace: data?.birthPlace || 'BIRTHPLACE',
-      birthDate: data?.birthDate || '01 janvier 2000',
-      
-      // Academic details
-      degree: data?.degree || 'troisième graduat en sciences',
-      specialization: data?.specialization || 'commerciales et fin',
-      orientation: data?.orientation || 'douanes et accises',
-      gradeLevel: data?.gradeLevel || 'GRADE EN SCIENCES',
-      gradeSpecialization: data?.gradeSpecialization || 'COMML ET FIN',
-      option: data?.option || 'douanes et accises',
-      orientationDetail: data?.orientationDetail || '',
-      
-      // Completion details
-      completionDate: data?.completionDate || '30 décembre 2020',
-      graduationYear: data?.graduationYear || 'deuxième quadrimestre',
-      
-      // Issue details
-      issueLocation: data?.issueLocation || 'À Goma',
-      issueDate: data?.issueDate || '03 juin 2021',
-      
-      // Registration details
-      registrationDate: data?.registrationDate || '03 juin 2021',
-      registrationNumber: data?.registrationNumber || '1487',
-      serialCode: data?.serialCode || 'XXX',
-      examDate: data?.examDate || '25 juillet 2021',
-      registerLetter: data?.registerLetter || 'M'
-    };
-
-    // Bachelor Diploma transformed data ready
-    return transformedData;
-  };
-
-  // Transform Firestore data to College Annual Transcript format
-  const transformDataForCollegeTranscript = (data: any): CollegeTranscriptData => {
-  const baseData: any = {
-      country: 'RÉPUBLIQUE DÉMOCRATIQUE DU CONGO',
-      institutionType: 'ENSEIGNEMENT SUPÉRIEUR ET UNIVERSITAIRE',
-      institutionName: 'INSTITUT SUPÉRIEUR DE COMMERCE',
-      institutionAbbreviation: 'I.S.C - Beni',
-      institutionEmail: 'iscbeni@yahoo.fr / iscbeni@gmail.com',
-      departmentName: 'Academic Services',
-      documentTitle: 'TRANSCRIPT OF SUBJECTS AND GRADES',
-      documentNumber: '',
-      studentName: 'STUDENT FULL NAME',
-      matricule: '000/00',
-      hasFollowedCourses: 'regularly followed the subjects planned in the program in',
-      section: 'Commercial Sciences and Finance Section',
-      option: 'Fiscal Option',
-      level: 'First Year License',
-      academicYear: '2020-2021',
-      session: 'First Session',
-      courses: [
-        { courseNumber: 1, courseName: 'Business Economics', creditHours: '120H', grade: '44/60' },
-        { courseNumber: 2, courseName: 'Quantitative Management Methods', creditHours: '120H', grade: '61/80' },
-        { courseNumber: 3, courseName: 'Fiscal Law and Procedures', creditHours: '90H', grade: '41/60' },
-        { courseNumber: 4, courseName: 'Business Law and Ethics', creditHours: '60H', grade: '24/40' },
-        { courseNumber: 5, courseName: 'Project Preparation and Evaluation', creditHours: '60H', grade: '24.5/40' },
-        { courseNumber: 6, courseName: 'Business Taxation', creditHours: '60H', grade: '30.5/40' },
-        { courseNumber: 7, courseName: 'In-depth Questions in HR Management', creditHours: '60H', grade: '28.5/40' },
-        { courseNumber: 8, courseName: 'Financial Management', creditHours: '45H', grade: '22.5/30' },
-        { courseNumber: 9, courseName: 'Business English I', creditHours: '45H', grade: '24/30' },
-        { courseNumber: 10, courseName: 'In-depth IT Questions I', creditHours: '45H', grade: '20/30' },
-        { courseNumber: 11, courseName: 'Customs and Finance Law', creditHours: '45H', grade: '20/30' },
-        { courseNumber: 12, courseName: 'National Accounting', creditHours: '30H', grade: '13.5/20' },
-        { courseNumber: 13, courseName: 'Scientific Research Methods', creditHours: '30H', grade: '10/20' },
-      ],
-      // Note: totalGrade and percentage are optional and only added if they have values
-      decision: '',
-      issueLocation: 'Beni',
-      issueDate: '',
-      secretary: '',
-      secretaryTitle: 'Academic Secretary of Sections',
-      chiefOfWorks: '',
-      chiefOfWorksTitle: 'The Chief of Sections of I.S.C./Beni',
-    };
-
-    if (!data) {
-      return baseData;
-    }
-
-    const sourceCourses = Array.isArray(data?.courses)
-      ? data.courses
-      : Array.isArray(data?.subjects)
-        ? data.subjects
-        : baseData.courses;
-
-    const stringify = (value: any, fallback: string) => {
-      if (value === undefined || value === null || value === '') {
-        return fallback;
-      }
-      return String(value);
-    };
-
-    const courses = sourceCourses.map((course: any, index: number) => {
-      const courseNumber =
-        typeof course?.courseNumber === 'number'
-          ? course.courseNumber
-          : typeof course?.number === 'number'
-            ? course.number
-            : index + 1;
-
-      // Build the course object with basic fields
-      const mappedCourse: any = {
-        courseNumber,
-        courseName: stringify(course?.courseName ?? course?.subject ?? course?.title, `Course ${index + 1}`),
-        creditHours: stringify(course?.creditHours ?? course?.hours ?? course?.volumeHoraire, ''),
-        grade: stringify(course?.grade ?? course?.score ?? course?.total, ''),
-      };
-
-      // Add weighted format fields if they exist
-      if (course?.units !== undefined) {
-        mappedCourse.units = stringify(course.units, '');
-      }
-      if (course?.maxGrade !== undefined) {
-        mappedCourse.maxGrade = stringify(course.maxGrade, '');
-      }
-      if (course?.weightedGrade !== undefined) {
-        mappedCourse.weightedGrade = stringify(course.weightedGrade, '');
-      }
-
-      return mappedCourse;
-    });
-
-    // Preserve summaryRows if they exist in the data, otherwise use empty array
-    const summaryRows = Array.isArray(data?.summaryRows) ? data.summaryRows : [];
-    
-    console.log('🔄 transformDataForCollegeTranscript - Summary rows:', {
-      hasSummaryRows: !!data?.summaryRows,
-      summaryRowsCount: summaryRows.length,
-      summaryRowsData: summaryRows
-    });
-
-    // Build the return object, conditionally including optional fields
-    const result: any = {
-      ...baseData,
-      country: data?.country || baseData.country,
-      institutionType: data?.institutionType || baseData.institutionType,
-      institutionName: data?.institutionName || baseData.institutionName,
-      institutionAbbreviation: data?.institutionAbbreviation || baseData.institutionAbbreviation,
-      institutionEmail: data?.institutionEmail || baseData.institutionEmail,
-      departmentName: data?.departmentName || baseData.departmentName,
-      documentTitle: data?.documentTitle || baseData.documentTitle,
-      documentNumber: data?.documentNumber || baseData.documentNumber,
-      studentName: data?.studentName || baseData.studentName,
-      matricule: data?.matricule || data?.registrationNumber || baseData.matricule,
-      hasFollowedCourses: data?.hasFollowedCourses || baseData.hasFollowedCourses,
-      section: data?.section || baseData.section,
-      option: data?.option || baseData.option,
-      level: data?.level || baseData.level,
-      academicYear: data?.academicYear || baseData.academicYear,
-      session: data?.session || baseData.session,
-      tableFormat: data?.tableFormat || 'simple', // Preserve table format
-      courses,
-      summaryRows, // Preserve summary rows
-      decision: data?.decision || data?.outcome || baseData.decision,
-      issueLocation: data?.issueLocation || baseData.issueLocation,
-      issueDate: data?.issueDate || baseData.issueDate,
-      secretary: data?.secretary || baseData.secretary,
-      secretaryTitle: data?.secretaryTitle || baseData.secretaryTitle,
-      chiefOfWorks: data?.chiefOfWorks || baseData.chiefOfWorks,
-      chiefOfWorksTitle: data?.chiefOfWorksTitle || baseData.chiefOfWorksTitle,
-    };
-
-    // Only include totalGrade and percentage if they have actual values (not undefined)
-    if (data?.totalGrade || data?.finalScore) {
-      result.totalGrade = data?.totalGrade || data?.finalScore;
-    }
-    if (data?.percentage || data?.finalPercentage) {
-      result.percentage = data?.percentage || data?.finalPercentage;
-    }
-
-    return result;
-  };
-
-  // Transform Firestore data to College Attestation format
-  const transformDataForCollegeAttestation = (data: any): CollegeAttestationData => {
-    const baseData: CollegeAttestationData = {
-      country: 'RÉPUBLIQUE DÉMOCRATIQUE DU CONGO',
-      institutionType: 'ENSEIGNEMENT SUPÉRIEUR ET UNIVERSITAIRE',
-      institutionName: 'INSTITUT SUPÉRIEUR DE COMMERCE',
-      institutionAbbreviation: 'I.S.C - Beni',
-      institutionEmail: 'iscbeni@yahoo.fr / iscbeni@gmail.com',
-      institutionWebsite: 'www.iscbeni.ac.cd',
-      departmentName: 'Academic Services',
-      documentTitle: 'ATTESTATION DE FRÉQUENTATION',
-      documentNumber: '',
-      signatoryTitle: 'The Undersigned',
-      signatoryName: '',
-      signatoryPosition: 'Academic Secretary',
-      studentName: 'STUDENT FULL NAME',
-      studentGender: 'le',
-      birthPlace: 'BIRTHPLACE',
-      birthDate: 'January 1, 2000',
-      matricule: '000/00',
-      enrollmentStatus: 'régulièrement inscrit(e) en Section de',
-      section: 'Commercial Sciences and Finance',
-      option: 'Fiscal Option',
-      institutionLocation: 'Beni',
-      academicYear: '2020-2021',
-      yearLevel: 'Deuxième Licence',
-      performance: 'mention SATISFAISANT',
-      percentage: '(69,1%)',
-      session: 'en première session',
-      purpose: 'Cette attestation de fréquentation lui est delivrée pour valoir ce que de droit',
-      issueLocation: 'Beni',
-      issueDate: '',
-      secretaryTitle: 'Academic Secretary of Sections',
-      chiefTitle: 'The Chief of Sections',
-      chiefName: '',
-      chiefPosition: 'Chief of Sections of I.S.C./Beni',
-    };
-
-    if (!data) {
-      return baseData;
-    }
-
-    return {
-      ...baseData,
-      country: data?.country || baseData.country,
-      institutionType: data?.institutionType || baseData.institutionType,
-      institutionName: data?.institutionName || baseData.institutionName,
-      institutionAbbreviation: data?.institutionAbbreviation || baseData.institutionAbbreviation,
-      institutionEmail: data?.institutionEmail || baseData.institutionEmail,
-      institutionWebsite: data?.institutionWebsite || baseData.institutionWebsite,
-      departmentName: data?.departmentName || baseData.departmentName,
-      documentTitle: data?.documentTitle || baseData.documentTitle,
-      documentNumber: data?.documentNumber || baseData.documentNumber,
-      signatoryTitle: data?.signatoryTitle || baseData.signatoryTitle,
-      signatoryName: data?.signatoryName || baseData.signatoryName,
-      signatoryPosition: data?.signatoryPosition || baseData.signatoryPosition,
-      studentName: data?.studentName || baseData.studentName,
-      studentGender: data?.studentGender || data?.gender === 'female' ? 'la' : 'le',
-      birthPlace: data?.birthPlace || baseData.birthPlace,
-      birthDate: data?.birthDate || baseData.birthDate,
-      matricule: data?.matricule || data?.registrationNumber || baseData.matricule,
-      enrollmentStatus: data?.enrollmentStatus || baseData.enrollmentStatus,
-      section: data?.section || baseData.section,
-      option: data?.option || baseData.option,
-      institutionLocation: data?.institutionLocation || baseData.institutionLocation,
-      academicYear: data?.academicYear || baseData.academicYear,
-      yearLevel: data?.yearLevel || data?.level || baseData.yearLevel,
-      performance: data?.performance || baseData.performance,
-      percentage: data?.percentage || baseData.percentage,
-      session: data?.session || baseData.session,
-      purpose: data?.purpose || baseData.purpose,
-      issueLocation: data?.issueLocation || baseData.issueLocation,
-      issueDate: data?.issueDate || baseData.issueDate,
-      secretaryTitle: data?.secretaryTitle || baseData.secretaryTitle,
-      chiefTitle: data?.chiefTitle || baseData.chiefTitle,
-      chiefName: data?.chiefName || baseData.chiefName,
-      chiefPosition: data?.chiefPosition || baseData.chiefPosition,
-    };
-  };
-
-  // Transform Firestore data for High School Attestation
-  const transformDataForHighSchoolAttestation = (data: any): HighSchoolAttestationData => {
-    const baseData: HighSchoolAttestationData = {
-      schoolName: 'School Name',
-      schoolAddress: 'School Address',
-      province: 'Province',
-      division: 'Division',
-      documentTitle: 'School Attendance Certificate',
-      studentName: 'STUDENT FULL NAME',
-      studentGender: 'M',
-      birthDate: 'January 1, 2000',
-      birthPlace: 'Birthplace',
-      mainContent: 'This is to certify that the above-named student has attended this institution during the academic year.',
-      purpose: 'This certificate is issued for official purposes.',
-      issueLocation: 'City',
-      issueDate: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
-      signatoryName: 'Director Name',
-      signatoryTitle: 'School Director',
-    };
-
-    if (!data) {
-      return baseData;
-    }
-
-    return {
-      ...baseData,
-      schoolName: data?.schoolName || data?.school || baseData.schoolName,
-      schoolAddress: data?.schoolAddress || baseData.schoolAddress,
-      province: data?.province || baseData.province,
-      division: data?.division || baseData.division,
-      documentTitle: data?.documentTitle || baseData.documentTitle,
-      studentName: data?.studentName || baseData.studentName,
-      studentGender: data?.studentGender || (data?.gender?.toLowerCase() === 'female' ? 'F' : 'M'),
-      birthDate: data?.birthDate || baseData.birthDate,
-      birthPlace: data?.birthPlace || baseData.birthPlace,
-      mainContent: data?.mainContent || baseData.mainContent,
-      purpose: data?.purpose || baseData.purpose,
-      issueLocation: data?.issueLocation || data?.city || baseData.issueLocation,
-      issueDate: data?.issueDate || baseData.issueDate,
-      signatoryName: data?.signatoryName || data?.directorName || baseData.signatoryName,
-      signatoryTitle: data?.signatoryTitle || data?.directorTitle || baseData.signatoryTitle,
-    };
-  };
-
-  // Transform Firestore data for State Exam Attestation
-  const transformDataForStateExamAttestation = (data: any): StateExamAttestationData => {
-    const baseData: StateExamAttestationData = {
-      attestationNumber: 'N°000000000/2021',
-      studentName: 'STUDENT NAME',
-      birthPlace: 'BIRTHPLACE',
-      birthDate: {
-        day: '01',
-        month: '01',
-        year: '2003'
-      },
-      schoolName: 'SCHOOL NAME',
-      schoolCode: '000000000000',
-      examSession: '2021',
-      section: 'TECHNICAL',
-      option: 'COMMERCIAL AND MANAGEMENT',
-      percentage: '56',
-      issuePlace: 'KINSHASA',
-      issueDate: {
-        day: '21',
-        month: '10',
-        year: '2021'
-      },
-      validUntil: {
-        day: '21',
-        month: '02',
-        year: '2022'
-      },
-      inspectorName: 'INSPECTOR NAME'
-    };
-
-    if (!data) {
-      return baseData;
-    }
-
-    // Helper to parse date strings into day/month/year object
-    const parseDateString = (dateStr: string | any): { day: string; month: string; year: string } => {
-      if (typeof dateStr === 'object' && dateStr.day && dateStr.month && dateStr.year) {
-        return dateStr;
-      }
-      if (typeof dateStr === 'string') {
-        const parts = dateStr.split('/');
-        if (parts.length === 3) {
-          return {
-            day: parts[0].padStart(2, '0'),
-            month: parts[1].padStart(2, '0'),
-            year: parts[2].padStart(4, '0')
-          };
-        }
-      }
-      return { day: '01', month: '01', year: '2000' };
-    };
-
-    return {
-      ...baseData,
-      attestationNumber: data?.attestationNumber || baseData.attestationNumber,
-      studentName: data?.studentName || baseData.studentName,
-      birthPlace: data?.birthPlace || baseData.birthPlace,
-      birthDate: data?.birthDate ? parseDateString(data.birthDate) : baseData.birthDate,
-      schoolName: data?.schoolName || data?.school || baseData.schoolName,
-      schoolCode: data?.schoolCode || baseData.schoolCode,
-      examSession: data?.examSession || data?.academicYear || baseData.examSession,
-      section: data?.section || baseData.section,
-      option: data?.option || baseData.option,
-      percentage: data?.percentage?.toString() || baseData.percentage,
-      issuePlace: data?.issuePlace || data?.issueLocation || baseData.issuePlace,
-      issueDate: data?.issueDate ? parseDateString(data.issueDate) : baseData.issueDate,
-      validUntil: data?.validUntil ? parseDateString(data.validUntil) : baseData.validUntil,
-      inspectorName: data?.inspectorName || data?.signatoryName || baseData.inspectorName,
-    };
-  };
-
-
-  // Transform Firestore data to Form6Template format
-  const transformDataForTemplate = (data: any) => {
-    if (!data) return {};
-
-    // Transforming data for template
-
-    // Transform subjects to match Form6Template format
-    const transformedSubjects = data.subjects?.map((subject: any) => {
-      // Handle different possible data structures
-      const firstSemester = subject.firstSemester || subject.gradesSemester1 || {};
-      const secondSemester = subject.secondSemester || subject.gradesSemester2 || {};
-      
-      // Map individual grade fields to template format
-      const templateSubject = {
-        subject: subject.subject || subject.subjectName || 'Unknown Subject',
-        firstSemester: {
-          period1: firstSemester.period1 || firstSemester.journal1 || '',
-          period2: firstSemester.period2 || firstSemester.journal2 || '',
-          exam: firstSemester.exam || '',
-          total: firstSemester.total || ''
-        },
-        secondSemester: {
-          period3: secondSemester.period3 || secondSemester.journal1 || '',
-          period4: secondSemester.period4 || secondSemester.journal2 || '',
-          exam: secondSemester.exam || '',
-          total: secondSemester.total || ''
-        },
-        overallTotal: subject.overallTotal || subject.total || '',
-        maxima: subject.maxima || {
-          periodMaxima: 20,
-          examMaxima: 40,
-          totalMaxima: 80
-        },
-        secondSitting: subject.secondSitting || {
-          marks: '',
-          max: ''
-        },
-        nationalExam: subject.nationalExam || {
-          marks: '',
-          max: ''
-        }
-      };
-
-      // Transform subject data
-      return templateSubject;
-    }) || [];
-
-    const transformedData = {
-      // Basic info
-      province: data.province || '',
-      city: data.city || '',
-      municipality: data.municipality || '',
-      school: data.school || '',
-      schoolCode: data.schoolCode || '',
-      studentName: data.studentName || '',
-      gender: data.gender || '',
-      birthPlace: data.birthPlace || '',
-      birthDate: data.birthDate || '',
-      class: data.class || '',
-      permanentNumber: data.permanentNumber || '',
-      idNumber: data.idNumber || '',
-      academicYear: data.academicYear || '',
-      
-      // Subjects
-      subjects: transformedSubjects,
-      
-      // Totals
-      totalMarksOutOf: data.totalMarksOutOf || {},
-      totalMarksObtained: data.totalMarksObtained || {},
-      percentage: data.percentage || {},
-      position: data.position || '',
-      totalStudents: data.totalStudents || '',
-      
-      // Assessment
-      application: data.application || '',
-      behaviour: data.behaviour || '',
-      
-      // Summary values for editable cells (AGGREGATES MAXIMA, AGGREGATES, PERCENTAGE, POSITION, BEHAVIOUR rows)
-      summaryValues: data.summaryValues || {},
-      
-      // Final results
-      finalResultPercentage: data.finalResultPercentage || '',
-      isPromoted: data.isPromoted || false,
-      shouldRepeat: data.shouldRepeat || '',
-      issueLocation: data.issueLocation || '',
-      issueDate: data.issueDate || '',
-      centerCode: data.centerCode || '',
-      verifierName: data.verifierName || '',
-      endorsementDate: data.endorsementDate || ''
-    };
-
-    // Final transformed data ready
-    return transformedData;
   };
 
   // Handle file upload - Show preview first
@@ -1196,54 +679,7 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
       />
       
       {/* Navigation Header */}
-      <nav className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-3">
-              <img
-                src="/logo-wide.png"
-                alt="Nyota Translation Center Logo"
-                className="h-10 w-auto rounded-lg shadow-md"
-              />
-              {/* Hide the text on mobile, show on sm+ */}
-              <h1 className="hidden sm:block text-xl font-bold text-gray-900">{t('dashboard.navigation.title')}</h1>
-            </div>
-            <div className="flex items-center space-x-4">
-              {/* Statistics Button */}
-              <button
-                onClick={() => {
-                  window.history.pushState({}, '', '/stats');
-                  window.dispatchEvent(new PopStateEvent('popstate'));
-                }}
-                className="px-3 py-2 text-sm font-medium text-indigo-600 bg-indigo-50 rounded-md hover:bg-indigo-100 flex items-center gap-2"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-                <span className="hidden sm:inline">Statistics</span>
-              </button>
-              {/* Language Switcher */}
-              <LanguageSwitcher />
-              <div className="flex items-center space-x-2">
-                {/* Hide email on mobile, show on sm+ */}
-                <span className="hidden sm:inline text-sm text-gray-600">{currentUser.email}</span>
-                <button
-                  onClick={() => {
-                    import('../firebase').then(({ auth }) => {
-                      import('firebase/auth').then(({ signOut }) => {
-                        signOut(auth);
-                      });
-                    });
-                  }}
-                  className="px-3 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700"
-                >
-                  {t('dashboard.navigation.signOut')}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <DashboardHeader userEmail={currentUser.email || ''} />
 
       <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-6 sm:py-8">
         {/* Responsive Header */}
@@ -1257,123 +693,260 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
         </div>
 
         {/* Upload Section */}
-        <div className="mb-8 bg-white rounded-lg shadow-md p-4 sm:p-6">
+        <div className="mb-8 bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6">
           <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4">{t('dashboard.upload.title')}</h2>
           {/* Form Type Selection */}
           <div className="mb-6">
-            <h3 className="text-xs sm:text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">{t('dashboard.upload.selectType')}</h3>
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+            <h3 className="text-xs sm:text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">{t('dashboard.upload.selectType')}</h3>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+              {/* Form 4 */}
               <button
                 onClick={() => setSelectedFormType('form4')}
-                className={`flex-1 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+                className={`group relative p-4 rounded-xl border-2 transition-all duration-200 text-left ${
                   selectedFormType === 'form4'
-                    ? 'bg-green-600 text-white shadow-lg scale-105'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200'
+                    ? 'border-emerald-500 bg-emerald-50 shadow-md'
+                    : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
                 }`}
               >
-                <div className="flex items-center justify-center space-x-2">
-                  <span>📋</span>
-                  <span>{t('dashboard.upload.form4.title')}</span>
+                <div className={`w-10 h-10 rounded-lg flex items-center justify-center mb-3 ${
+                  selectedFormType === 'form4' ? 'bg-emerald-500' : 'bg-gray-100 group-hover:bg-gray-200'
+                }`}>
+                  <svg className={`w-5 h-5 ${selectedFormType === 'form4' ? 'text-white' : 'text-gray-600'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
                 </div>
-                <div className="text-xs mt-1 opacity-75">{t('dashboard.upload.form4.subtitle')}</div>
+                <h4 className={`font-semibold text-sm ${selectedFormType === 'form4' ? 'text-emerald-700' : 'text-gray-900'}`}>
+                  {t('dashboard.upload.form4.title')}
+                </h4>
+                <p className={`text-xs mt-1 ${selectedFormType === 'form4' ? 'text-emerald-600' : 'text-gray-500'}`}>
+                  {t('dashboard.upload.form4.subtitle')}
+                </p>
+                {selectedFormType === 'form4' && (
+                  <div className="absolute top-2 right-2 w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center">
+                    <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                )}
               </button>
+
+              {/* Form 6 */}
               <button
                 onClick={() => setSelectedFormType('form6')}
-                className={`flex-1 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+                className={`group relative p-4 rounded-xl border-2 transition-all duration-200 text-left ${
                   selectedFormType === 'form6'
-                    ? 'bg-blue-600 text-white shadow-lg scale-105'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200'
+                    ? 'border-blue-500 bg-blue-50 shadow-md'
+                    : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
                 }`}
               >
-                <div className="flex items-center justify-center space-x-2">
-                  <span>📄</span>
-                  <span>{t('dashboard.upload.form6.title')}</span>
+                <div className={`w-10 h-10 rounded-lg flex items-center justify-center mb-3 ${
+                  selectedFormType === 'form6' ? 'bg-blue-500' : 'bg-gray-100 group-hover:bg-gray-200'
+                }`}>
+                  <svg className={`w-5 h-5 ${selectedFormType === 'form6' ? 'text-white' : 'text-gray-600'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
                 </div>
-                <div className="text-xs mt-1 opacity-75">{t('dashboard.upload.form6.subtitle')}</div>
+                <h4 className={`font-semibold text-sm ${selectedFormType === 'form6' ? 'text-blue-700' : 'text-gray-900'}`}>
+                  {t('dashboard.upload.form6.title')}
+                </h4>
+                <p className={`text-xs mt-1 ${selectedFormType === 'form6' ? 'text-blue-600' : 'text-gray-500'}`}>
+                  {t('dashboard.upload.form6.subtitle')}
+                </p>
+                {selectedFormType === 'form6' && (
+                  <div className="absolute top-2 right-2 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
+                    <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                )}
               </button>
+
+              {/* College Transcript */}
               <button
                 onClick={() => setSelectedFormType('collegeTranscript')}
-                className={`flex-1 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+                className={`group relative p-4 rounded-xl border-2 transition-all duration-200 text-left ${
                   selectedFormType === 'collegeTranscript'
-                    ? 'bg-indigo-600 text-white shadow-lg scale-105'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200'
+                    ? 'border-indigo-500 bg-indigo-50 shadow-md'
+                    : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
                 }`}
               >
-                <div className="flex items-center justify-center space-x-2">
-                  <span>🏛️</span>
-                  <span>{t('dashboard.upload.collegeTranscript.title')}</span>
+                <div className={`w-10 h-10 rounded-lg flex items-center justify-center mb-3 ${
+                  selectedFormType === 'collegeTranscript' ? 'bg-indigo-500' : 'bg-gray-100 group-hover:bg-gray-200'
+                }`}>
+                  <svg className={`w-5 h-5 ${selectedFormType === 'collegeTranscript' ? 'text-white' : 'text-gray-600'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
                 </div>
-                <div className="text-xs mt-1 opacity-75">{t('dashboard.upload.collegeTranscript.subtitle')}</div>
+                <h4 className={`font-semibold text-sm ${selectedFormType === 'collegeTranscript' ? 'text-indigo-700' : 'text-gray-900'}`}>
+                  {t('dashboard.upload.collegeTranscript.title')}
+                </h4>
+                <p className={`text-xs mt-1 ${selectedFormType === 'collegeTranscript' ? 'text-indigo-600' : 'text-gray-500'}`}>
+                  {t('dashboard.upload.collegeTranscript.subtitle')}
+                </p>
+                {selectedFormType === 'collegeTranscript' && (
+                  <div className="absolute top-2 right-2 w-5 h-5 bg-indigo-500 rounded-full flex items-center justify-center">
+                    <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                )}
               </button>
+
+              {/* College Attestation */}
               <button
                 onClick={() => setSelectedFormType('collegeAttestation')}
-                className={`flex-1 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+                className={`group relative p-4 rounded-xl border-2 transition-all duration-200 text-left ${
                   selectedFormType === 'collegeAttestation'
-                    ? 'bg-teal-600 text-white shadow-lg scale-105'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200'
+                    ? 'border-teal-500 bg-teal-50 shadow-md'
+                    : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
                 }`}
               >
-                <div className="flex items-center justify-center space-x-2">
-                  <span>📝</span>
-                  <span>College Attestation</span>
+                <div className={`w-10 h-10 rounded-lg flex items-center justify-center mb-3 ${
+                  selectedFormType === 'collegeAttestation' ? 'bg-teal-500' : 'bg-gray-100 group-hover:bg-gray-200'
+                }`}>
+                  <svg className={`w-5 h-5 ${selectedFormType === 'collegeAttestation' ? 'text-white' : 'text-gray-600'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                  </svg>
                 </div>
-                <div className="text-xs mt-1 opacity-75">Certificate of attendance</div>
+                <h4 className={`font-semibold text-sm ${selectedFormType === 'collegeAttestation' ? 'text-teal-700' : 'text-gray-900'}`}>
+                  {t('dashboard.upload.collegeAttestation.title')}
+                </h4>
+                <p className={`text-xs mt-1 ${selectedFormType === 'collegeAttestation' ? 'text-teal-600' : 'text-gray-500'}`}>
+                  {t('dashboard.upload.collegeAttestation.subtitle')}
+                </p>
+                {selectedFormType === 'collegeAttestation' && (
+                  <div className="absolute top-2 right-2 w-5 h-5 bg-teal-500 rounded-full flex items-center justify-center">
+                    <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                )}
               </button>
+
+              {/* State Diploma */}
               <button
                 onClick={() => setSelectedFormType('stateDiploma')}
-                className={`flex-1 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+                className={`group relative p-4 rounded-xl border-2 transition-all duration-200 text-left ${
                   selectedFormType === 'stateDiploma'
-                    ? 'bg-purple-600 text-white shadow-lg scale-105'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200'
+                    ? 'border-purple-500 bg-purple-50 shadow-md'
+                    : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
                 }`}
               >
-                <div className="flex items-center justify-center space-x-2">
-                  <span>🎓</span>
-                  <span>{t('dashboard.upload.stateDiploma.title')}</span>
+                <div className={`w-10 h-10 rounded-lg flex items-center justify-center mb-3 ${
+                  selectedFormType === 'stateDiploma' ? 'bg-purple-500' : 'bg-gray-100 group-hover:bg-gray-200'
+                }`}>
+                  <svg className={`w-5 h-5 ${selectedFormType === 'stateDiploma' ? 'text-white' : 'text-gray-600'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path d="M12 14l9-5-9-5-9 5 9 5z" />
+                    <path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14zm-4 6v-7.5l4-2.222" />
+                  </svg>
                 </div>
-                <div className="text-xs mt-1 opacity-75">{t('dashboard.upload.stateDiploma.subtitle')}</div>
+                <h4 className={`font-semibold text-sm ${selectedFormType === 'stateDiploma' ? 'text-purple-700' : 'text-gray-900'}`}>
+                  {t('dashboard.upload.stateDiploma.title')}
+                </h4>
+                <p className={`text-xs mt-1 ${selectedFormType === 'stateDiploma' ? 'text-purple-600' : 'text-gray-500'}`}>
+                  {t('dashboard.upload.stateDiploma.subtitle')}
+                </p>
+                {selectedFormType === 'stateDiploma' && (
+                  <div className="absolute top-2 right-2 w-5 h-5 bg-purple-500 rounded-full flex items-center justify-center">
+                    <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                )}
               </button>
+
+              {/* Bachelor Diploma */}
               <button
                 onClick={() => setSelectedFormType('bachelorDiploma')}
-                className={`flex-1 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+                className={`group relative p-4 rounded-xl border-2 transition-all duration-200 text-left ${
                   selectedFormType === 'bachelorDiploma'
-                    ? 'bg-amber-600 text-white shadow-lg scale-105'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200'
+                    ? 'border-amber-500 bg-amber-50 shadow-md'
+                    : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
                 }`}
               >
-                <div className="flex items-center justify-center space-x-2">
-                  <span>📜</span>
-                  <span>Bachelor Diploma</span>
+                <div className={`w-10 h-10 rounded-lg flex items-center justify-center mb-3 ${
+                  selectedFormType === 'bachelorDiploma' ? 'bg-amber-500' : 'bg-gray-100 group-hover:bg-gray-200'
+                }`}>
+                  <svg className={`w-5 h-5 ${selectedFormType === 'bachelorDiploma' ? 'text-white' : 'text-gray-600'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                  </svg>
                 </div>
-                <div className="text-xs mt-1 opacity-75">University degree certificate</div>
+                <h4 className={`font-semibold text-sm ${selectedFormType === 'bachelorDiploma' ? 'text-amber-700' : 'text-gray-900'}`}>
+                  {t('dashboard.upload.bachelorDiploma.title')}
+                </h4>
+                <p className={`text-xs mt-1 ${selectedFormType === 'bachelorDiploma' ? 'text-amber-600' : 'text-gray-500'}`}>
+                  {t('dashboard.upload.bachelorDiploma.subtitle')}
+                </p>
+                {selectedFormType === 'bachelorDiploma' && (
+                  <div className="absolute top-2 right-2 w-5 h-5 bg-amber-500 rounded-full flex items-center justify-center">
+                    <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                )}
               </button>
+
+              {/* High School Attestation */}
               <button
                 onClick={() => setSelectedFormType('highSchoolAttestation')}
-                className={`flex-1 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+                className={`group relative p-4 rounded-xl border-2 transition-all duration-200 text-left ${
                   selectedFormType === 'highSchoolAttestation'
-                    ? 'bg-rose-600 text-white shadow-lg scale-105'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200'
+                    ? 'border-rose-500 bg-rose-50 shadow-md'
+                    : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
                 }`}
               >
-                <div className="flex items-center justify-center space-x-2">
-                  <span>✅</span>
-                  <span>High School Attestation</span>
+                <div className={`w-10 h-10 rounded-lg flex items-center justify-center mb-3 ${
+                  selectedFormType === 'highSchoolAttestation' ? 'bg-rose-500' : 'bg-gray-100 group-hover:bg-gray-200'
+                }`}>
+                  <svg className={`w-5 h-5 ${selectedFormType === 'highSchoolAttestation' ? 'text-white' : 'text-gray-600'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
                 </div>
-                <div className="text-xs mt-1 opacity-75">School attendance certificate</div>
+                <h4 className={`font-semibold text-sm ${selectedFormType === 'highSchoolAttestation' ? 'text-rose-700' : 'text-gray-900'}`}>
+                  {t('dashboard.upload.highSchoolAttestation.title')}
+                </h4>
+                <p className={`text-xs mt-1 ${selectedFormType === 'highSchoolAttestation' ? 'text-rose-600' : 'text-gray-500'}`}>
+                  {t('dashboard.upload.highSchoolAttestation.subtitle')}
+                </p>
+                {selectedFormType === 'highSchoolAttestation' && (
+                  <div className="absolute top-2 right-2 w-5 h-5 bg-rose-500 rounded-full flex items-center justify-center">
+                    <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                )}
               </button>
+
+              {/* State Exam Attestation */}
               <button
                 onClick={() => setSelectedFormType('stateExamAttestation')}
-                className={`flex-1 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+                className={`group relative p-4 rounded-xl border-2 transition-all duration-200 text-left ${
                   selectedFormType === 'stateExamAttestation'
-                    ? 'bg-cyan-600 text-white shadow-lg scale-105'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200'
+                    ? 'border-cyan-500 bg-cyan-50 shadow-md'
+                    : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
                 }`}
               >
-                <div className="flex items-center justify-center space-x-2">
-                  <span>📋</span>
-                  <span>State Exam Attestation</span>
+                <div className={`w-10 h-10 rounded-lg flex items-center justify-center mb-3 ${
+                  selectedFormType === 'stateExamAttestation' ? 'bg-cyan-500' : 'bg-gray-100 group-hover:bg-gray-200'
+                }`}>
+                  <svg className={`w-5 h-5 ${selectedFormType === 'stateExamAttestation' ? 'text-white' : 'text-gray-600'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                  </svg>
                 </div>
-                <div className="text-xs mt-1 opacity-75">Provisional pass certificate</div>
+                <h4 className={`font-semibold text-sm ${selectedFormType === 'stateExamAttestation' ? 'text-cyan-700' : 'text-gray-900'}`}>
+                  {t('dashboard.upload.stateExamAttestation.title')}
+                </h4>
+                <p className={`text-xs mt-1 ${selectedFormType === 'stateExamAttestation' ? 'text-cyan-600' : 'text-gray-500'}`}>
+                  {t('dashboard.upload.stateExamAttestation.subtitle')}
+                </p>
+                {selectedFormType === 'stateExamAttestation' && (
+                  <div className="absolute top-2 right-2 w-5 h-5 bg-cyan-500 rounded-full flex items-center justify-center">
+                    <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                )}
               </button>
             </div>
           </div>
@@ -1564,13 +1137,156 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
         )}
 
         {/* Bulletins List */}
-        <div className="mb-8 bg-white rounded-lg shadow-md p-4 sm:p-6">
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-2">
+        <div className="mb-8 bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6">
+          {/* Header with title and count */}
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-2">
             <h2 className="text-lg sm:text-xl font-semibold text-gray-900">📚 {t('dashboard.bulletinsList.title')}</h2>
             <span className="text-xs sm:text-sm text-gray-500">
-              {bulletins.length} bulletin{bulletins.length !== 1 ? 's' : ''}
+              {filteredBulletins.length} {i18n.language === 'fr' ? 'sur' : 'of'} {bulletins.length} document{bulletins.length !== 1 ? 's' : ''}
             </span>
           </div>
+
+          {/* Search and Filter Controls */}
+          {bulletins.length > 0 && (
+            <div className="mb-6 space-y-4">
+              {/* Search Bar */}
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder={i18n.language === 'fr' ? 'Rechercher par nom d\'étudiant...' : 'Search by student name...'}
+                  className="block w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-lg text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  >
+                    <svg className="h-5 w-5 text-gray-400 hover:text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                )}
+              </div>
+
+              {/* Filter Tabs */}
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={() => setFilterType('all')}
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                    filterType === 'all'
+                      ? 'bg-gray-900 text-white'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  {i18n.language === 'fr' ? 'Tous' : 'All'} ({documentTypeCounts.all || 0})
+                </button>
+                {documentTypeCounts.form4 > 0 && (
+                  <button
+                    onClick={() => setFilterType('form4')}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                      filterType === 'form4'
+                        ? 'bg-emerald-500 text-white'
+                        : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                    }`}
+                  >
+                    Form 4 ({documentTypeCounts.form4})
+                  </button>
+                )}
+                {documentTypeCounts.form6 > 0 && (
+                  <button
+                    onClick={() => setFilterType('form6')}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                      filterType === 'form6'
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-blue-50 text-blue-700 hover:bg-blue-100'
+                    }`}
+                  >
+                    Form 6 ({documentTypeCounts.form6})
+                  </button>
+                )}
+                {documentTypeCounts.collegeTranscript > 0 && (
+                  <button
+                    onClick={() => setFilterType('collegeTranscript')}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                      filterType === 'collegeTranscript'
+                        ? 'bg-indigo-500 text-white'
+                        : 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100'
+                    }`}
+                  >
+                    {i18n.language === 'fr' ? 'Relevé Univ.' : 'Transcript'} ({documentTypeCounts.collegeTranscript})
+                  </button>
+                )}
+                {documentTypeCounts.collegeAttestation > 0 && (
+                  <button
+                    onClick={() => setFilterType('collegeAttestation')}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                      filterType === 'collegeAttestation'
+                        ? 'bg-teal-500 text-white'
+                        : 'bg-teal-50 text-teal-700 hover:bg-teal-100'
+                    }`}
+                  >
+                    {i18n.language === 'fr' ? 'Attestation Univ.' : 'College Att.'} ({documentTypeCounts.collegeAttestation})
+                  </button>
+                )}
+                {documentTypeCounts.stateDiploma > 0 && (
+                  <button
+                    onClick={() => setFilterType('stateDiploma')}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                      filterType === 'stateDiploma'
+                        ? 'bg-purple-500 text-white'
+                        : 'bg-purple-50 text-purple-700 hover:bg-purple-100'
+                    }`}
+                  >
+                    {i18n.language === 'fr' ? 'Diplôme d\'État' : 'State Diploma'} ({documentTypeCounts.stateDiploma})
+                  </button>
+                )}
+                {documentTypeCounts.bachelorDiploma > 0 && (
+                  <button
+                    onClick={() => setFilterType('bachelorDiploma')}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                      filterType === 'bachelorDiploma'
+                        ? 'bg-amber-500 text-white'
+                        : 'bg-amber-50 text-amber-700 hover:bg-amber-100'
+                    }`}
+                  >
+                    {i18n.language === 'fr' ? 'Licence' : 'Bachelor'} ({documentTypeCounts.bachelorDiploma})
+                  </button>
+                )}
+                {documentTypeCounts.highSchoolAttestation > 0 && (
+                  <button
+                    onClick={() => setFilterType('highSchoolAttestation')}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                      filterType === 'highSchoolAttestation'
+                        ? 'bg-rose-500 text-white'
+                        : 'bg-rose-50 text-rose-700 hover:bg-rose-100'
+                    }`}
+                  >
+                    {i18n.language === 'fr' ? 'Att. Scolaire' : 'HS Attestation'} ({documentTypeCounts.highSchoolAttestation})
+                  </button>
+                )}
+                {documentTypeCounts.stateExamAttestation > 0 && (
+                  <button
+                    onClick={() => setFilterType('stateExamAttestation')}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                      filterType === 'stateExamAttestation'
+                        ? 'bg-cyan-500 text-white'
+                        : 'bg-cyan-50 text-cyan-700 hover:bg-cyan-100'
+                    }`}
+                  >
+                    {i18n.language === 'fr' ? 'Att. Réussite' : 'Exam Att.'} ({documentTypeCounts.stateExamAttestation})
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
           {isLoading ? (
             <div className="flex items-center justify-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -1588,9 +1304,30 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
               </h3>
               <p className="mt-2 text-gray-500">{t('dashboard.bulletinsList.noUploads')}</p>
             </div>
+          ) : filteredBulletins.length === 0 ? (
+            <div className="text-center py-8 sm:py-12">
+              <svg className="mx-auto h-16 w-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <h3 className="mt-4 text-lg font-medium text-gray-900">
+                {i18n.language === 'fr' ? 'Aucun résultat trouvé' : 'No results found'}
+              </h3>
+              <p className="mt-2 text-gray-500">
+                {i18n.language === 'fr' 
+                  ? 'Essayez de modifier votre recherche ou vos filtres' 
+                  : 'Try adjusting your search or filters'}
+              </p>
+              <button
+                onClick={() => { setSearchQuery(''); setFilterType('all'); }}
+                className="mt-4 text-blue-600 hover:text-blue-800 font-medium"
+              >
+                {i18n.language === 'fr' ? 'Réinitialiser les filtres' : 'Reset filters'}
+              </button>
+            </div>
           ) : (
+            <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-              {bulletins.map((bulletin) => {
+              {paginatedBulletins.map((bulletin) => {
                 const displayData = getBulletinDisplayData(bulletin);
                 return (
                   <div
@@ -1712,7 +1449,7 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                             );
                           }}
                           className="group flex items-center justify-center w-7 h-7 rounded-full bg-red-50 hover:bg-red-100 border border-red-200 hover:border-red-300 transition-all duration-200"
-                          title="Delete bulletin"
+                          title={i18n.language === 'fr' ? 'Supprimer' : 'Delete'}
                         >
                           <svg 
                             className="w-4 h-4 text-red-500 group-hover:text-red-600" 
@@ -1729,6 +1466,31 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                           </svg>
                         </button>
                         
+                        {/* Hide/Show Preview Button */}
+                        {selectedBulletin?.id === bulletin.id && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setIsPreviewExpanded(!isPreviewExpanded);
+                            }}
+                            className="group flex items-center justify-center w-7 h-7 rounded-full bg-gray-50 hover:bg-gray-100 border border-gray-200 hover:border-gray-300 transition-all duration-200"
+                            title={isPreviewExpanded ? (i18n.language === 'fr' ? 'Masquer' : 'Hide') : (i18n.language === 'fr' ? 'Afficher' : 'Show')}
+                          >
+                            <svg 
+                              className="w-4 h-4 text-gray-500 group-hover:text-gray-600" 
+                              fill="none" 
+                              stroke="currentColor" 
+                              viewBox="0 0 24 24"
+                            >
+                              {isPreviewExpanded ? (
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                              ) : (
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                              )}
+                            </svg>
+                          </button>
+                        )}
+                        
                         {selectedBulletin?.id === bulletin.id && (
                           <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                         )}
@@ -1738,11 +1500,81 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                 );
               })}
             </div>
+
+            {/* Pagination Controls */}
+            {filteredBulletins.length > itemsPerPage && (
+              <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-200">
+                <div className="text-sm text-gray-600">
+                  {i18n.language === 'fr' 
+                    ? `Affichage ${(currentPage - 1) * itemsPerPage + 1}-${Math.min(currentPage * itemsPerPage, filteredBulletins.length)} sur ${filteredBulletins.length}` 
+                    : `Showing ${(currentPage - 1) * itemsPerPage + 1}-${Math.min(currentPage * itemsPerPage, filteredBulletins.length)} of ${filteredBulletins.length}`}
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className={`
+                      px-3 py-2 rounded-lg text-sm font-medium transition-colors
+                      ${currentPage === 1 
+                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                        : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'}
+                    `}
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </button>
+                  
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: Math.ceil(filteredBulletins.length / itemsPerPage) }, (_, i) => i + 1)
+                      .filter(page => {
+                        const totalPages = Math.ceil(filteredBulletins.length / itemsPerPage);
+                        // Show first page, last page, current page, and pages around current
+                        return page === 1 || page === totalPages || Math.abs(page - currentPage) <= 1;
+                      })
+                      .map((page, index, arr) => (
+                        <React.Fragment key={page}>
+                          {index > 0 && arr[index - 1] !== page - 1 && (
+                            <span className="px-2 text-gray-400">...</span>
+                          )}
+                          <button
+                            onClick={() => setCurrentPage(page)}
+                            className={`
+                              w-9 h-9 rounded-lg text-sm font-medium transition-colors
+                              ${currentPage === page 
+                                ? 'bg-blue-600 text-white' 
+                                : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'}
+                            `}
+                          >
+                            {page}
+                          </button>
+                        </React.Fragment>
+                      ))}
+                  </div>
+                  
+                  <button
+                    onClick={() => setCurrentPage(p => Math.min(Math.ceil(filteredBulletins.length / itemsPerPage), p + 1))}
+                    disabled={currentPage >= Math.ceil(filteredBulletins.length / itemsPerPage)}
+                    className={`
+                      px-3 py-2 rounded-lg text-sm font-medium transition-colors
+                      ${currentPage >= Math.ceil(filteredBulletins.length / itemsPerPage)
+                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                        : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'}
+                    `}
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            )}
+            </>
           )}
         </div>
 
         {/* Selected Bulletin Display */}
-        {selectedBulletin && (
+        {selectedBulletin && isPreviewExpanded && (
           <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 overflow-x-auto">
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-3">
               <div>
@@ -1825,29 +1657,40 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                   )}
                 </p>
               </div>
-              <div className="flex flex-col sm:flex-row sm:items-center gap-3 mt-4 sm:mt-0">
+              <div className="flex flex-row items-center gap-2 mt-4 sm:mt-0">
+                {/* Hide Preview Button */}
+                <button
+                  onClick={() => setIsPreviewExpanded(false)}
+                  className="inline-flex items-center justify-center w-10 h-10 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-all duration-200 border border-gray-200"
+                  title={i18n.language === 'fr' ? 'Masquer' : 'Hide'}
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                  </svg>
+                </button>
+                
                 {/* Edit/View Button */}
                 {!isEditing && (
                   <button
                     onClick={() => handleStartEditing(selectedBulletin)}
-                    className="inline-flex items-center justify-center px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 shadow-md hover:shadow-lg font-medium text-sm"
+                    className="inline-flex items-center justify-center w-10 h-10 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 shadow-md hover:shadow-lg"
+                    title={i18n.language === 'fr' ? 'Modifier' : 'Edit'}
                   >
-                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                     </svg>
-                    <span>Edit Document</span>
                   </button>
                 )}
                 {isEditing && (
                   <button
                     onClick={() => setIsEditing(false)}
-                    className="inline-flex items-center justify-center px-5 py-2.5 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-all duration-200 shadow-md hover:shadow-lg font-medium text-sm"
+                    className="inline-flex items-center justify-center w-10 h-10 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-all duration-200 shadow-md hover:shadow-lg"
+                    title={i18n.language === 'fr' ? 'Voir seulement' : 'View Only'}
                   >
-                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                     </svg>
-                    <span>View Only</span>
                   </button>
                 )}
 
@@ -1857,37 +1700,43 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                     <StateDiplomaPDFDownloadButton
                       data={transformDataForStateDiploma(getBulletinDisplayData(selectedBulletin))}
                       documentId={selectedBulletin.id}
-                      className="inline-flex items-center justify-center w-full px-5 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all duration-200 shadow-md hover:shadow-lg font-medium text-sm"
+                      className="inline-flex items-center justify-center w-10 h-10 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all duration-200 shadow-md hover:shadow-lg"
+                      iconOnly={true}
                     />
                   ) : (selectedBulletin.metadata.formType || 'form6') === 'bachelorDiploma' ? (
                     <BachelorDiplomaPDFDownloadButton
                       data={transformDataForBachelorDiploma(getBulletinDisplayData(selectedBulletin))}
                       documentId={selectedBulletin.id}
-                      className="inline-flex items-center justify-center w-full px-5 py-2.5 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-all duration-200 shadow-md hover:shadow-lg font-medium text-sm"
+                      className="inline-flex items-center justify-center w-10 h-10 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-all duration-200 shadow-md hover:shadow-lg"
+                      iconOnly={true}
                     />
                   ) : (selectedBulletin.metadata.formType || 'form6') === 'highSchoolAttestation' ? (
                     <HighSchoolAttestationPDFDownloadButton
                       data={transformDataForHighSchoolAttestation(getBulletinDisplayData(selectedBulletin))}
                       documentId={selectedBulletin.id}
-                      className="inline-flex items-center justify-center w-full px-5 py-2.5 bg-rose-600 text-white rounded-lg hover:bg-rose-700 transition-all duration-200 shadow-md hover:shadow-lg font-medium text-sm"
+                      className="inline-flex items-center justify-center w-10 h-10 bg-rose-600 text-white rounded-lg hover:bg-rose-700 transition-all duration-200 shadow-md hover:shadow-lg"
+                      iconOnly={true}
                     />
                   ) : (selectedBulletin.metadata.formType || 'form6') === 'stateExamAttestation' ? (
                     <StateExamAttestationPDFDownloadButton
                       data={transformDataForStateExamAttestation(getBulletinDisplayData(selectedBulletin))}
                       documentId={selectedBulletin.id}
-                      className="inline-flex items-center justify-center w-full px-5 py-2.5 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-all duration-200 shadow-md hover:shadow-lg font-medium text-sm"
+                      className="inline-flex items-center justify-center w-10 h-10 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-all duration-200 shadow-md hover:shadow-lg"
+                      iconOnly={true}
                     />
                   ) : (selectedBulletin.metadata.formType || 'form6') === 'collegeTranscript' ? (
                     <CollegeTranscriptPDFDownloadButton
                       data={transformDataForCollegeTranscript(getBulletinDisplayData(selectedBulletin))}
                       documentId={selectedBulletin.id}
-                      className="inline-flex items-center justify-center w-full px-5 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all duration-200 shadow-md hover:shadow-lg font-medium text-sm"
+                      className="inline-flex items-center justify-center w-10 h-10 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all duration-200 shadow-md hover:shadow-lg"
+                      iconOnly={true}
                     />
                   ) : (selectedBulletin.metadata.formType || 'form6') === 'collegeAttestation' ? (
                     <CollegeAttestationPDFDownloadButton
                       data={transformDataForCollegeAttestation(getBulletinDisplayData(selectedBulletin))}
                       documentId={selectedBulletin.id}
-                      className="inline-flex items-center justify-center w-full px-5 py-2.5 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-all duration-200 shadow-md hover:shadow-lg font-medium text-sm"
+                      className="inline-flex items-center justify-center w-10 h-10 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-all duration-200 shadow-md hover:shadow-lg"
+                      iconOnly={true}
                     />
                   ) : (
                     <FirestoreOnlyPDFDownloadButton
@@ -1895,7 +1744,7 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                       studentName={getBulletinDisplayData(selectedBulletin)?.studentName}
                       onSuccess={handlePDFSuccess}
                       onError={handlePDFError}
-                      tableSize={tableSize}
+                      iconOnly={true}
                     />
                   )}
                 </div>
@@ -1906,13 +1755,12 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                     selectedBulletin.id,
                     getBulletinDisplayData(selectedBulletin)?.studentName || 'Student'
                   )}
-                  className="inline-flex items-center justify-center px-5 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all duration-200 shadow-md hover:shadow-lg font-medium text-sm"
-                  title="Delete this bulletin"
+                  className="inline-flex items-center justify-center w-10 h-10 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all duration-200 shadow-md hover:shadow-lg"
+                  title={i18n.language === 'fr' ? 'Supprimer' : 'Delete'}
                 >
-                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                   </svg>
-                  <span>Delete</span>
                 </button>
               </div>
             </div>
@@ -2015,8 +1863,6 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                     isEditable={isEditing}
                     onDataChange={handleFieldUpdate}
                     documentId={selectedBulletin.id} // Pass Firestore document ID as documentId for QR codes
-                    initialTableSize={tableSize} // Pass current table size
-                    onTableSizeChange={setTableSize} // Update table size when changed
                   />
                 )}
                 {isEditing && (

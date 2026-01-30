@@ -104,6 +104,7 @@ export interface StateExamAttestationData {
     month: string;
     year: string;
   };
+  showValidUntil?: boolean; // Optional field to control visibility
   inspectorName: string;
 }
 
@@ -536,25 +537,70 @@ const StateExamAttestationTemplate: React.FC<StateExamAttestationTemplateProps> 
                       placeholder="21/10/2021"
                     />
                   </div>
-                  <div style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center',
-                    marginTop: '8px',
-                    flexWrap: 'wrap',
-                    gap: '4px',
-                    fontSize: screenWidth < 640 ? '10px' : '12px'
-                  }}>
-                    <span>VALID UNTIL</span>
-                    <EditableField
-                      value={`${attestationData.validUntil.day}/${attestationData.validUntil.month}/${attestationData.validUntil.year}`}
-                      onChange={(value) => handleDateFieldChange('validUntil', value)}
-                      style={{...infoFieldStyle, minWidth: '100px', fontFamily: '"Courier New", monospace'}}
-                      isEditable={isEditable}
-                      placeholder="21/02/2022"
-                    />
-                  </div>
+
+                  {/* VALID UNTIL Section - Conditionally rendered */}
+                  {attestationData.showValidUntil !== false && (
+                    <div style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center',
+                      marginTop: '8px',
+                      flexWrap: 'wrap',
+                      gap: '4px',
+                      fontSize: screenWidth < 640 ? '10px' : '12px'
+                    }}>
+                      <span>VALID UNTIL</span>
+                      <EditableField
+                        value={`${attestationData.validUntil.day}/${attestationData.validUntil.month}/${attestationData.validUntil.year}`}
+                        onChange={(value) => handleDateFieldChange('validUntil', value)}
+                        style={{...infoFieldStyle, minWidth: '100px', fontFamily: '"Courier New", monospace'}}
+                        isEditable={isEditable}
+                        placeholder="21/02/2022"
+                      />
+                    </div>
+                  )}
                 </div>
+
+                {/* Toggle for VALID UNTIL visibility */}
+                {isEditable && (
+                  <div style={{
+                    marginTop: '12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    fontSize: '12px',
+                    padding: '8px',
+                    backgroundColor: '#f3f4f6',
+                    borderRadius: '6px'
+                  }}>
+                    <input
+                      type="checkbox"
+                      id="showValidUntil"
+                      checked={attestationData.showValidUntil !== false}
+                      onChange={(e) => {
+                        const updatedData = { ...attestationData, showValidUntil: e.target.checked };
+                        setCurrentData(updatedData);
+                        onDataChange?.(updatedData);
+                      }}
+                      style={{
+                        cursor: 'pointer',
+                        width: '16px',
+                        height: '16px'
+                      }}
+                    />
+                    <label 
+                      htmlFor="showValidUntil" 
+                      style={{ 
+                        cursor: 'pointer',
+                        fontWeight: '500',
+                        color: '#374151'
+                      }}
+                    >
+                      Show "VALID UNTIL" field
+                    </label>
+                  </div>
+                )}
 
                 {/* Signatures Section */}
                 <div style={{ margin: screenWidth < 640 ? '15px 0' : '20px 0', position: 'relative' }}>

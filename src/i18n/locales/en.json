@@ -287,19 +287,35 @@
       "selectType": "Select Document Type",
       "form4": {
         "title": "Form 4 Bulletin",
-        "subtitle": "4ième Secondaire / 2ième Humanité"
+        "subtitle": "4th Secondary / 2nd Humanities"
       },
       "form6": {
         "title": "Form 6 Bulletin",
-        "subtitle": "4ième Humanité / 6ième Secondaire"
+        "subtitle": "4th Humanities / 6th Secondary"
       },
       "collegeTranscript": {
         "title": "College Transcript",
         "subtitle": "University annual transcript"
       },
+      "collegeAttestation": {
+        "title": "College Attestation",
+        "subtitle": "Certificate of attendance"
+      },
       "stateDiploma": {
         "title": "State Diploma",
         "subtitle": "Official State Certificate"
+      },
+      "bachelorDiploma": {
+        "title": "Bachelor's Diploma",
+        "subtitle": "University degree certificate"
+      },
+      "highSchoolAttestation": {
+        "title": "High School Attestation",
+        "subtitle": "School attendance certificate"
+      },
+      "stateExamAttestation": {
+        "title": "State Exam Attestation",
+        "subtitle": "Provisional pass certificate"
       },
       "dragDrop": "Drag and drop your document here or click to select",
       "uploading": "Uploading...",
