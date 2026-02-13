@@ -10,7 +10,8 @@ import {
   CollegeAnnualTranscriptTemplate,
   CollegeAttestationTemplate,
   HighSchoolAttestationTemplate,
-  StateExamAttestationTemplate
+  StateExamAttestationTemplate,
+  GeneralDocumentTemplate
 } from '../components/templates';
 
 const CardOnlyPage: React.FC = () => {
@@ -210,6 +211,16 @@ const CardOnlyPage: React.FC = () => {
             data={studentData} 
             documentId={documentId}
             isEditable={false}
+            onDataChange={() => {}} // No-op for PDF generation
+          />
+        );
+      case 'generalDocument':
+        return (
+          <GeneralDocumentTemplate 
+            data={studentData} 
+            documentId={documentId}
+            isEditable={false}
+            printMode={true}
             onDataChange={() => {}} // No-op for PDF generation
           />
         );

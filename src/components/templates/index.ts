@@ -9,9 +9,11 @@ export { default as CollegeAnnualTranscriptTemplate } from './CollegeAnnualTrans
 export { default as CollegeAttestationTemplate } from './CollegeAttestationTemplate';
 export { default as HighSchoolAttestationTemplate } from './HighSchoolAttestationTemplate';
 export { default as StateExamAttestationTemplate } from './StateExamAttestationTemplate';
+export { default as GeneralDocumentTemplate } from './GeneralDocumentTemplate';
 
 // Re-export types
 export type { CollegeTranscriptData } from './CollegeAnnualTranscriptTemplate';
 export type { CollegeAttestationData } from './CollegeAttestationTemplate';
 export type { HighSchoolAttestationData } from './HighSchoolAttestationTemplate';
 export type { StateExamAttestationData } from './StateExamAttestationTemplate';
+export type { GeneralDocumentData, ContentBlock, DocumentPage } from './GeneralDocumentTemplate';

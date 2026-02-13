@@ -9,7 +9,8 @@ export type FormType =
   | 'stateDiploma' 
   | 'bachelorDiploma' 
   | 'highSchoolAttestation' 
-  | 'stateExamAttestation';
+  | 'stateExamAttestation'
+  | 'generalDocument';
 
 export interface BulletinRecord {
   id: string;

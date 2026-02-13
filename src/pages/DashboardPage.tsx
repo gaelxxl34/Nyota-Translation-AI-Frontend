@@ -142,6 +142,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
       bachelorDiploma: 'Bachelor Diploma',
       highSchoolAttestation: 'High School Attestation',
       stateExamAttestation: 'State Exam Attestation',
+      generalDocument: 'General Document',
     };
     return labels[formType] || formType;
   };

@@ -20,7 +20,8 @@ import {
   StateDiplomaTemplate,
   BachelorDiplomaTemplate,
   HighSchoolAttestationTemplate,
-  StateExamAttestationTemplate
+  StateExamAttestationTemplate,
+  GeneralDocumentTemplate
 } from '../components/templates';
 import {
   FirestoreOnlyPDFDownloadButton,
@@ -77,6 +78,7 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
   const [previewFile, setPreviewFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
+  const [targetLanguage, setTargetLanguage] = useState<'english' | 'french' | 'swahili'>('english');
   
   const db = getFirestore();
 
@@ -155,7 +157,7 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
       const query = searchQuery.toLowerCase();
       result = result.filter(b => {
         const displayData = b.editedData || b.originalData;
-        const studentName = (displayData?.studentName || b.metadata.studentName || '').toLowerCase();
+        const studentName = (displayData?.studentName || displayData?.documentTitle || b.metadata.studentName || '').toLowerCase();
         const fileName = (b.metadata.fileName || '').toLowerCase();
         return studentName.includes(query) || fileName.includes(query);
       });
@@ -420,10 +422,18 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
-    const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp']; // Removed PDF
+    // Validate file type - PDF allowed only for generalDocument
+    const imageTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp'];
+    const allowedTypes = selectedFormType === 'generalDocument' 
+      ? [...imageTypes, 'application/pdf']
+      : imageTypes;
+    
     if (!allowedTypes.includes(file.type)) {
-      setError('Please select a valid file type (PNG, JPG, JPEG, GIF, WEBP)\nMiye Sipendi pdf pardon');
+      if (selectedFormType === 'generalDocument') {
+        setError('Please select a valid file type (PNG, JPG, JPEG, GIF, WEBP, or PDF)');
+      } else {
+        setError('Please select a valid file type (PNG, JPG, JPEG, GIF, WEBP)');
+      }
       return;
     }
 
@@ -480,6 +490,9 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
       const formData = new FormData();
       formData.append('file', previewFile);
       formData.append('formType', selectedFormType); // Add form type to the upload
+      if (selectedFormType === 'generalDocument') {
+        formData.append('targetLanguage', targetLanguage); // Add target translation language
+      }
 
       // Uploading file to server
 
@@ -943,6 +956,37 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                   </div>
                 )}
               </button>
+
+              {/* General Document (PDF) */}
+              <button
+                onClick={() => setSelectedFormType('generalDocument')}
+                className={`group relative p-4 rounded-xl border-2 transition-all duration-200 text-left ${
+                  selectedFormType === 'generalDocument'
+                    ? 'border-orange-500 bg-orange-50 shadow-md'
+                    : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
+                }`}
+              >
+                <div className={`w-10 h-10 rounded-lg flex items-center justify-center mb-3 ${
+                  selectedFormType === 'generalDocument' ? 'bg-orange-500' : 'bg-gray-100 group-hover:bg-gray-200'
+                }`}>
+                  <svg className={`w-5 h-5 ${selectedFormType === 'generalDocument' ? 'text-white' : 'text-gray-600'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <h4 className={`font-semibold text-sm ${selectedFormType === 'generalDocument' ? 'text-orange-700' : 'text-gray-900'}`}>
+                  {i18n.language === 'fr' ? 'Document Général' : 'General Document'}
+                </h4>
+                <p className={`text-xs mt-1 ${selectedFormType === 'generalDocument' ? 'text-orange-600' : 'text-gray-500'}`}>
+                  {i18n.language === 'fr' ? 'PDF multi-pages' : 'Multi-page PDF'}
+                </p>
+                {selectedFormType === 'generalDocument' && (
+                  <div className="absolute top-2 right-2 w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center">
+                    <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                )}
+              </button>
             </div>
           </div>
           <div 
@@ -989,7 +1033,7 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                 </h3>
                 <input
                   type="file"
-                  accept=".png,.jpg,.jpeg,.gif,.webp" // Removed .pdf
+                  accept={selectedFormType === 'generalDocument' ? '.png,.jpg,.jpeg,.gif,.webp,.pdf' : '.png,.jpg,.jpeg,.gif,.webp'}
                   className="hidden"
                   id="file-upload"
                   onChange={handleFileUpload}
@@ -1059,14 +1103,24 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Modal Body - Image Preview */}
+              {/* Modal Body - Document Preview */}
               <div className="flex-1 overflow-auto p-4 sm:p-6 bg-gray-50">
                 <div className="bg-white rounded-lg shadow-md p-4 flex items-center justify-center">
-                  <img
-                    src={previewUrl}
-                    alt="Document preview"
-                    className="max-w-full max-h-[60vh] object-contain rounded"
-                  />
+                  {previewFile?.type === 'application/pdf' ? (
+                    <div className="text-center py-8">
+                      <svg className="w-20 h-20 text-red-500 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                      </svg>
+                      <p className="text-lg font-medium text-gray-700">{previewFile.name}</p>
+                      <p className="text-sm text-gray-500 mt-1">PDF Document - Ready for AI translation</p>
+                    </div>
+                  ) : (
+                    <img
+                      src={previewUrl || ''}
+                      alt="Document preview"
+                      className="max-w-full max-h-[60vh] object-contain rounded"
+                    />
+                  )}
                 </div>
                 
                 {/* File Info */}
@@ -1095,10 +1149,60 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                            selectedFormType === 'stateDiploma' ? 'State Diploma' :
                            selectedFormType === 'bachelorDiploma' ? 'Bachelor Diploma' :
                            selectedFormType === 'highSchoolAttestation' ? 'High School Attestation' :
-                           selectedFormType === 'stateExamAttestation' ? 'State Exam Attestation' : selectedFormType}
+                           selectedFormType === 'stateExamAttestation' ? 'State Exam Attestation' :
+                           selectedFormType === 'generalDocument' ? 'General Document' : selectedFormType}
                         </p>
                       </div>
                     </div>
+                  </div>
+                )}
+
+                {/* Language Selector - Only for General Document */}
+                {selectedFormType === 'generalDocument' && (
+                  <div className="mt-4 bg-orange-50 border border-orange-200 rounded-lg p-4">
+                    <label className="block font-semibold text-gray-700 mb-2">
+                      🌍 {i18n.language === 'fr' ? 'Traduire vers :' : 'Translate to:'}
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setTargetLanguage('english')}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                          targetLanguage === 'english'
+                            ? 'bg-orange-500 text-white shadow-md'
+                            : 'bg-white text-gray-700 border border-gray-300 hover:border-orange-300 hover:bg-orange-50'
+                        }`}
+                      >
+                        🇬🇧 English
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setTargetLanguage('french')}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                          targetLanguage === 'french'
+                            ? 'bg-orange-500 text-white shadow-md'
+                            : 'bg-white text-gray-700 border border-gray-300 hover:border-orange-300 hover:bg-orange-50'
+                        }`}
+                      >
+                        🇫🇷 Français
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setTargetLanguage('swahili')}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                          targetLanguage === 'swahili'
+                            ? 'bg-orange-500 text-white shadow-md'
+                            : 'bg-white text-gray-700 border border-gray-300 hover:border-orange-300 hover:bg-orange-50'
+                        }`}
+                      >
+                        🇰🇪 Kiswahili
+                      </button>
+                    </div>
+                    <p className="text-xs text-orange-600 mt-2">
+                      {i18n.language === 'fr'
+                        ? 'Le document sera traduit dans la langue sélectionnée'
+                        : 'The document will be translated into the selected language'}
+                    </p>
                   </div>
                 )}
               </div>
@@ -1278,6 +1382,18 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                     {i18n.language === 'fr' ? 'Att. Réussite' : 'Exam Att.'} ({documentTypeCounts.stateExamAttestation})
                   </button>
                 )}
+                {documentTypeCounts.generalDocument > 0 && (
+                  <button
+                    onClick={() => setFilterType('generalDocument')}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                      filterType === 'generalDocument'
+                        ? 'bg-orange-500 text-white'
+                        : 'bg-orange-50 text-orange-700 hover:bg-orange-100'
+                    }`}
+                  >
+                    {i18n.language === 'fr' ? 'Doc. Général' : 'General Doc.'} ({documentTypeCounts.generalDocument})
+                  </button>
+                )}
               </div>
             </div>
           )}
@@ -1339,7 +1455,7 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <h3 className="font-semibold text-gray-900 text-lg">
-                          {displayData?.studentName || bulletin.metadata.studentName || 'Unknown Student'}
+                          {displayData?.studentName || displayData?.documentTitle || bulletin.metadata.studentName || 'Unknown Student'}
                         </h3>
                         <p className="text-sm text-gray-600 mt-1">
                           {(bulletin.metadata.formType || 'form6') === 'stateDiploma' ? (
@@ -1374,6 +1490,11 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                             <>
                               {displayData?.institutionName || displayData?.institutionAbbreviation || 'College'} {displayData?.yearLevel ? ' • ' + displayData.yearLevel : (displayData?.academicYear ? ' • ' + displayData.academicYear : '')}
                             </>
+                          ) : (bulletin.metadata.formType || 'form6') === 'generalDocument' ? (
+                            // For General Document, show document type and organization
+                            <>
+                              {displayData?.documentType || 'Document'} {displayData?.organization ? ' • ' + displayData.organization : ''}
+                            </>
                           ) : (
                             // For Form 4/6, show class and school
                             `${displayData?.class || 'Unknown Class'} • ${displayData?.school || 'Unknown School'}`
@@ -1404,6 +1525,8 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                             ? 'bg-rose-100 text-rose-800'
                             : (bulletin.metadata.formType || 'form6') === 'stateExamAttestation'
                             ? 'bg-cyan-100 text-cyan-800'
+                            : (bulletin.metadata.formType || 'form6') === 'generalDocument'
+                            ? 'bg-orange-100 text-orange-800'
                             : 'bg-blue-100 text-blue-800'
                           }
                         `}>
@@ -1421,6 +1544,8 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                             ? 'High School Attestation'
                             : (bulletin.metadata.formType || 'form6') === 'stateExamAttestation'
                             ? 'State Exam Attestation'
+                            : (bulletin.metadata.formType || 'form6') === 'generalDocument'
+                            ? 'General Document'
                             : 'Form 6'
                           }
                         </span>
@@ -1440,7 +1565,7 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                             e.stopPropagation(); // Prevent card selection when clicking delete
                             handleDeleteBulletin(
                               bulletin.id, 
-                              displayData?.studentName || bulletin.metadata.studentName || 'Unknown Student'
+                              displayData?.studentName || displayData?.documentTitle || bulletin.metadata.studentName || 'Unknown Student'
                             );
                           }}
                           className="group flex items-center justify-center w-7 h-7 rounded-full bg-red-50 hover:bg-red-100 border border-red-200 hover:border-red-300 transition-all duration-200"
@@ -1575,7 +1700,7 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
               <div>
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
                   <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
-                    📄 {getBulletinDisplayData(selectedBulletin)?.studentName || 'Student Report Card'}
+                    📄 {getBulletinDisplayData(selectedBulletin)?.studentName || getBulletinDisplayData(selectedBulletin)?.documentTitle || 'Student Report Card'}
                   </h2>
                   {/* Form Type Badge */}
                   <span className={`px-2 sm:px-3 py-1 rounded-full text-xs font-medium ${
@@ -1593,6 +1718,8 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                       ? 'bg-rose-100 text-rose-800'
                       : (selectedBulletin.metadata.formType || 'form6') === 'stateExamAttestation'
                       ? 'bg-cyan-100 text-cyan-800'
+                      : (selectedBulletin.metadata.formType || 'form6') === 'generalDocument'
+                      ? 'bg-orange-100 text-orange-800'
                       : 'bg-blue-100 text-blue-800'
                   }`}>
                     {(selectedBulletin.metadata.formType || 'form6') === 'form4' 
@@ -1609,6 +1736,8 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                       ? 'High School Attestation'
                       : (selectedBulletin.metadata.formType || 'form6') === 'stateExamAttestation'
                       ? 'State Exam Attestation'
+                      : (selectedBulletin.metadata.formType || 'form6') === 'generalDocument'
+                      ? 'General Document'
                       : 'Form 6'
                     }
                   </span>
@@ -1645,6 +1774,11 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                     // For College Attestation, show institution and section/option
                     <>
                       {getBulletinDisplayData(selectedBulletin)?.institutionName || getBulletinDisplayData(selectedBulletin)?.institutionAbbreviation || 'College'} {getBulletinDisplayData(selectedBulletin)?.section ? ' • ' + getBulletinDisplayData(selectedBulletin)?.section : ''} {getBulletinDisplayData(selectedBulletin)?.option && getBulletinDisplayData(selectedBulletin)?.section ? ' - ' + getBulletinDisplayData(selectedBulletin)?.option : (getBulletinDisplayData(selectedBulletin)?.option ? ' • ' + getBulletinDisplayData(selectedBulletin)?.option : '')}
+                    </>
+                  ) : (selectedBulletin.metadata.formType || 'form6') === 'generalDocument' ? (
+                    // For General Document, show document type and organization
+                    <>
+                      {getBulletinDisplayData(selectedBulletin)?.documentType || 'Document'} {getBulletinDisplayData(selectedBulletin)?.organization ? ' • ' + getBulletinDisplayData(selectedBulletin)?.organization : ''}
                     </>
                   ) : (
                     // For Form 4/6, show class and school
@@ -1736,7 +1870,7 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                   ) : (
                     <FirestoreOnlyPDFDownloadButton
                       firestoreId={selectedBulletin.id}
-                      studentName={getBulletinDisplayData(selectedBulletin)?.studentName}
+                      studentName={getBulletinDisplayData(selectedBulletin)?.studentName || getBulletinDisplayData(selectedBulletin)?.documentTitle}
                       onSuccess={handlePDFSuccess}
                       onError={handlePDFError}
                       iconOnly={true}
@@ -1748,7 +1882,7 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                 <button
                   onClick={() => handleDeleteBulletin(
                     selectedBulletin.id,
-                    getBulletinDisplayData(selectedBulletin)?.studentName || 'Student'
+                    getBulletinDisplayData(selectedBulletin)?.studentName || getBulletinDisplayData(selectedBulletin)?.documentTitle || 'Student'
                   )}
                   className="inline-flex items-center justify-center w-10 h-10 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all duration-200 shadow-md hover:shadow-lg"
                   title={i18n.language === 'fr' ? 'Supprimer' : 'Delete'}
@@ -1763,7 +1897,10 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
             <div className="bg-white rounded-lg border border-gray-200 overflow-x-auto">
               <div className="bg-blue-900 text-white p-3 sm:p-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
                 <h3 className="font-bold text-base sm:text-lg">
-                  {isEditing ? '✏️ Editing Report Card (Auto-Save)' : '📄 Official Report Card Template'}
+                  {isEditing 
+                    ? ((selectedBulletin?.metadata?.formType) === 'generalDocument' ? '✏️ Editing Document (Auto-Save)' : '✏️ Editing Report Card (Auto-Save)')
+                    : ((selectedBulletin?.metadata?.formType) === 'generalDocument' ? '📄 Official Translated Document' : '📄 Official Report Card Template')
+                  }
                 </h3>
                 <div className="flex items-center space-x-2">
                   {isEditing && (
@@ -1851,6 +1988,13 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                     isEditable={isEditing}
                     onDataChange={handleFieldUpdate}
                     documentId={selectedBulletin.id} // Pass Firestore document ID as documentId for QR codes
+                  />
+                ) : (selectedBulletin.metadata.formType || 'form6') === 'generalDocument' ? (
+                  <GeneralDocumentTemplate 
+                    data={getBulletinDisplayData(selectedBulletin)} 
+                    isEditable={isEditing}
+                    onDataChange={handleFieldUpdate}
+                    documentId={selectedBulletin.id}
                   />
                 ) : (
                   <Form6Template 

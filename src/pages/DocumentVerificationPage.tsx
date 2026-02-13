@@ -376,10 +376,34 @@ const DocumentVerificationPage: React.FC<DocumentVerificationPageProps> = ({
                     </div>
                     
                     <div className="space-y-3">
+                      {/* Document Title (for general documents) */}
+                      {documentData.documentTitle && (
+                        <div className="flex justify-between items-center py-3 px-4 bg-gray-50 rounded-lg">
+                          <span className="font-medium text-gray-700">{t('verification.documentInfo.documentTitle', 'Document Title')}:</span>
+                          <span className="font-semibold text-gray-900 text-right max-w-[60%]">{documentData.documentTitle}</span>
+                        </div>
+                      )}
+
+                      {/* Document Type */}
+                      {documentData.documentType && (
+                        <div className="flex justify-between items-center py-3 px-4 bg-gray-50 rounded-lg">
+                          <span className="font-medium text-gray-700">{t('verification.documentInfo.documentType', 'Document Type')}:</span>
+                          <span className="font-semibold text-gray-900">{documentData.documentType}</span>
+                        </div>
+                      )}
+
                       <div className="flex justify-between items-center py-3 px-4 bg-gray-50 rounded-lg">
-                        <span className="font-medium text-gray-700">{t('verification.documentInfo.studentName')}:</span>
+                        <span className="font-medium text-gray-700">{documentData.formType === 'generalDocument' ? t('verification.documentInfo.translatedBy', 'Translated By') : t('verification.documentInfo.studentName')}:</span>
                         <span className="font-semibold text-gray-900">{documentData.studentName}</span>
                       </div>
+
+                      {/* Languages */}
+                      {documentData.sourceLanguage && documentData.targetLanguage && (
+                        <div className="flex justify-between items-center py-3 px-4 bg-gray-50 rounded-lg">
+                          <span className="font-medium text-gray-700">{t('verification.documentInfo.translation', 'Translation')}:</span>
+                          <span className="font-semibold text-gray-900">{documentData.sourceLanguage} → {documentData.targetLanguage}</span>
+                        </div>
+                      )}
                       
                       <div className="flex justify-between items-center py-3 px-4 bg-gray-50 rounded-lg">
                         <span className="font-medium text-gray-700">{t('verification.documentInfo.generationDate')}:</span>

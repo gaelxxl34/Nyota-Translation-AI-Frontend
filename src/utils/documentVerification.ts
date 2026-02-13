@@ -8,6 +8,11 @@ import { collection, query, where, getDocs } from 'firebase/firestore';
 export interface VerificationData {
   studentName: string;
   generationDate: string;
+  documentTitle?: string;
+  documentType?: string;
+  sourceLanguage?: string;
+  targetLanguage?: string;
+  formType?: string;
 }
 
 /** 
@@ -127,10 +132,21 @@ export const getVerificationData = async (documentId: string): Promise<Verificat
         }
       }
       
-      const verificationData = {
+      const verificationData: VerificationData = {
         studentName: studentName,
-        generationDate: bulletinData.createdAt || bulletinData.uploadedAt || new Date().toISOString()
+        generationDate: bulletinData.createdAt || bulletinData.uploadedAt || bulletinData.metadata?.createdAt || new Date().toISOString(),
+        // General document specific fields
+        documentTitle: bulletinData.editedData?.documentTitle || bulletinData.originalData?.documentTitle || undefined,
+        documentType: bulletinData.editedData?.documentType || bulletinData.originalData?.documentType || undefined,
+        sourceLanguage: bulletinData.editedData?.sourceLanguage || bulletinData.originalData?.sourceLanguage || undefined,
+        targetLanguage: bulletinData.editedData?.targetLanguage || bulletinData.originalData?.targetLanguage || bulletinData.metadata?.targetLanguage || undefined,
+        formType: bulletinData.metadata?.formType || bulletinData.editedData?.formType || undefined,
       };
+      
+      // For general documents, use documentTitle as studentName fallback if no real name found
+      if (studentName === 'Unknown Student' && verificationData.documentTitle) {
+        verificationData.studentName = verificationData.documentTitle;
+      }
       
       console.log('✅ Returning verification data:', verificationData);
       return verificationData;
