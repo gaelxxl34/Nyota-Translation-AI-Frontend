@@ -15,6 +15,7 @@ const getFormTypeDisplayName = (formType: FormType): string => {
     bachelorDiploma: 'Diplôme de Licence',
     highSchoolAttestation: 'Attestation Lycée',
     stateExamAttestation: 'Attestation Examen d\'État',
+    generalDocument: 'Document Général',
   };
   return displayNames[formType] || formType;
 };

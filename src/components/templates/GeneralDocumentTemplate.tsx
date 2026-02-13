@@ -383,15 +383,6 @@ const GeneralDocumentTemplate: React.FC<GeneralDocumentTemplateProps> = ({
     setShowEditor(false);
   };
 
-  // Delete a block from a page
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleDeleteBlock = (pageIndex: number, blockIndex: number) => {
-    if (!onDataChange || !data.pages) return;
-    const newPages = [...data.pages];
-    const newBlocks = newPages[pageIndex].blocks.filter((_, i) => i !== blockIndex);
-    newPages[pageIndex] = { ...newPages[pageIndex], blocks: newBlocks };
-    onDataChange({ ...data, pages: newPages });
-  };
 
   return (
     <div
