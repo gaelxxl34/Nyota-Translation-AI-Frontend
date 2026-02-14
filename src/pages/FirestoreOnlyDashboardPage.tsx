@@ -3,7 +3,7 @@
 // No localStorage dependency - everything comes from and goes to Firestore
 // Refactored to use reusable components for maintainability
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { collection, query, where, getDocs, getFirestore, doc, updateDoc } from 'firebase/firestore';
 import { useAuth } from '../AuthProvider';
 import { useLoading } from '../contexts/LoadingContext';
@@ -74,13 +74,27 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
   const [itemsPerPage] = useState(9); // 3x3 grid
   const [isPreviewExpanded, setIsPreviewExpanded] = useState(true); // Toggle for selected bulletin preview
   
-  // Preview states
+  // Preview states (support single file for regular types, multiple for generalDocument)
   const [previewFile, setPreviewFile] = useState<File | null>(null);
+  const [previewFiles, setPreviewFiles] = useState<File[]>([]);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [showPreview, setShowPreview] = useState(false);
   const [targetLanguage, setTargetLanguage] = useState<'english' | 'french' | 'swahili'>('english');
   
+  // Ref for aborting in-flight uploads
+  const uploadAbortRef = useRef<AbortController | null>(null);
+
   const db = getFirestore();
+
+  // Cleanup object URLs and abort controller on unmount to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      if (uploadAbortRef.current) {
+        uploadAbortRef.current.abort();
+      }
+    };
+  }, []);
 
   // Load user's bulletins from Firestore ONLY
   const loadUserBulletins = useCallback(async () => {
@@ -417,48 +431,85 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
     }
   };
 
-  // Handle file upload - Show preview first
+  // Handle file upload - Show preview first (supports multiple files for generalDocument)
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+    const fileList = event.target.files;
+    if (!fileList || fileList.length === 0) return;
 
-    // Validate file type - PDF allowed only for generalDocument
+    // Validate file types
     const imageTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp'];
     const allowedTypes = selectedFormType === 'generalDocument' 
       ? [...imageTypes, 'application/pdf']
       : imageTypes;
     
-    if (!allowedTypes.includes(file.type)) {
-      if (selectedFormType === 'generalDocument') {
-        setError('Please select a valid file type (PNG, JPG, JPEG, GIF, WEBP, or PDF)');
-      } else {
-        setError('Please select a valid file type (PNG, JPG, JPEG, GIF, WEBP)');
+    const maxSize = 10 * 1024 * 1024; // 10MB per file
+    const maxFiles = 20; // Match backend limit
+    const maxTotalSize = 100 * 1024 * 1024; // 100MB total limit
+    const files = Array.from(fileList);
+
+    // Enforce file count limit
+    if (files.length > maxFiles) {
+      setError(`Too many files selected (${files.length}). Maximum is ${maxFiles} files at once.`);
+      return;
+    }
+
+    // Validate individual files
+    for (const file of files) {
+      if (!allowedTypes.includes(file.type)) {
+        const msg = selectedFormType === 'generalDocument'
+          ? `Invalid file type: ${file.name}. Allowed: PNG, JPG, JPEG, GIF, WEBP, PDF`
+          : `Invalid file type: ${file.name}. Allowed: PNG, JPG, JPEG, GIF, WEBP`;
+        setError(msg);
+        return;
       }
+      if (file.size > maxSize) {
+        setError(`File "${file.name}" exceeds the 10MB limit`);
+        return;
+      }
+    }
+
+    // Enforce total size limit
+    const totalSize = files.reduce((sum, f) => sum + f.size, 0);
+    if (totalSize > maxTotalSize) {
+      setError(`Total file size (${(totalSize / 1024 / 1024).toFixed(1)}MB) exceeds the 100MB limit. Please select fewer or smaller files.`);
       return;
     }
 
-    // Validate file size (max 10MB)
-    const maxSize = 10 * 1024 * 1024;
-    if (file.size > maxSize) {
-      setError('File size must be less than 10MB');
-      return;
-    }
+    // Revoke previous preview URLs to prevent memory leaks
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    for (const url of previewUrls) URL.revokeObjectURL(url);
 
-    // Create preview URL
-    const objectUrl = URL.createObjectURL(file);
-    setPreviewFile(file);
-    setPreviewUrl(objectUrl);
+    if (selectedFormType === 'generalDocument' && files.length > 1) {
+      // Multi-file mode for generalDocument
+      const urls = files.map(f => URL.createObjectURL(f));
+      setPreviewFiles(files);
+      setPreviewUrls(urls);
+      setPreviewFile(files[0]);
+      setPreviewUrl(urls[0]);
+    } else {
+      // Single file mode
+      const objectUrl = URL.createObjectURL(files[0]);
+      setPreviewFile(files[0]);
+      setPreviewUrl(objectUrl);
+      setPreviewFiles([]);
+      setPreviewUrls([]);
+    }
     setShowPreview(true);
     setError(null);
   };
 
-  // Cancel preview and clear file
+  // Cancel preview and clear file(s)
   const handleCancelPreview = () => {
     if (previewUrl) {
       URL.revokeObjectURL(previewUrl);
     }
+    for (const url of previewUrls) {
+      URL.revokeObjectURL(url);
+    }
     setPreviewFile(null);
+    setPreviewFiles([]);
     setPreviewUrl(null);
+    setPreviewUrls([]);
     setShowPreview(false);
     // Clear the file input
     const fileInput = document.getElementById('file-upload') as HTMLInputElement;
@@ -467,9 +518,19 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
     }
   };
 
-  // Process the file after preview confirmation
+  // Process the file(s) after preview confirmation
   const handleProcessFile = async () => {
-    if (!previewFile) return;
+    const isMulti = selectedFormType === 'generalDocument' && previewFiles.length > 1;
+    if (!isMulti && !previewFile) return;
+    if (isMulti && previewFiles.length === 0) return;
+
+    // Abort any previous in-flight upload
+    if (uploadAbortRef.current) {
+      uploadAbortRef.current.abort();
+    }
+
+    const controller = new AbortController();
+    uploadAbortRef.current = controller;
 
     try {
       setIsUploading(true);
@@ -486,19 +547,24 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
         throw new Error('Authentication required');
       }
 
-      // Create form data
+      // Create form data (done asynchronously-safe — FormData append is fast)
       const formData = new FormData();
-      formData.append('file', previewFile);
-      formData.append('formType', selectedFormType); // Add form type to the upload
-      if (selectedFormType === 'generalDocument') {
-        formData.append('targetLanguage', targetLanguage); // Add target translation language
+      if (isMulti) {
+        // Multi-file upload for generalDocument
+        for (const file of previewFiles) {
+          formData.append('files', file);
+        }
+        formData.append('targetLanguage', targetLanguage);
+      } else {
+        formData.append('file', previewFile!);
+        formData.append('formType', selectedFormType);
+        if (selectedFormType === 'generalDocument') {
+          formData.append('targetLanguage', targetLanguage);
+        }
       }
 
-      // Uploading file to server
-
-      // Simulate upload progress stages with splash screen messages
+      // Non-blocking progress updates
       const updateProgress = (stage: string, progress: number) => {
-        // Upload progress update
         setUploadProgress(progress);
         setUploadStage(stage);
         showSplash(stage);
@@ -506,10 +572,11 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
 
       // Stage 1: Preparing upload (0-10%)
       updateProgress('Preparing upload...', 10);
-      await new Promise(resolve => setTimeout(resolve, 200));
+      // Yield to the browser so the UI can repaint before the heavy fetch
+      await new Promise(resolve => requestAnimationFrame(() => setTimeout(resolve, 0)));
 
       // Stage 2: Uploading file (10-30%)
-      updateProgress('Uploading your document...', 30);
+      updateProgress('Uploading your document...', 20);
       
       // Determine backend URL based on environment
       const isProduction = import.meta.env.PROD;
@@ -517,36 +584,25 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
       const currentHostname = window.location.hostname;
       const envApiUrl = import.meta.env.VITE_API_BASE_URL;
 
-      // Debug logging for production
-      console.log('🔧 Environment debug info:');
-      console.log(`  - isProduction: ${isProduction}`);
-      console.log(`  - currentHostname: ${currentHostname}`);
-      console.log(`  - envApiUrl: ${envApiUrl}`);
-
       let backendUrl: string;
       
       if (envApiUrl && envApiUrl !== 'https://your-backend-domain.com') {
-        // Use environment variable if set and not placeholder
         backendUrl = envApiUrl;
       } else if (isProduction) {
-        // Production fallback - same domain (reverse proxy should handle /api routing)
         backendUrl = `${currentProtocol}//${currentHostname}`;
       } else {
-        // Local development - use localhost with default port
         backendUrl = 'http://localhost:3001';
       }
       
       console.log(`🎯 Using backend URL: ${backendUrl}`);
 
-      // Upload to backend with timeout
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 300000); // 5 minute timeout for AI processing
+      // Auto-timeout after 5 minutes
+      const timeoutId = setTimeout(() => controller.abort(), 300000);
 
-      console.log(`🔄 Uploading to: ${backendUrl}/api/upload`);
-      console.log(`📄 File: ${previewFile.name} (${previewFile.size} bytes)`);
-      console.log(`📋 Form Type: ${selectedFormType}`);
+      const uploadEndpoint = isMulti ? `${backendUrl}/api/upload/multi` : `${backendUrl}/api/upload`;
+      console.log(`🔄 Uploading to: ${uploadEndpoint}`);
 
-      const response = await fetch(`${backendUrl}/api/upload`, {
+      const response = await fetch(uploadEndpoint, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${idToken}`,
@@ -555,62 +611,50 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
         signal: controller.signal,
       });
 
-      console.log(`📨 Response status: ${response.status} ${response.statusText}`);
       clearTimeout(timeoutId);
 
-      // Stage 3: Processing response (30-50%)
+      // Check if user cancelled while fetch was in progress
+      if (controller.signal.aborted) return;
+
+      console.log(`📨 Response status: ${response.status} ${response.statusText}`);
+
+      // Stage 3: Processing response (30-60%)
       updateProgress('Processing your document...', 50);
-
-      // Response received from server
-
-      // Response received from server
 
       if (!response.ok) {
         let errorMessage = 'Upload failed';
-        let responseText = '';
-        
         try {
-          responseText = await response.text();
-          const errorData = JSON.parse(responseText);
+          const errorData = await response.json();
           errorMessage = errorData.error || errorMessage;
           console.error('❌ Error response data:', errorData);
-        } catch (jsonError) {
-          // If response is not valid JSON, use status text
+        } catch {
           errorMessage = `Upload failed: ${response.status} ${response.statusText}`;
-          console.warn('Response is not valid JSON:', jsonError);
-          console.warn('Raw response text:', responseText);
         }
         throw new Error(errorMessage);
       }
 
-      // Stage 4: Extracting data (50-70%)
-      updateProgress('Extracting text with AI...', 70);
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Stage 4: Validating response (60-80%)
+      updateProgress('AI translation complete, validating...', 70);
 
+      // Read the response once and validate
       try {
-        const responseText = await response.text();
-        JSON.parse(responseText);
-        // Response JSON parsed successfully
-      } catch (jsonError) {
-        console.error('❌ Failed to parse JSON response:', jsonError);
-        throw new Error('Server returned invalid JSON response');
+        await response.json();
+      } catch {
+        throw new Error('Server returned invalid response');
       }
 
-      // Stage 5: Translating data (70-90%)
-      updateProgress('Translating to English...', 90);
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Upload successful
+      if (controller.signal.aborted) return;
 
-      // Stage 6: Saving to database (90-100%)
-      updateProgress('Saving to database...', 100);
-      await new Promise(resolve => setTimeout(resolve, 300));
+      // Stage 5: Saving to database (80-100%)
+      updateProgress('Saving to database...', 90);
 
       // Reset preview and file input
       handleCancelPreview();
 
       // Refresh bulletins list
       await loadUserBulletins();
+
+      updateProgress('Upload complete!', 100);
 
       // Hide splash screen and show success message briefly
       hideSplash();
@@ -620,6 +664,12 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
       }, 1000);
 
     } catch (error) {
+      // Don't show error if user intentionally cancelled
+      if (error instanceof DOMException && error.name === 'AbortError' && !controller.signal.reason) {
+        // User cancelled — silent
+        return;
+      }
+
       console.error('❌ Upload error:', error);
       
       if (error instanceof Error && error.name === 'AbortError') {
@@ -651,19 +701,78 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
   const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     event.stopPropagation();
+    if (isUploading) return; // Ignore drops while uploading
     
-    const files = event.dataTransfer.files;
-    if (files.length > 0) {
-      const file = files[0];
-      // Create a fake event to reuse the upload handler
-      const fakeEvent = {
-        target: {
-          files: [file],
-          value: ''
-        }
-      } as unknown as React.ChangeEvent<HTMLInputElement>;
-      handleFileUpload(fakeEvent);
+    const droppedFiles = event.dataTransfer.files;
+    if (droppedFiles.length === 0) return;
+
+    // Validate and process dropped files directly (avoid fake event hack)
+    const imageTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp'];
+    const allowedTypes = selectedFormType === 'generalDocument'
+      ? [...imageTypes, 'application/pdf']
+      : imageTypes;
+    const maxSize = 10 * 1024 * 1024;
+    const maxFiles = 20;
+    const maxTotalSize = 100 * 1024 * 1024;
+
+    const files = selectedFormType === 'generalDocument'
+      ? Array.from(droppedFiles)
+      : [droppedFiles[0]];
+
+    if (files.length > maxFiles) {
+      setError(`Too many files (${files.length}). Maximum is ${maxFiles}.`);
+      return;
     }
+
+    for (const file of files) {
+      if (!allowedTypes.includes(file.type)) {
+        setError(`Invalid file type: ${file.name}`);
+        return;
+      }
+      if (file.size > maxSize) {
+        setError(`File "${file.name}" exceeds the 10MB limit`);
+        return;
+      }
+    }
+
+    const totalSize = files.reduce((sum, f) => sum + f.size, 0);
+    if (totalSize > maxTotalSize) {
+      setError(`Total size (${(totalSize / 1024 / 1024).toFixed(1)}MB) exceeds 100MB limit.`);
+      return;
+    }
+
+    // Revoke previous preview URLs
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    for (const url of previewUrls) URL.revokeObjectURL(url);
+
+    if (selectedFormType === 'generalDocument' && files.length > 1) {
+      const urls = files.map(f => URL.createObjectURL(f));
+      setPreviewFiles(files);
+      setPreviewUrls(urls);
+      setPreviewFile(files[0]);
+      setPreviewUrl(urls[0]);
+    } else {
+      const objectUrl = URL.createObjectURL(files[0]);
+      setPreviewFile(files[0]);
+      setPreviewUrl(objectUrl);
+      setPreviewFiles([]);
+      setPreviewUrls([]);
+    }
+    setShowPreview(true);
+    setError(null);
+  };
+
+  // Cancel an in-progress upload
+  const handleCancelUpload = () => {
+    if (uploadAbortRef.current) {
+      uploadAbortRef.current.abort();
+      uploadAbortRef.current = null;
+    }
+    setIsUploading(false);
+    setUploadProgress(0);
+    setUploadStage('');
+    hideSplash();
+    setError(null);
   };
 
   if (!currentUser) {
@@ -1020,6 +1129,15 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                     {uploadProgress}% {t('dashboard.upload.completed')}
                   </p>
                 </div>
+                <button
+                  onClick={handleCancelUpload}
+                  className="mt-2 inline-flex items-center px-4 py-2 text-sm font-medium text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-colors"
+                >
+                  <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                  Cancel Upload
+                </button>
               </div>
             ) : (
               <>
@@ -1038,6 +1156,7 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                   id="file-upload"
                   onChange={handleFileUpload}
                   disabled={isUploading}
+                  multiple={selectedFormType === 'generalDocument'}
                 />
                 <label
                   htmlFor="file-upload"
@@ -1048,6 +1167,11 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                 <p className="text-sm text-gray-500 mt-2">
                   {t('dashboard.upload.supportedFormats')}
                 </p>
+                {selectedFormType === 'generalDocument' && (
+                  <p className="text-xs text-orange-500 mt-1">
+                    You can select multiple images — each one will become a page
+                  </p>
+                )}
               </>
             )}
           </div>
@@ -1105,6 +1229,43 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
 
               {/* Modal Body - Document Preview */}
               <div className="flex-1 overflow-auto p-4 sm:p-6 bg-gray-50">
+                {/* Multi-file thumbnail grid for generalDocument */}
+                {previewFiles.length > 1 ? (
+                  <div>
+                    <p className="text-sm font-medium text-gray-700 mb-3">
+                      {previewFiles.length} files selected — each image becomes a page in the document
+                    </p>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mb-4">
+                      {previewFiles.map((file, idx) => (
+                        <div
+                          key={idx}
+                          className="bg-white rounded-lg shadow border border-gray-200 overflow-hidden flex flex-col"
+                        >
+                          <div className="h-36 bg-gray-100 flex items-center justify-center p-2">
+                            {file.type === 'application/pdf' ? (
+                              <div className="text-center">
+                                <svg className="w-10 h-10 text-red-500 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                </svg>
+                                <span className="text-xs text-gray-500 mt-1">PDF</span>
+                              </div>
+                            ) : (
+                              <img
+                                src={previewUrls[idx]}
+                                alt={`Page ${idx + 1}`}
+                                className="max-h-full max-w-full object-contain"
+                              />
+                            )}
+                          </div>
+                          <div className="px-2 py-1.5 text-center border-t border-gray-100">
+                            <span className="text-xs font-medium text-blue-600">Page {idx + 1}</span>
+                            <p className="text-[10px] text-gray-400 truncate">{file.name}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
                 <div className="bg-white rounded-lg shadow-md p-4 flex items-center justify-center">
                   {previewFile?.type === 'application/pdf' ? (
                     <div className="text-center py-8">
@@ -1122,6 +1283,7 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                     />
                   )}
                 </div>
+                )}
                 
                 {/* File Info */}
                 {previewFile && (
@@ -1129,11 +1291,19 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                       <div>
                         <span className="font-semibold text-gray-700">File Name:</span>
-                        <p className="text-gray-900 truncate">{previewFile.name}</p>
+                        <p className="text-gray-900 truncate">
+                          {previewFiles.length > 1
+                            ? `${previewFiles.length} files selected`
+                            : previewFile.name}
+                        </p>
                       </div>
                       <div>
                         <span className="font-semibold text-gray-700">File Size:</span>
-                        <p className="text-gray-900">{(previewFile.size / 1024 / 1024).toFixed(2)} MB</p>
+                        <p className="text-gray-900">
+                          {previewFiles.length > 1
+                            ? `${(previewFiles.reduce((s, f) => s + f.size, 0) / 1024 / 1024).toFixed(2)} MB total`
+                            : `${(previewFile.size / 1024 / 1024).toFixed(2)} MB`}
+                        </p>
                       </div>
                       <div>
                         <span className="font-semibold text-gray-700">File Type:</span>
