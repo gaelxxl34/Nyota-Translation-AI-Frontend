@@ -73,7 +73,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
         setError(null);
 
         const idToken = await currentUser.getIdToken();
-        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/dashboard/stats`, {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001'}/api/dashboard/stats`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${idToken}`,

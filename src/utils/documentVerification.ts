@@ -12,7 +12,7 @@ export interface VerificationData {
   formType?: string;
 }
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
 
 /** 
  * Retry helper function with exponential backoff 

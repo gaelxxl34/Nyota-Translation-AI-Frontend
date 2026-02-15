@@ -1,7 +1,7 @@
 // Support Service for NTC
 // API calls for support dashboard functionality
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
 
 // Helper to get auth headers
 const getAuthHeaders = async (idToken: string) => ({

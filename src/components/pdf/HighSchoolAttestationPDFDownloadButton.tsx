@@ -47,7 +47,7 @@ const HighSchoolAttestationPDFDownloadButton: React.FC<HighSchoolAttestationPDFD
   buttonText = 'Download PDF',
   buttonClassName,
   className,
-  apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api',
+  apiUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api',
   iconOnly = false
 }) => {
   const [isDownloading, setIsDownloading] = useState(false);
