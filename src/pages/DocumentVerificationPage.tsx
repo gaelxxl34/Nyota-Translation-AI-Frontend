@@ -95,91 +95,21 @@ const DocumentVerificationPage: React.FC<DocumentVerificationPageProps> = ({
         url={`https://nyotatranslate.com/verify/${displayDocumentId}`}
       />
       
-      {/* Sticky Navigation Header - Same as Landing Page */}
+      {/* Minimal Navigation Header - Logo + Language Only */}
       <div className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-200/50 shadow-sm">
-        <nav className="container mx-auto px-4 sm:px-6 py-4">
-          {/* Mobile Layout - Optimized Stacked Design */}
-          <div className="sm:hidden">
-            {/* Top Row: Brand Identity and Language */}
-            <div className="flex items-center justify-between mb-4">
-              {/* Left: Logo and Brand */}
-              <div className="flex items-center space-x-2">
-                <img
-                  src="/logo-wide.png"
-                  alt="Nyota Translation Center Logo"
-                  className="h-8 w-auto rounded-lg shadow-md"
-                />
-                <h1 className="text-sm font-heading font-bold text-gray-900">
-                  {t('navigation.brandName')}
-                </h1>
-              </div>
-              
-              {/* Right: Language Switcher */}
-              <LanguageSwitcher />
-            </div>
-            
-            {/* Bottom Row: Authentication Actions */}
-            <div className="flex items-center space-x-3">
-              <button
-                onClick={() => onNavigate('login')}
-                className="btn-secondary text-sm px-4 py-2 flex-1"
-              >
-                {t('navigation.login')}
-              </button>
-              <button
-                onClick={() => onNavigate('register')}
-                className="btn-primary text-sm px-4 py-2 flex-1"
-              >
-                {t('navigation.getStarted')}
-              </button>
-            </div>
-          </div>
-
-          {/* Desktop Layout - Optimized Two-Block Design */}
-          <div className="hidden sm:flex items-center justify-between">
-            {/* Left Block: Brand Identity */}
-            <div className="flex items-center space-x-3 lg:space-x-4">
+        <nav className="container mx-auto px-4 sm:px-6 py-3">
+          <div className="flex items-center justify-between">
+            {/* Logo */}
+            <button onClick={() => onNavigate('landing')} className="flex-shrink-0">
               <img
                 src="/logo-wide.png"
-                alt="Nyota Translation Center Logo"
-                className="h-10 lg:h-12 w-auto rounded-lg shadow-md"
+                alt="Nyota Translation Center"
+                className="h-8 sm:h-10 w-auto rounded-lg"
               />
-              <h1 className="text-lg lg:text-xl font-heading font-bold text-gray-900">
-                {t('navigation.brandName')}
-              </h1>
-            </div>
+            </button>
 
-            {/* Right Block: User Actions */}
-            <div className="flex items-center space-x-3 lg:space-x-4">
-              {/* Back to Home Button */}
-              <button
-                onClick={() => onNavigate('landing')}
-                className="text-gray-600 hover:text-primary-600 transition-colors"
-              >
-                {t('verification.navigation.backToHome')}
-              </button>
-              
-              {/* Language Switcher */}
-              <div className="flex-shrink-0">
-                <LanguageSwitcher />
-              </div>
-              
-              {/* Authentication Buttons */}
-              <div className="flex items-center space-x-2 lg:space-x-3">
-                <button
-                  onClick={() => onNavigate('login')}
-                  className="btn-secondary text-sm lg:text-base px-4 lg:px-5 py-2 lg:py-2.5"
-                >
-                  {t('navigation.login')}
-                </button>
-                <button
-                  onClick={() => onNavigate('register')}
-                  className="btn-primary text-sm lg:text-base px-4 lg:px-5 py-2 lg:py-2.5"
-                >
-                  {t('navigation.getStarted')}
-                </button>
-              </div>
-            </div>
+            {/* Language Switcher */}
+            <LanguageSwitcher />
           </div>
         </nav>
       </div>
@@ -303,18 +233,7 @@ const DocumentVerificationPage: React.FC<DocumentVerificationPageProps> = ({
                   </svg>
                 </motion.div>
                 <h3 className="text-xl font-semibold text-red-900 mb-2">{t('verification.error.title')}</h3>
-                <p className="text-red-600 mb-4">{error}</p>
-                
-                {/* Network status indicator for mobile debugging */}
-                <div className="mb-6 p-4 bg-gray-50 rounded-lg text-sm text-left">
-                  <p className="font-semibold mb-2">Diagnostic Information:</p>
-                  <p>Network Status: <span className={navigator.onLine ? 'text-green-600' : 'text-red-600'}>
-                    {navigator.onLine ? '✓ Online' : '✗ Offline'}
-                  </span></p>
-                  <p className="text-xs text-gray-500 mt-2">
-                    If you're online and still seeing this error, please try the retry button below.
-                  </p>
-                </div>
+                <p className="text-red-600 mb-6">{error}</p>
                 
                 <motion.button
                   whileHover={{ scale: 1.05 }}
@@ -365,50 +284,54 @@ const DocumentVerificationPage: React.FC<DocumentVerificationPageProps> = ({
 
                 {/* Document Details */}
                 <motion.div 
-                  className="bg-white rounded-xl shadow-lg border border-gray-200/30 p-6"
+                  className="bg-white rounded-xl shadow-lg border border-gray-200/30 overflow-hidden"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4 }}
                 >
-                  <div className="space-y-4">
-                    <div className="text-center pb-4 border-b border-gray-100">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('verification.documentInfo.title')}</h3>
-                    </div>
-                    
-                    <div className="space-y-3">
-                      {/* Document Title (for general documents) */}
-                      {documentData.documentTitle && (
-                        <div className="flex justify-between items-center py-3 px-4 bg-gray-50 rounded-lg">
-                          <span className="font-medium text-gray-700">{t('verification.documentInfo.documentTitle', 'Document Title')}:</span>
-                          <span className="font-semibold text-gray-900 text-right max-w-[60%]">{documentData.documentTitle}</span>
-                        </div>
-                      )}
+                  {/* Header */}
+                  <div className="bg-gray-50 px-6 py-4 border-b border-gray-100">
+                    <h3 className="text-lg font-semibold text-gray-900 text-center">{t('verification.documentInfo.title')}</h3>
+                  </div>
 
-                      {/* Document Type */}
-                      {documentData.documentType && (
-                        <div className="flex justify-between items-center py-3 px-4 bg-gray-50 rounded-lg">
-                          <span className="font-medium text-gray-700">{t('verification.documentInfo.documentType', 'Document Type')}:</span>
-                          <span className="font-semibold text-gray-900">{documentData.documentType}</span>
-                        </div>
-                      )}
-
-                      <div className="flex justify-between items-center py-3 px-4 bg-gray-50 rounded-lg">
-                        <span className="font-medium text-gray-700">{documentData.formType === 'generalDocument' ? t('verification.documentInfo.translatedBy', 'Translated By') : t('verification.documentInfo.studentName')}:</span>
-                        <span className="font-semibold text-gray-900">{documentData.studentName}</span>
+                  {/* Table-style info rows */}
+                  <div className="divide-y divide-gray-100">
+                    {/* Document Title */}
+                    {documentData.documentTitle && (
+                      <div className="grid grid-cols-[140px_1fr] sm:grid-cols-[180px_1fr] items-start">
+                        <span className="px-5 py-4 text-sm font-medium text-gray-500 bg-gray-50/50">{t('verification.documentInfo.documentTitle', 'Document Title')}</span>
+                        <span className="px-5 py-4 text-sm font-semibold text-gray-900">{documentData.documentTitle}</span>
                       </div>
+                    )}
 
-                      {/* Languages */}
-                      {documentData.sourceLanguage && documentData.targetLanguage && (
-                        <div className="flex justify-between items-center py-3 px-4 bg-gray-50 rounded-lg">
-                          <span className="font-medium text-gray-700">{t('verification.documentInfo.translation', 'Translation')}:</span>
-                          <span className="font-semibold text-gray-900">{documentData.sourceLanguage} → {documentData.targetLanguage}</span>
-                        </div>
-                      )}
-                      
-                      <div className="flex justify-between items-center py-3 px-4 bg-gray-50 rounded-lg">
-                        <span className="font-medium text-gray-700">{t('verification.documentInfo.generationDate')}:</span>
-                        <span className="font-semibold text-gray-900">{formatDate(documentData.generationDate)}</span>
+                    {/* Document Type */}
+                    {documentData.documentType && (
+                      <div className="grid grid-cols-[140px_1fr] sm:grid-cols-[180px_1fr] items-start">
+                        <span className="px-5 py-4 text-sm font-medium text-gray-500 bg-gray-50/50">{t('verification.documentInfo.documentType', 'Document Type')}</span>
+                        <span className="px-5 py-4 text-sm font-semibold text-gray-900">{documentData.documentType}</span>
                       </div>
+                    )}
+
+                    {/* Student Name - only for non-general documents */}
+                    {documentData.formType !== 'generalDocument' && (
+                      <div className="grid grid-cols-[140px_1fr] sm:grid-cols-[180px_1fr] items-start">
+                        <span className="px-5 py-4 text-sm font-medium text-gray-500 bg-gray-50/50">{t('verification.documentInfo.studentName')}</span>
+                        <span className="px-5 py-4 text-sm font-semibold text-gray-900">{documentData.studentName}</span>
+                      </div>
+                    )}
+
+                    {/* Languages */}
+                    {documentData.sourceLanguage && documentData.targetLanguage && (
+                      <div className="grid grid-cols-[140px_1fr] sm:grid-cols-[180px_1fr] items-start">
+                        <span className="px-5 py-4 text-sm font-medium text-gray-500 bg-gray-50/50">{t('verification.documentInfo.translation', 'Translation')}</span>
+                        <span className="px-5 py-4 text-sm font-semibold text-gray-900 capitalize">{documentData.sourceLanguage} → {documentData.targetLanguage}</span>
+                      </div>
+                    )}
+
+                    {/* Generation Date */}
+                    <div className="grid grid-cols-[140px_1fr] sm:grid-cols-[180px_1fr] items-start">
+                      <span className="px-5 py-4 text-sm font-medium text-gray-500 bg-gray-50/50">{t('verification.documentInfo.generationDate')}</span>
+                      <span className="px-5 py-4 text-sm font-semibold text-gray-900">{formatDate(documentData.generationDate)}</span>
                     </div>
                   </div>
                 </motion.div>
