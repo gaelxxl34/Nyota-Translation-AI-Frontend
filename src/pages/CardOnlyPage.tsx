@@ -2,6 +2,10 @@
 // This page renders only the bulletin template for Puppeteer to capture
 
 import React, { useEffect, useState } from 'react';
+import { doc, getDoc } from 'firebase/firestore';
+import { onAuthStateChanged } from 'firebase/auth';
+import { db, auth } from '../firebase';
+import { getCertifiedDocument } from '../services/chatService';
 import {
   Form4Template,
   Form6Template,
@@ -18,12 +22,86 @@ const CardOnlyPage: React.FC = () => {
   const [studentData, setStudentData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Read table size from URL parameters
+  // Read parameters from URL
   const urlParams = new URLSearchParams(window.location.search);
   const tableSize = (urlParams.get('tableSize') as 'auto' | 'normal' | '11px' | '12px' | '13px' | '14px' | '15px') || 'auto';
+  const showWatermark = urlParams.get('watermark') === '1';
+  const firestoreId = urlParams.get('id');
+  const certDocId = urlParams.get('certDocId');
 
   useEffect(() => {
-    // Check for data in window object (injected by Puppeteer)
+    // Fetch from certifiedDocuments via backend API (bypasses Firestore security rules)
+    if (certDocId) {
+      const unsubscribe = onAuthStateChanged(auth, async (user) => {
+        if (!user) return;
+        try {
+          const idToken = await user.getIdToken();
+          const result = await getCertifiedDocument(idToken, certDocId);
+          if (!result.success || !result.document) {
+            setIsLoading(false);
+            return;
+          }
+          const certData = result.document as Record<string, any>;
+          const data = certData.certifiedData || certData.editedData || certData.originalData;
+          if (data) {
+            data.formType = certData.formType || data.formType || 'form6';
+            data.documentId = certData.bulletinId || certDocId;
+            data.firestoreId = certData.bulletinId || certDocId;
+            data.id = certData.bulletinId || certDocId;
+          }
+          setStudentData(data);
+          setIsLoading(false);
+        } catch (err) {
+          console.error('Failed to fetch certified document:', err);
+          setIsLoading(false);
+        }
+      });
+      return () => unsubscribe();
+    }
+
+    // Check sessionStorage for certified document data (set by MySubmissions View button)
+    const storedCertData = sessionStorage.getItem('certifiedDocData');
+    if (storedCertData) {
+      try {
+        const data = JSON.parse(storedCertData);
+        sessionStorage.removeItem('certifiedDocData');
+        setStudentData(data);
+        setIsLoading(false);
+      } catch {
+        setIsLoading(false);
+      }
+      return;
+    }
+
+    // If a Firestore document ID is provided, fetch data directly from Firestore
+    if (firestoreId) {
+      const fetchFromFirestore = async () => {
+        try {
+          const bulletinDoc = await getDoc(doc(db, 'bulletins', firestoreId));
+          if (!bulletinDoc.exists()) {
+            setIsLoading(false);
+            return;
+          }
+          const bulletinData = bulletinDoc.data();
+          const data = bulletinData.editedData || bulletinData.originalData;
+          if (data) {
+            data.formType = bulletinData.formType || bulletinData.metadata?.formType || 'form6';
+            data.documentId = firestoreId;
+            data.firestoreId = firestoreId;
+            data.id = firestoreId;
+          }
+          setStudentData(data);
+          setIsLoading(false);
+        } catch (err) {
+          console.error('Failed to fetch bulletin from Firestore:', err);
+          setIsLoading(false);
+        }
+      };
+      fetchFromFirestore();
+      return;
+    }
+
+    // Fallback: Check for data in window object (injected by Puppeteer)
     const checkForData = () => {
       if (window.studentData) {
         setStudentData(window.studentData);
@@ -239,8 +317,23 @@ const CardOnlyPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      <div id="bulletin-template" data-testid="bulletin-template" className="bulletin-container">
+      <div id="bulletin-template" data-testid="bulletin-template" className="bulletin-container relative">
         {renderTemplate()}
+        {showWatermark && (
+          <div className="fixed inset-0 z-50 pointer-events-none flex items-center justify-center overflow-hidden" aria-hidden="true">
+            <div
+              className="text-gray-400 font-bold uppercase tracking-widest whitespace-nowrap select-none"
+              style={{
+                fontSize: '36px',
+                transform: 'rotate(-35deg)',
+                opacity: 0.18,
+                letterSpacing: '0.15em',
+              }}
+            >
+              AI DRAFT — NOT CERTIFIED
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

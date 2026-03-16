@@ -11,6 +11,8 @@ export { default as PrivacyPolicyPage } from './PrivacyPolicyPage';
 export { default as ForgotPasswordPage } from './ForgotPasswordPage';
 export { default as CardOnlyPage } from './CardOnlyPage';
 export { default as DocumentVerificationPage } from './DocumentVerificationPage';
+export { default as TranslatePage } from './TranslatePage';
+export { default as EmailVerificationPendingPage } from './EmailVerificationPendingPage';
 
 // Admin pages
 export { AdminDashboardPage } from './admin';

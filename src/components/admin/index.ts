@@ -7,5 +7,7 @@ export { default as UserTable } from './UserTable';
 export { default as UserForm } from './UserForm';
 export { default as PartnerTable } from './PartnerTable';
 export { default as PartnerForm } from './PartnerForm';
+export { default as PromoCodeTable } from './PromoCodeTable';
+export { default as PromoCodeForm } from './PromoCodeForm';
 
 export type { AdminPage } from './AdminSidebar';

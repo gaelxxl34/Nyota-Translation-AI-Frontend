@@ -68,7 +68,7 @@ const EditableField: React.FC<{
 
   return (
     <span
-      className={`${className} ${isEditable ? 'cursor-pointer hover:bg-gray-100 transition-colors duration-150' : ''} ${displayValue ? '' : 'text-gray-400 italic'}`}
+      className={`${className} ${isEditable ? 'cursor-pointer hover:bg-blue-100 hover:shadow-md px-1 py-0.5 rounded-sm transition-colors duration-150 border border-dashed border-transparent hover:border-blue-400' : ''} ${displayValue ? '' : 'text-gray-400 italic'}`}
       style={style}
       onClick={() => isEditable && setIsEditing(true)}
       title={isEditable ? 'Click to edit' : ''}
@@ -115,56 +115,58 @@ interface StateExamAttestationTemplateProps {
   documentId?: string;
 }
 
+// Default data defined outside component to maintain stable reference
+const DEFAULT_ATTESTATION_DATA: StateExamAttestationData = {
+  attestationNumber: "N°000000000/2021",
+  studentName: "STUDENT NAME",
+  birthPlace: "BIRTHPLACE",
+  birthDate: {
+    day: "01",
+    month: "01",
+    year: "2003"
+  },
+  schoolName: "SCHOOL NAME",
+  schoolCode: "000000000000",
+  examSession: "2021",
+  section: "TECHNICAL",
+  option: "COMMERCIAL AND MANAGEMENT",
+  percentage: "56",
+  issuePlace: "KINSHASA",
+  issueDate: {
+    day: "21",
+    month: "10",
+    year: "2021"
+  },
+  validUntil: {
+    day: "21",
+    month: "02",
+    year: "2022"
+  },
+  inspectorName: "INSPECTOR NAME"
+};
+
 const StateExamAttestationTemplate: React.FC<StateExamAttestationTemplateProps> = ({ 
   data, 
   isEditable = false, 
   onDataChange,
   documentId: propDocumentId
 }) => {
-  const defaultData: StateExamAttestationData = {
-    attestationNumber: "N°000000000/2021",
-    studentName: "STUDENT NAME",
-    birthPlace: "BIRTHPLACE",
-    birthDate: {
-      day: "01",
-      month: "01",
-      year: "2003"
-    },
-    schoolName: "SCHOOL NAME",
-    schoolCode: "000000000000",
-    examSession: "2021",
-    section: "TECHNICAL",
-    option: "COMMERCIAL AND MANAGEMENT",
-    percentage: "56",
-    issuePlace: "KINSHASA",
-    issueDate: {
-      day: "21",
-      month: "10",
-      year: "2021"
-    },
-    validUntil: {
-      day: "21",
-      month: "02",
-      year: "2022"
-    },
-    inspectorName: "INSPECTOR NAME"
-  };
 
   const [pdfData, setPdfData] = useState<StateExamAttestationData | null>(null);
-  const [currentData, setCurrentData] = useState<StateExamAttestationData>(defaultData);
+  const [currentData, setCurrentData] = useState<StateExamAttestationData>(DEFAULT_ATTESTATION_DATA);
   const [screenWidth, setScreenWidth] = useState<number>(typeof window !== 'undefined' ? window.innerWidth : 1024);
   const [documentId, setDocumentId] = useState<string>(propDocumentId || '');
 
   useEffect(() => {
-    if (propDocumentId && propDocumentId !== documentId) {
+    if (propDocumentId) {
       setDocumentId(propDocumentId);
     }
-  }, [propDocumentId, documentId]);
+  }, [propDocumentId]);
 
   useEffect(() => {
-    const newData = pdfData || data || defaultData;
+    const newData = pdfData || data || DEFAULT_ATTESTATION_DATA;
     setCurrentData(newData);
-  }, [pdfData, data, defaultData]);
+  }, [pdfData, data]);
 
   useEffect(() => {
     const handleResize = () => {

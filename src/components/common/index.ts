@@ -10,3 +10,5 @@ export { default as SplashScreen } from './SplashScreen';
 export { default as PageWithSplash } from './PageWithSplash';
 export { default as SpeedComparison } from './SpeedComparison';
 export { default as LoadingScreen } from './LoadingScreen';
+export { default as StripeCheckout } from './StripeCheckout';
+export { default as PaymentHistory } from './PaymentHistory';

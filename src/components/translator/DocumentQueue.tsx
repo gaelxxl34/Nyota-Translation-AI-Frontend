@@ -72,9 +72,9 @@ const DocumentQueue: React.FC<DocumentQueueProps> = ({
       {/* Queue Stats */}
       {stats && (
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
-          <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
+          <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
             <p className="text-xs text-gray-400 uppercase tracking-wide">Total in Queue</p>
-            <p className="text-2xl font-bold text-white mt-1">{stats.totalInQueue}</p>
+            <p className="text-2xl font-bold text-gray-900 mt-1">{stats.totalInQueue}</p>
           </div>
           <div className="bg-yellow-500/10 rounded-lg p-4 border border-yellow-500/30">
             <p className="text-xs text-yellow-400 uppercase tracking-wide">Pending Review</p>
@@ -110,7 +110,7 @@ const DocumentQueue: React.FC<DocumentQueueProps> = ({
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
             statusFilter === ''
               ? 'bg-blue-600 text-white'
-              : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              : 'bg-gray-100 text-gray-600 hover:bg-gray-600'
           }`}
         >
           All
@@ -120,7 +120,7 @@ const DocumentQueue: React.FC<DocumentQueueProps> = ({
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
             statusFilter === 'pending_review'
               ? 'bg-yellow-600 text-white'
-              : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              : 'bg-gray-100 text-gray-600 hover:bg-gray-600'
           }`}
         >
           Pending Review
@@ -130,7 +130,7 @@ const DocumentQueue: React.FC<DocumentQueueProps> = ({
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
             statusFilter === 'ai_completed'
               ? 'bg-purple-600 text-white'
-              : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              : 'bg-gray-100 text-gray-600 hover:bg-gray-600'
           }`}
         >
           AI Completed
@@ -140,7 +140,7 @@ const DocumentQueue: React.FC<DocumentQueueProps> = ({
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
             statusFilter === 'in_review'
               ? 'bg-blue-600 text-white'
-              : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              : 'bg-gray-100 text-gray-600 hover:bg-gray-600'
           }`}
         >
           In Review
@@ -148,7 +148,7 @@ const DocumentQueue: React.FC<DocumentQueueProps> = ({
       </div>
 
       {/* Document List */}
-      <div className="bg-gray-800/50 rounded-xl border border-gray-700 overflow-hidden">
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" />
@@ -172,11 +172,11 @@ const DocumentQueue: React.FC<DocumentQueueProps> = ({
             <p className="text-gray-500 text-sm mt-1">Documents will appear here when submitted</p>
           </div>
         ) : (
-          <div className="divide-y divide-gray-700">
+          <div className="divide-y divide-gray-200">
             {documents.map((doc) => (
               <div
                 key={doc.id}
-                className="p-4 hover:bg-gray-700/30 transition-colors cursor-pointer"
+                className="p-4 hover:bg-gray-50 transition-colors cursor-pointer"
                 onClick={() => onDocumentSelect(doc)}
               >
                 <div className="flex items-start justify-between gap-4">
@@ -189,26 +189,46 @@ const DocumentQueue: React.FC<DocumentQueueProps> = ({
                         {doc.priority.charAt(0).toUpperCase() + doc.priority.slice(1)}
                       </span>
                       {doc.aiConfidenceScore && (
-                        <span className="px-2 py-0.5 rounded text-xs bg-gray-700 text-gray-300">
+                        <span className="px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-600">
                           AI: {Math.round(doc.aiConfidenceScore * 100)}%
                         </span>
                       )}
+                      {(doc.resubmissionCount ?? 0) > 0 && (
+                        <span className="px-2 py-0.5 rounded text-xs font-medium bg-amber-500/20 text-amber-600 border border-amber-500/30" title="This document was previously rejected and re-submitted">
+                          🔄 Re-submitted{(doc.resubmissionCount ?? 0) > 1 ? ` ×${doc.resubmissionCount}` : ''}
+                        </span>
+                      )}
                     </div>
-                    <h4 className="text-white font-medium truncate">
-                      {doc.studentName || 'Unknown Student'}
+                    <h4 className="text-gray-900 font-medium truncate">
+                      {doc.documentTitle || doc.studentName || 'Untitled Document'}
                     </h4>
-                    <p className="text-gray-400 text-sm truncate">
-                      {formTypeLabels[doc.formType] || doc.formType} • {doc.schoolName || 'Unknown School'}
+                    <p className="text-gray-500 text-sm truncate">
+                      {formTypeLabels[doc.formType] || doc.formType}
+                      {doc.schoolName ? ` • ${doc.schoolName}` : ''}
+                      {doc.sourceLanguage ? ` • ${doc.sourceLanguage.toUpperCase()} → EN` : ''}
                     </p>
                     <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
-                      <span>ID: {doc.id.slice(0, 8)}...</span>
+                      <span>ID: {doc.id.slice(0, 12)}...</span>
                       <span>User: {doc.userEmail}</span>
+                      {doc.speedTier && (
+                        <span className="text-orange-400 font-medium">{doc.speedTier.label} ({doc.speedTier.description})</span>
+                      )}
                       <span>{formatDate(doc.createdAt)}</span>
                     </div>
                     {doc.assignedTo && (
                       <p className="text-xs text-blue-400 mt-1">
                         Assigned to: {doc.assignedToName}
                       </p>
+                    )}
+                    {doc.rejectionHistory && doc.rejectionHistory.length > 0 && (
+                      <div className="mt-2 p-2 bg-amber-50 border border-amber-200 rounded-lg">
+                        <p className="text-xs font-medium text-amber-700 mb-1">Previous rejection{doc.rejectionHistory.length > 1 ? 's' : ''}:</p>
+                        {doc.rejectionHistory.map((rejection, idx) => (
+                          <p key={idx} className="text-xs text-amber-600">
+                            <span className="font-medium capitalize">{rejection.rejectionType}</span>: {rejection.reason}
+                          </p>
+                        ))}
+                      </div>
                     )}
                   </div>
                   <div className="flex flex-col gap-2">
@@ -228,7 +248,7 @@ const DocumentQueue: React.FC<DocumentQueueProps> = ({
                         e.stopPropagation();
                         onDocumentSelect(doc);
                       }}
-                      className="px-3 py-1.5 bg-gray-600 hover:bg-gray-500 text-white text-sm rounded-lg transition-colors"
+                      className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm rounded-lg transition-colors"
                     >
                       View
                     </button>

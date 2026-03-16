@@ -22,6 +22,8 @@ const ServicesSection: React.FC = () => {
         t('services.academic.feature1'),
         t('services.academic.feature2'),
         t('services.academic.feature3'),
+        t('services.academic.feature4'),
+        t('services.academic.feature5'),
       ],
       color: 'green',
     },

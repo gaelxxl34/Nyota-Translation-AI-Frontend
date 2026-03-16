@@ -11,9 +11,9 @@ import { QRCodeComponent } from '../common';
 // ============================================
 
 export interface ContentBlock {
-  type: 'heading' | 'paragraph' | 'orderedList' | 'unorderedList' | 'table' | 'checkboxList' | 'blockquote' | 'divider' | 'image' | 'link' | 'caption';
+  type: 'heading' | 'paragraph' | 'orderedList' | 'unorderedList' | 'table' | 'checkboxList' | 'blockquote' | 'divider' | 'image' | 'image_description' | 'link' | 'caption';
   level?: number; // For headings: 1-4
-  text?: string; // For paragraph, heading, blockquote, caption
+  text?: string; // For paragraph, heading, blockquote, caption, image_description
   items?: ListItem[]; // For ordered/unordered lists (AI may return objects with sub-items)
   checkboxItems?: ListItem[]; // For checkbox lists (may be string or {label, checked} objects)
   rows?: string[][]; // For tables (array of rows, each row is array of cells)
@@ -23,6 +23,7 @@ export interface ContentBlock {
   bold?: boolean; // Text styling hints
   italic?: boolean;
   highlighted?: boolean; // For highlighted/emphasized text
+  alignment?: 'left' | 'center' | 'right'; // Text alignment from original document layout
 }
 
 // Type for nested list items (AI may return objects instead of strings, including embedded content blocks)
@@ -41,6 +42,17 @@ const safeString = (val: unknown): string => {
     try { return JSON.stringify(val); } catch { return '[Object]'; }
   }
   return String(val);
+};
+
+// Helper to normalize table rows — AI may return objects {"0":"val","1":"val"} instead of arrays
+const safeRow = (row: unknown): string[] => {
+  if (Array.isArray(row)) return row.map(cell => safeString(cell));
+  if (row && typeof row === 'object') {
+    const obj = row as Record<string, unknown>;
+    const keys = Object.keys(obj).sort((a, b) => Number(a) - Number(b));
+    return keys.map(k => safeString(obj[k]));
+  }
+  return [safeString(row)];
 };
 
 export interface DocumentPage {
@@ -67,6 +79,15 @@ export interface GeneralDocumentData {
   totalPages?: number;
   pageMap?: string; // Overview of page contents, e.g., "Page 1: Title & intro; Page 2: Procedures"
   
+  // Academic info (extracted by AI for academic documents)
+  academicInfo?: {
+    studentName?: string | null;
+    institution?: string | null;
+    academicYear?: string | null;
+    grade?: string | null;
+    program?: string | null;
+  } | null;
+
   // Form type marker
   formType?: string;
 }
@@ -79,6 +100,8 @@ interface GeneralDocumentTemplateProps {
   documentId?: string;
   /** When true, removes scroll constraints so Puppeteer captures all pages */
   printMode?: boolean;
+  /** When true, renders a diagonal "AI DRAFT — NOT CERTIFIED" watermark on each page */
+  watermark?: boolean;
 }
 
 // ============================================
@@ -439,11 +462,12 @@ const ContentBlockRenderer: React.FC<{
   switch (block.type) {
     case 'heading': {
       const level = Math.min(block.level || 1, 4);
+      const align = block.alignment === 'center' ? 'text-center' : block.alignment === 'right' ? 'text-right' : '';
       const headingClasses: Record<number, string> = {
-        1: 'text-xl font-bold text-gray-900 mt-6 mb-3',
-        2: 'text-lg font-bold text-gray-800 mt-5 mb-2',
-        3: 'text-base font-semibold text-gray-800 mt-4 mb-2',
-        4: 'text-sm font-semibold text-gray-700 mt-3 mb-1',
+        1: `text-xl font-bold text-gray-900 mt-6 mb-3 ${align}`,
+        2: `text-lg font-bold text-gray-800 mt-5 mb-2 ${align}`,
+        3: `text-base font-semibold text-gray-800 mt-4 mb-2 ${align}`,
+        4: `text-sm font-semibold text-gray-700 mt-3 mb-1 ${align}`,
       };
       const cls = headingClasses[level] || headingClasses[1];
       
@@ -462,9 +486,10 @@ const ContentBlockRenderer: React.FC<{
       return <h4 className={cls}>{headingContent}</h4>;
     }
 
-    case 'paragraph':
+    case 'paragraph': {
+      const pAlign = block.alignment === 'center' ? 'text-center' : block.alignment === 'right' ? 'text-right' : '';
       return (
-        <p className={`text-sm text-gray-700 leading-relaxed mb-3 whitespace-pre-line ${block.bold ? 'font-bold' : ''} ${block.italic ? 'italic' : ''} ${block.highlighted ? 'bg-yellow-100 px-1 py-0.5 rounded' : ''}`}>
+        <p className={`text-sm text-gray-700 leading-relaxed mb-3 whitespace-pre-line ${block.bold ? 'font-bold' : ''} ${block.italic ? 'italic' : ''} ${block.highlighted ? 'bg-yellow-100 px-1 py-0.5 rounded' : ''} ${pAlign}`}>
           <EditableField
             value={safeString(block.text)}
             isEditable={isEditable}
@@ -474,6 +499,7 @@ const ContentBlockRenderer: React.FC<{
           />
         </p>
       );
+    }
 
     case 'orderedList': {
       const olItems = block.items || [];
@@ -664,24 +690,27 @@ const ContentBlockRenderer: React.FC<{
     }
 
     case 'table': {
+      // Normalize rows upfront — AI may return objects instead of arrays
+      const normalizedRows = (block.rows || []).map(safeRow);
       const handleHeaderChange = (ci: number, val: string) => {
         const newHeaders = [...(block.headers || [])];
         newHeaders[ci] = val;
         onBlockChange?.({ ...block, headers: newHeaders });
       };
       const handleCellChange = (ri: number, ci: number, val: string) => {
-        const newRows = (block.rows || []).map((row, r) =>
+        const newRows = normalizedRows.map((row, r) =>
           r === ri ? row.map((cell, c) => (c === ci ? val : cell)) : [...row]
         );
         onBlockChange?.({ ...block, rows: newRows });
       };
       const handleRowDelete = (ri: number) => {
-        const newRows = (block.rows || []).filter((_, r) => r !== ri);
+        const newRows = normalizedRows.filter((_, r) => r !== ri);
         onBlockChange?.({ ...block, rows: newRows });
       };
+      const tblAlign = block.alignment === 'center' ? 'mx-auto' : '';
       return (
-        <div className="mb-3 overflow-x-auto">
-          <table className="min-w-full border border-gray-300 text-sm">
+        <div className={`mb-3 overflow-x-auto ${tblAlign}`}>
+          <table className={`border border-gray-300 text-sm ${block.alignment === 'center' ? 'mx-auto' : 'min-w-full'}`}>
             {block.headers && block.headers.length > 0 && (
               <thead>
                 <tr className="bg-gray-100">
@@ -701,7 +730,7 @@ const ContentBlockRenderer: React.FC<{
               </thead>
             )}
             <tbody>
-              {(block.rows || []).map((row, ri) => (
+              {normalizedRows.map((row, ri) => (
                 <tr key={ri} className={`${ri % 2 === 0 ? 'bg-white' : 'bg-gray-50'} relative group/row`}>
                   {row.map((cell, ci) => (
                     <td key={ci} className="border border-gray-300 px-3 py-1.5 text-gray-700">
@@ -728,9 +757,10 @@ const ContentBlockRenderer: React.FC<{
       );
     }
 
-    case 'blockquote':
+    case 'blockquote': {
+      const bqAlign = block.alignment === 'center' ? 'text-center' : block.alignment === 'right' ? 'text-right' : '';
       return (
-        <blockquote className="border-l-2 border-gray-400 pl-4 py-1 mb-3">
+        <blockquote className={`border-l-2 border-gray-400 pl-4 py-1 mb-3 ${bqAlign}`}>
           <p className={`text-sm text-gray-700 italic ${block.highlighted ? 'bg-yellow-100 px-1' : ''}`}>
             <EditableField
               value={safeString(block.text)}
@@ -742,13 +772,15 @@ const ContentBlockRenderer: React.FC<{
           </p>
         </blockquote>
       );
+    }
 
     case 'divider':
       return <hr className="my-4 border-gray-300" />;
 
-    case 'caption':
+    case 'caption': {
+      const capAlign = block.alignment === 'center' ? 'text-center' : block.alignment === 'right' ? 'text-right' : '';
       return (
-        <p className={`text-xs text-gray-500 italic mb-2 ${block.bold ? 'font-bold' : ''}`}>
+        <p className={`text-xs text-gray-500 italic mb-2 ${block.bold ? 'font-bold' : ''} ${capAlign}`}>
           <EditableField
             value={safeString(block.text)}
             isEditable={isEditable}
@@ -757,6 +789,7 @@ const ContentBlockRenderer: React.FC<{
           />
         </p>
       );
+    }
 
     case 'link':
       return (
@@ -781,9 +814,22 @@ const ContentBlockRenderer: React.FC<{
         </p>
       );
 
-    default:
+    case 'image_description':
+      // Hide image descriptions (stamps, seals, photos, signatures) in read-only/PDF mode
+      if (!isEditable) return null;
       return (
-        <p className="text-sm text-gray-700 mb-2">
+        <div className="flex items-start gap-2 my-2 px-3 py-2 bg-gray-50 border border-gray-200 rounded text-xs text-gray-500 italic">
+          <svg className="w-4 h-4 flex-shrink-0 mt-0.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          <span>[{safeString(block.text)}]</span>
+        </div>
+      );
+
+    default: {
+      const defAlign = block.alignment === 'center' ? 'text-center' : block.alignment === 'right' ? 'text-right' : '';
+      return (
+        <p className={`text-sm text-gray-700 mb-2 ${defAlign}`}>
           <EditableField
             value={safeString(block.text)}
             isEditable={isEditable}
@@ -792,6 +838,7 @@ const ContentBlockRenderer: React.FC<{
           />
         </p>
       );
+    }
   }
 };
 
@@ -805,11 +852,16 @@ const GeneralDocumentTemplate: React.FC<GeneralDocumentTemplateProps> = ({
   onDataChange,
   documentId,
   printMode = false,
+  watermark = false,
 }) => {
+  // RTL detection — Arabic source documents use right-to-left layout
+  const isRTL = data.sourceLanguage?.toLowerCase() === 'ar' || data.sourceLanguage?.toLowerCase() === 'arabic';
+
   // Filter out duplicate title: if the first block on the first page is a heading
-  // that matches the document title, remove it to avoid showing the title twice
+  // that matches the document title, remove it to avoid showing the title twice.
+  // Only applies in editable mode where the header is visible.
   const rawPages = data.pages || [];
-  const pages = rawPages.map((page, pageIdx) => {
+  const pages = isEditable ? rawPages.map((page, pageIdx) => {
     if (pageIdx === 0 && page.blocks.length > 0 && data.documentTitle) {
       const firstBlock = page.blocks[0];
       if (
@@ -821,7 +873,7 @@ const GeneralDocumentTemplate: React.FC<GeneralDocumentTemplateProps> = ({
       }
     }
     return page;
-  });
+  }) : rawPages;
 
   const [editorText, setEditorText] = useState('');
   const [showEditor, setShowEditor] = useState(false);
@@ -990,6 +1042,7 @@ const GeneralDocumentTemplate: React.FC<GeneralDocumentTemplateProps> = ({
     <div
       className={`general-document-template flex flex-col items-center ${printMode ? 'bg-white' : 'bg-gray-200 py-6 overflow-y-auto'} ${className}`}
       style={printMode ? undefined : { maxHeight: '85vh' }}
+      dir={isRTL ? 'rtl' : undefined}
     >
       {/* Text Editor – edit mode only */}
       {isEditable && !printMode && (
@@ -1040,10 +1093,12 @@ const GeneralDocumentTemplate: React.FC<GeneralDocumentTemplateProps> = ({
             </div>
           )}
         </div>
-      )}      {/* Document Header Page */}
+      )}      {/* Document Header — only shown in editable mode; in read-only/PDF mode the 
+           content blocks already contain the title, metadata is not part of the official document */}
+      {isEditable && (
       <div className={`${printMode ? '' : 'bg-white shadow-md mb-4'} w-full`} style={{ maxWidth: '210mm', minHeight: '60px' }}>
         <div className={`px-10 py-6 ${printMode ? '' : 'border-b border-gray-200'}`}>
-          {/* Document type & language tags */}
+          {/* Document type & language tags — translators need this context */}
           <div className="flex items-center gap-2 mb-2 text-xs text-gray-500">
             {data.documentType && (
               <span className="uppercase tracking-wide">{data.documentType}</span>
@@ -1059,7 +1114,7 @@ const GeneralDocumentTemplate: React.FC<GeneralDocumentTemplateProps> = ({
           <h1 className="text-xl font-bold text-gray-900 leading-tight">
             <EditableField
               value={data.documentTitle || 'Translated Document'}
-              isEditable={isEditable}
+              isEditable={true}
               onChange={handleTitleChange}
               className="text-gray-900"
               placeholder="Document Title"
@@ -1069,7 +1124,7 @@ const GeneralDocumentTemplate: React.FC<GeneralDocumentTemplateProps> = ({
             <p className="text-sm text-gray-600 mt-1">
               <EditableField
                 value={data.documentSubtitle}
-                isEditable={isEditable}
+                isEditable={true}
                 onChange={handleSubtitleChange}
                 className="text-gray-600"
                 placeholder="Subtitle"
@@ -1084,8 +1139,29 @@ const GeneralDocumentTemplate: React.FC<GeneralDocumentTemplateProps> = ({
               {data.date && <span>{data.date}</span>}
             </div>
           )}
+          {/* Academic info bar */}
+          {data.academicInfo && (data.academicInfo.studentName || data.academicInfo.institution) && (
+            <div className="mt-3 px-3 py-2 bg-blue-50 border border-blue-100 rounded text-xs text-blue-800 flex flex-wrap gap-x-4 gap-y-1">
+              {data.academicInfo.studentName && (
+                <span><strong>Student:</strong> {data.academicInfo.studentName}</span>
+              )}
+              {data.academicInfo.institution && (
+                <span><strong>Institution:</strong> {data.academicInfo.institution}</span>
+              )}
+              {data.academicInfo.grade && (
+                <span><strong>Class:</strong> {data.academicInfo.grade}</span>
+              )}
+              {data.academicInfo.program && (
+                <span><strong>Program:</strong> {data.academicInfo.program}</span>
+              )}
+              {data.academicInfo.academicYear && (
+                <span><strong>Year:</strong> {data.academicInfo.academicYear}</span>
+              )}
+            </div>
+          )}
         </div>
       </div>
+      )}
 
       {/* Document Pages */}
       {pages.length > 0 ? (
@@ -1095,9 +1171,25 @@ const GeneralDocumentTemplate: React.FC<GeneralDocumentTemplateProps> = ({
           return (
           <div
             key={pageIndex}
-            className={`${printMode ? '' : 'bg-white shadow-md mb-4'} w-full relative`}
+            className={`${printMode ? '' : 'bg-white shadow-md mb-4'} w-full relative overflow-hidden`}
             style={{ maxWidth: '210mm', ...(printMode ? {} : { minHeight: '297mm' }) }}
           >
+            {/* Watermark overlay for AI drafts */}
+            {watermark && (
+              <div className="absolute inset-0 z-30 pointer-events-none flex items-center justify-center" aria-hidden="true">
+                <div
+                  className="text-gray-300 font-bold uppercase tracking-widest whitespace-nowrap select-none"
+                  style={{
+                    fontSize: '48px',
+                    transform: 'rotate(-35deg)',
+                    opacity: 0.18,
+                    letterSpacing: '0.15em',
+                  }}
+                >
+                  AI DRAFT — NOT CERTIFIED
+                </div>
+              </div>
+            )}
             {/* Page reorder controls – edit mode only */}
             {isEditable && !printMode && pages.length > 1 && (
               <div className="absolute -left-12 top-1/2 -translate-y-1/2 flex flex-col gap-1 z-20">
@@ -1143,7 +1235,7 @@ const GeneralDocumentTemplate: React.FC<GeneralDocumentTemplateProps> = ({
             )}
 
             {/* Page content */}
-            <div className={`px-10 pt-8 ${isLastPage && documentId ? 'pb-44' : 'pb-8'}`} style={{ fontFamily: "'Times New Roman', 'Georgia', serif" }}>
+            <div className={`px-10 pt-8 ${isLastPage && documentId ? 'pb-44' : 'pb-8'} ${isRTL ? 'text-right' : ''}`} style={{ fontFamily: isRTL ? "'Noto Sans Arabic', 'Times New Roman', 'Georgia', serif" : "'Times New Roman', 'Georgia', serif" }}>
               {page.blocks.map((block, blockIndex) => (
                 <div key={blockIndex} className={`relative group ${isEditable && !printMode ? 'hover:bg-red-50/30 rounded transition-colors' : ''}`}>
                   <ContentBlockRenderer

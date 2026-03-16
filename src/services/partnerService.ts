@@ -424,3 +424,40 @@ export const getPartnerStudents = async (
 
   return response.json();
 };
+
+// ============================================
+// PARTNER PROMO CODES
+// ============================================
+
+export interface PartnerPromoCode {
+  id: string;
+  code: string;
+  partnerId: string;
+  partnerName: string;
+  type: 'percentage' | 'flat';
+  value: number;
+  maxUses: number | null;
+  currentUses: number;
+  validFrom: string | null;
+  validUntil: string | null;
+  applicableTo: string[];
+  description: string | null;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export const getPartnerPromoCodes = async (
+  idToken: string
+): Promise<PartnerPromoCode[]> => {
+  const response = await fetch(`${API_URL}/api/partner/promo-codes`, {
+    headers: await getAuthHeaders(idToken),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || 'Failed to fetch promo codes');
+  }
+
+  const data = await response.json();
+  return data.promoCodes;
+};

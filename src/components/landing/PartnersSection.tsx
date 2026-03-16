@@ -9,12 +9,12 @@ const PartnersSection: React.FC = () => {
   // Partners array - add more partners as needed
   const partners = [
     {
-      id: 'iuea',
-      name: 'International University of East Africa',
-      shortName: 'IUEA',
-      logo: '/iuea-Logo.png', // IUEA logo in public folder
-      description: t('partners.iuea.description'),
-      website: 'https://iuea.ac.ug',
+      id: 'bora',
+      name: 'Bora Technology, LLC',
+      shortName: 'Bora',
+      logo: '/partners/bora-logo.png',
+      description: t('partners.bora.description', 'Technology partner powering secure payment processing and platform infrastructure.'),
+      website: 'https://boratechnology.com',
     },
     // Add more partners here as they come
     // {

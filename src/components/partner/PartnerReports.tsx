@@ -49,7 +49,7 @@ const PartnerReports: React.FC<PartnerReportsProps> = ({
 
   const reportTypeLabels: Record<string, string> = {
     document_summary: 'Document Summary',
-    student_activity: 'Student Activity',
+    student_activity: 'Client Activity',
     monthly_usage: 'Monthly Usage',
     translation_status: 'Translation Status',
   };
@@ -66,13 +66,13 @@ const PartnerReports: React.FC<PartnerReportsProps> = ({
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h3 className="text-lg font-semibold text-white">Reports</h3>
-          <p className="text-gray-400 text-sm">Generate and download reports for your organization</p>
+          <h3 className="text-lg font-semibold text-gray-900">Reports</h3>
+          <p className="text-gray-500 text-sm">Generate and download reports for your organization</p>
         </div>
         <div className="flex gap-2 sm:gap-3">
           <button
             onClick={onRefresh}
-            className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded-lg transition-colors text-sm"
+            className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors text-sm"
           >
             <svg className="w-4 sm:w-5 h-4 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path
@@ -102,7 +102,7 @@ const PartnerReports: React.FC<PartnerReportsProps> = ({
       </div>
 
       {/* Reports List */}
-      <div className="bg-gray-800/50 rounded-xl border border-gray-700 overflow-hidden">
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" />
@@ -128,12 +128,12 @@ const PartnerReports: React.FC<PartnerReportsProps> = ({
         ) : (
           <>
             {/* Mobile Card View */}
-            <div className="sm:hidden divide-y divide-gray-700">
+            <div className="sm:hidden divide-y divide-gray-200">
               {reports.map((report) => (
                 <div key={report.id} className="p-4">
                   <div className="flex items-start justify-between gap-3 mb-2">
                     <div className="min-w-0">
-                      <p className="text-white font-medium">
+                      <p className="text-gray-900 font-medium">
                         {reportTypeLabels[report.reportType] || report.reportType}
                       </p>
                       <p className="text-gray-400 text-xs">{report.startDate} - {report.endDate}</p>
@@ -160,7 +160,7 @@ const PartnerReports: React.FC<PartnerReportsProps> = ({
             {/* Desktop Table View */}
             <div className="hidden sm:block overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-700/50">
+                <thead className="bg-gray-50">
                   <tr>
                   <th className="text-left text-xs font-medium text-gray-400 uppercase tracking-wider px-6 py-3">
                     Report Type
@@ -179,16 +179,16 @@ const PartnerReports: React.FC<PartnerReportsProps> = ({
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-700">
+              <tbody className="divide-y divide-gray-200">
                 {reports.map((report) => (
-                  <tr key={report.id} className="hover:bg-gray-700/30 transition-colors">
+                  <tr key={report.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4">
-                      <p className="text-white font-medium">
+                      <p className="text-gray-900 font-medium">
                         {reportTypeLabels[report.reportType] || report.reportType}
                       </p>
-                      <p className="text-gray-400 text-sm">Format: {report.format?.toUpperCase()}</p>
+                      <p className="text-gray-500 text-sm">Format: {report.format?.toUpperCase()}</p>
                     </td>
-                    <td className="px-6 py-4 text-gray-300">
+                    <td className="px-6 py-4 text-gray-600">
                       {report.startDate} - {report.endDate}
                     </td>
                     <td className="px-6 py-4">
@@ -196,7 +196,7 @@ const PartnerReports: React.FC<PartnerReportsProps> = ({
                         {report.status.charAt(0).toUpperCase() + report.status.slice(1)}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-gray-400 text-sm">{formatDate(report.generatedAt)}</td>
+                    <td className="px-6 py-4 text-gray-500 text-sm">{formatDate(report.generatedAt)}</td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
                         {report.status === 'completed' && report.downloadUrl && (
@@ -231,12 +231,12 @@ const PartnerReports: React.FC<PartnerReportsProps> = ({
       {/* Generate Report Modal */}
       {showGenerateModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-800 rounded-xl border border-gray-700 p-4 sm:p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4 sm:mb-6">
-              <h3 className="text-lg font-semibold text-white">Generate Report</h3>
+              <h3 className="text-lg font-semibold text-gray-900">Generate Report</h3>
               <button
                 onClick={() => setShowGenerateModal(false)}
-                className="text-gray-400 hover:text-white"
+                className="text-gray-500 hover:text-gray-900"
               >
                 <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path
@@ -252,14 +252,14 @@ const PartnerReports: React.FC<PartnerReportsProps> = ({
             <div className="space-y-4">
               {/* Report Type */}
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Report Type</label>
+                <label className="block text-sm font-medium text-gray-600 mb-2">Report Type</label>
                 <select
                   value={reportConfig.reportType}
                   onChange={(e) => setReportConfig({ ...reportConfig, reportType: e.target.value as PartnerReportConfig['reportType'] })}
-                  className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-blue-500"
+                  className="w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="document_summary">Document Summary</option>
-                  <option value="student_activity">Student Activity</option>
+                  <option value="student_activity">Client Activity</option>
                   <option value="monthly_usage">Monthly Usage</option>
                   <option value="translation_status">Translation Status</option>
                 </select>
@@ -268,28 +268,28 @@ const PartnerReports: React.FC<PartnerReportsProps> = ({
               {/* Date Range */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Start Date</label>
+                  <label className="block text-sm font-medium text-gray-600 mb-2">Start Date</label>
                   <input
                     type="date"
                     value={reportConfig.startDate}
                     onChange={(e) => setReportConfig({ ...reportConfig, startDate: e.target.value })}
-                    className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-blue-500"
+                    className="w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">End Date</label>
+                  <label className="block text-sm font-medium text-gray-600 mb-2">End Date</label>
                   <input
                     type="date"
                     value={reportConfig.endDate}
                     onChange={(e) => setReportConfig({ ...reportConfig, endDate: e.target.value })}
-                    className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-blue-500"
+                    className="w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
               </div>
 
               {/* Format */}
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Format</label>
+                <label className="block text-sm font-medium text-gray-600 mb-2">Format</label>
                 <div className="flex gap-4">
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
@@ -300,7 +300,7 @@ const PartnerReports: React.FC<PartnerReportsProps> = ({
                       onChange={() => setReportConfig({ ...reportConfig, format: 'pdf' })}
                       className="text-blue-500 focus:ring-blue-500"
                     />
-                    <span className="text-gray-300">PDF</span>
+                    <span className="text-gray-600">PDF</span>
                   </label>
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
@@ -311,7 +311,7 @@ const PartnerReports: React.FC<PartnerReportsProps> = ({
                       onChange={() => setReportConfig({ ...reportConfig, format: 'csv' })}
                       className="text-blue-500 focus:ring-blue-500"
                     />
-                    <span className="text-gray-300">CSV</span>
+                    <span className="text-gray-600">CSV</span>
                   </label>
                 </div>
               </div>
@@ -324,7 +324,7 @@ const PartnerReports: React.FC<PartnerReportsProps> = ({
                   onChange={(e) => setReportConfig({ ...reportConfig, includeDetails: e.target.checked })}
                   className="w-5 h-5 rounded border-gray-600 text-blue-500 focus:ring-blue-500 bg-gray-700"
                 />
-                <span className="text-gray-300">Include detailed breakdown</span>
+                <span className="text-gray-600">Include detailed breakdown</span>
               </label>
             </div>
 
@@ -332,7 +332,7 @@ const PartnerReports: React.FC<PartnerReportsProps> = ({
             <div className="flex gap-3 mt-6">
               <button
                 onClick={() => setShowGenerateModal(false)}
-                className="flex-1 px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded-lg transition-colors"
+                className="flex-1 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
               >
                 Cancel
               </button>

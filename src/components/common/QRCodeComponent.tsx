@@ -18,12 +18,17 @@ const QRCodeComponent: React.FC<QRCodeComponentProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  console.log('🔍 QRCodeComponent - documentId:', documentId);
-  
   useEffect(() => {
     if (!documentId) {
-      console.warn('❌ QRCodeComponent - Missing documentId');
       setError('No document ID provided');
+      setIsLoading(false);
+      return;
+    }
+
+    // Check if a pre-generated QR data URL was injected (Puppeteer PDF context)
+    const injectedQr = (window as any).studentData?.qrDataUrl || (window as any).injectedStudentData?.qrDataUrl;
+    if (injectedQr) {
+      setQrDataUrl(injectedQr);
       setIsLoading(false);
       return;
     }
@@ -36,8 +41,6 @@ const QRCodeComponent: React.FC<QRCodeComponentProps> = ({
         // Backend QR endpoint
         const backendUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
         const qrImageUrl = `${backendUrl}/api/qr/${documentId}`;
-        
-        console.log('🔗 QRCodeComponent - Fetching QR from backend URL:', qrImageUrl);
 
         // Fetch the QR code image and convert to base64
         const response = await fetch(qrImageUrl);
@@ -52,19 +55,17 @@ const QRCodeComponent: React.FC<QRCodeComponentProps> = ({
           const dataUrl = reader.result as string;
           setQrDataUrl(dataUrl);
           setIsLoading(false);
-          console.log('✅ QRCodeComponent - QR code converted to base64 data URL');
         };
         
         reader.onerror = () => {
           setError('Failed to convert QR code to data URL');
           setIsLoading(false);
-          console.error('❌ QRCodeComponent - Failed to convert to data URL');
         };
         
         reader.readAsDataURL(blob);
         
       } catch (err) {
-        console.error('❌ QRCodeComponent - Failed to load QR code:', err);
+        console.error('QRCodeComponent - Failed to load QR code:', err);
         setError('Failed to load QR code');
         setIsLoading(false);
       }

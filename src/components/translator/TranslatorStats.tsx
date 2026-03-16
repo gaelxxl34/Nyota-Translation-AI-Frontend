@@ -72,7 +72,7 @@ const TranslatorStats: React.FC<TranslatorStatsProps> = ({
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-green-400 text-sm font-medium">Approved</p>
-                <p className="text-3xl font-bold text-white mt-1">{stats.approved}</p>
+                <p className="text-3xl font-bold text-gray-900 mt-1">{stats.approved}</p>
               </div>
               <div className="p-3 bg-green-500/20 rounded-lg">
                 <svg className="w-6 h-6 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -87,7 +87,7 @@ const TranslatorStats: React.FC<TranslatorStatsProps> = ({
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-red-400 text-sm font-medium">Rejected</p>
-                <p className="text-3xl font-bold text-white mt-1">{stats.rejected}</p>
+                <p className="text-3xl font-bold text-gray-900 mt-1">{stats.rejected}</p>
               </div>
               <div className="p-3 bg-red-500/20 rounded-lg">
                 <svg className="w-6 h-6 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -102,7 +102,7 @@ const TranslatorStats: React.FC<TranslatorStatsProps> = ({
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-blue-400 text-sm font-medium">In Progress</p>
-                <p className="text-3xl font-bold text-white mt-1">{stats.inProgress}</p>
+                <p className="text-3xl font-bold text-gray-900 mt-1">{stats.inProgress}</p>
               </div>
               <div className="p-3 bg-blue-500/20 rounded-lg">
                 <svg className="w-6 h-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -122,7 +122,7 @@ const TranslatorStats: React.FC<TranslatorStatsProps> = ({
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-purple-400 text-sm font-medium">Approval Rate</p>
-                <p className="text-3xl font-bold text-white mt-1">{stats.approvalRate}%</p>
+                <p className="text-3xl font-bold text-gray-900 mt-1">{stats.approvalRate}%</p>
               </div>
               <div className="p-3 bg-purple-500/20 rounded-lg">
                 <svg className="w-6 h-6 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -144,8 +144,8 @@ const TranslatorStats: React.FC<TranslatorStatsProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Performance Chart */}
         {stats && performanceData.some((d) => d.value > 0) && (
-          <div className="bg-gray-800/50 rounded-xl border border-gray-700 p-6">
-            <h3 className="text-lg font-semibold text-white mb-4">Performance Breakdown</h3>
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Performance Breakdown</h3>
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -165,11 +165,11 @@ const TranslatorStats: React.FC<TranslatorStatsProps> = ({
                   </Pie>
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: '#1F2937',
-                      border: '1px solid #374151',
+                      backgroundColor: '#FFFFFF',
+                      border: '1px solid #E5E7EB',
                       borderRadius: '8px',
                     }}
-                    itemStyle={{ color: '#fff' }}
+                    itemStyle={{ color: '#111827' }}
                   />
                 </PieChart>
               </ResponsiveContainer>
@@ -178,10 +178,10 @@ const TranslatorStats: React.FC<TranslatorStatsProps> = ({
         )}
 
         {/* Leaderboard */}
-        <div className="bg-gray-800/50 rounded-xl border border-gray-700 p-6">
-          <h3 className="text-lg font-semibold text-white mb-4">Translator Leaderboard</h3>
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Translator Leaderboard</h3>
           {leaderboard.length === 0 ? (
-            <p className="text-gray-400 text-center py-8">No leaderboard data available</p>
+            <p className="text-gray-500 text-center py-8">No leaderboard data available</p>
           ) : (
             <div className="space-y-3">
               {leaderboard.map((entry, index) => (
@@ -190,7 +190,7 @@ const TranslatorStats: React.FC<TranslatorStatsProps> = ({
                   className={`flex items-center gap-4 p-3 rounded-lg ${
                     entry.uid === currentUserId
                       ? 'bg-blue-500/20 border border-blue-500/30'
-                      : 'bg-gray-700/30'
+                      : 'bg-gray-100'
                   }`}
                 >
                   <div
@@ -207,7 +207,7 @@ const TranslatorStats: React.FC<TranslatorStatsProps> = ({
                     {index + 1}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-white font-medium truncate">
+                    <p className="text-gray-900 font-medium truncate">
                       {entry.displayName}
                       {entry.uid === currentUserId && (
                         <span className="text-blue-400 text-xs ml-2">(You)</span>
@@ -215,7 +215,7 @@ const TranslatorStats: React.FC<TranslatorStatsProps> = ({
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="text-white font-bold">{entry.documentsApproved}</p>
+                    <p className="text-gray-900 font-bold">{entry.documentsApproved}</p>
                     <p className="text-gray-400 text-xs">approved</p>
                   </div>
                 </div>
@@ -227,24 +227,24 @@ const TranslatorStats: React.FC<TranslatorStatsProps> = ({
 
       {/* All Time Stats */}
       {stats?.allTimeStats && (
-        <div className="bg-gray-800/50 rounded-xl border border-gray-700 p-6">
-          <h3 className="text-lg font-semibold text-white mb-4">All-Time Statistics</h3>
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">All-Time Statistics</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="text-center p-4 bg-gray-700/30 rounded-lg">
+            <div className="text-center p-4 bg-gray-100 rounded-lg">
               <p className="text-2xl font-bold text-green-400">{stats.allTimeStats.documentsApproved || 0}</p>
               <p className="text-gray-400 text-sm">Total Approved</p>
             </div>
-            <div className="text-center p-4 bg-gray-700/30 rounded-lg">
+            <div className="text-center p-4 bg-gray-100 rounded-lg">
               <p className="text-2xl font-bold text-red-400">{stats.allTimeStats.documentsRejected || 0}</p>
               <p className="text-gray-400 text-sm">Total Rejected</p>
             </div>
-            <div className="text-center p-4 bg-gray-700/30 rounded-lg">
+            <div className="text-center p-4 bg-gray-100 rounded-lg">
               <p className="text-2xl font-bold text-blue-400">
                 {(stats.allTimeStats.documentsApproved || 0) + (stats.allTimeStats.documentsRejected || 0)}
               </p>
               <p className="text-gray-400 text-sm">Total Reviewed</p>
             </div>
-            <div className="text-center p-4 bg-gray-700/30 rounded-lg">
+            <div className="text-center p-4 bg-gray-100 rounded-lg">
               <p className="text-2xl font-bold text-purple-400">
                 {stats.avgReviewTimeMinutes ? `${stats.avgReviewTimeMinutes} min` : 'N/A'}
               </p>

@@ -11,6 +11,8 @@ interface UserTableProps {
   onDeactivate: (user: User) => void;
   onReactivate: (user: User) => void;
   onViewDetails: (user: User) => void;
+  onDelete: (user: User) => void;
+  deleting?: string | null;
 }
 
 const getRoleBadgeColor = (role: string): string => {
@@ -24,6 +26,17 @@ const getRoleBadgeColor = (role: string): string => {
   return colors[role] || colors.user;
 };
 
+const getAvatarGradient = (role: string): string => {
+  const gradients: Record<string, string> = {
+    superadmin: 'from-purple-500 to-pink-600',
+    translator: 'from-blue-500 to-cyan-500',
+    partner: 'from-green-500 to-emerald-600',
+    support: 'from-yellow-500 to-orange-500',
+    user: 'from-slate-500 to-slate-600',
+  };
+  return gradients[role] || gradients.user;
+};
+
 const UserTable: React.FC<UserTableProps> = ({
   users,
   loading,
@@ -31,6 +44,8 @@ const UserTable: React.FC<UserTableProps> = ({
   onDeactivate,
   onReactivate,
   onViewDetails,
+  onDelete,
+  deleting,
 }) => {
   if (loading) {
     return (
@@ -107,10 +122,15 @@ const UserTable: React.FC<UserTableProps> = ({
               <tr key={user.id} className="hover:bg-slate-700/50 transition-colors">
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
-                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                    <div className={`relative w-10 h-10 bg-gradient-to-br ${getAvatarGradient(user.role)} rounded-full flex items-center justify-center`}>
                       <span className="text-white font-semibold text-sm">
                         {user.displayName?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || '?'}
                       </span>
+                      {user.role !== 'user' && (
+                        <span className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-slate-800 rounded-full flex items-center justify-center">
+                          <span className="w-2.5 h-2.5 rounded-full bg-purple-400"></span>
+                        </span>
+                      )}
                     </div>
                     <div className="ml-4">
                       <p className="text-sm font-medium text-white">{user.displayName || 'No name'}</p>
@@ -171,8 +191,9 @@ const UserTable: React.FC<UserTableProps> = ({
                     {user.isActive ? (
                       <button
                         onClick={() => onDeactivate(user)}
-                        className="p-2 text-red-400 hover:text-red-200 hover:bg-red-500/10 rounded-lg transition-colors"
-                        aria-label="Deactivate user"
+                        className="p-2 text-yellow-400 hover:text-yellow-200 hover:bg-yellow-500/10 rounded-lg transition-colors"
+                        aria-label="Disable user"
+                        title="Disable account"
                       >
                         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
@@ -182,13 +203,32 @@ const UserTable: React.FC<UserTableProps> = ({
                       <button
                         onClick={() => onReactivate(user)}
                         className="p-2 text-green-400 hover:text-green-200 hover:bg-green-500/10 rounded-lg transition-colors"
-                        aria-label="Reactivate user"
+                        aria-label="Enable user"
+                        title="Enable account"
                       >
                         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                       </button>
                     )}
+                    <button
+                      onClick={() => onDelete(user)}
+                      disabled={deleting === user.uid || deleting === user.id}
+                      className="p-2 text-red-400 hover:text-red-200 hover:bg-red-500/10 rounded-lg transition-colors disabled:opacity-50"
+                      aria-label="Delete user"
+                      title="Permanently delete account & all data"
+                    >
+                      {(deleting === user.uid || deleting === user.id) ? (
+                        <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                        </svg>
+                      ) : (
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      )}
+                    </button>
                   </div>
                 </td>
               </tr>

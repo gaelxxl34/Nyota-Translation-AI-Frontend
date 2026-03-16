@@ -5,10 +5,10 @@
     "brandName": "Nyota Translation Center"
   },
   "hero": {
-    "badge": "Disponible: Relevés Académiques",
+    "badge": "Disponible: Documents Académiques & Officiels",
     "title": "Traduisez vos Documents",
     "titleHighlight": "en Toute Simplicité",
-    "subtitle": "Traduction alimentée par l'IA avec révision par des experts humains. Services de traduction rapides, précis et sécurisés pour les documents académiques, officiels et commerciaux.",
+    "subtitle": "Traduction alimentée par l'IA avec révision par des experts humains. Services de traduction rapides, précis et sécurisés pour bulletins scolaires, diplômes, relevés de notes, attestations et plus.",
     "currentService": "Français ↔ Anglais Relevés Académiques",
     "currentServiceDesc": "Disponible maintenant - Commencez à traduire",
     "startTranslation": "Commencer la Traduction",
@@ -22,15 +22,17 @@
   "services": {
     "badge": "Nos Services",
     "title": "Services de Traduction de Documents",
-    "subtitle": "Services de traduction professionnels pour tous vos besoins documentaires. En commençant par les relevés académiques, nous élargissons à plus de types de documents.",
+    "subtitle": "Services de traduction professionnels pour tous vos besoins documentaires. Des bulletins scolaires aux diplômes d'État, nous traitons une large gamme de documents académiques et officiels.",
     "statusAvailable": "Disponible",
     "statusComing": "Bientôt",
     "academic": {
-      "title": "Relevés Académiques",
-      "description": "Relevés du système français traduits en format anglais avec vérification d'experts.",
-      "feature1": "Bulletins scolaires",
-      "feature2": "Relevés universitaires",
-      "feature3": "Diplômes & certificats"
+      "title": "Documents Académiques & Officiels",
+      "description": "Documents académiques du système français traduits en anglais avec vérification d'experts et sortie certifiée.",
+      "feature1": "Bulletins scolaires (primaire & secondaire)",
+      "feature2": "Diplômes d'État & attestations d'examen",
+      "feature3": "Relevés de notes & attestations universitaires",
+      "feature4": "Diplômes de licence",
+      "feature5": "Attestations de fin d'études secondaires"
     },
     "official": {
       "title": "Documents Officiels",
@@ -184,20 +186,43 @@
   },
   "pricing": {
     "sectionTitle": "Tarification Simple et Transparente",
-    "sectionSubtitle": "Payez par document sans frais cachés ni abonnements mensuels",
+    "sectionSubtitle": "Commencez avec un brouillon IA gratuit, puis passez \u00e0 une traduction certifi\u00e9e quand vous \u00eates pr\u00eat",
     "mostPopular": "Plus Populaire",
-    "perBulletin": "par document",
-    "noSubscription": "Pas d'abonnement requis • Payez à l'utilisation",
-    "whatsIncluded": "Ce qui est inclus:",
-    "features": {
-      "aiExtraction": "Traduction propulsée par l'IA",
-      "editableReview": "Révision par expert humain",
-      "instantDownload": "Livraison rapide",
-      "multipleFormats": "Formats de sortie multiples",
-      "secureProcessing": "Traitement sécurisé et privé"
-    },
+    "perBulletin": "par page",
+    "noSubscription": "Pas d'abonnement requis \u2022 Payez \u00e0 l'utilisation",
     "startTranslation": "Commencer la Traduction",
-    "securePayment": "Traitement de paiement sécurisé avec plusieurs options"
+    "securePayment": "Traitement de paiement s\u00e9curis\u00e9 avec plusieurs options",
+    "free": {
+      "badge": "GRATUIT",
+      "title": "Brouillon IA",
+      "subtitle": "Essayez instantan\u00e9ment \u2014 sans paiement",
+      "price": "Gratuit",
+      "feature1": "Traduction propuls\u00e9e par l'IA",
+      "feature2": "Aper\u00e7u instantan\u00e9",
+      "feature3": "PDF brouillon avec filigrane",
+      "feature4": "Types de documents multiples",
+      "cta": "Commencer Gratuitement"
+    },
+    "certified": {
+      "badge": "CERTIFI\u00c9",
+      "title": "Traduction Certifi\u00e9e",
+      "subtitle": "R\u00e9vis\u00e9e par expert & infalsifiable",
+      "from": "\u00e0 partir de",
+      "feature1": "R\u00e9vision par expert humain",
+      "feature2": "Traduction certifi\u00e9e",
+      "feature3": "PDF infalsifiable avec code QR",
+      "feature4": "V\u00e9rification num\u00e9rique",
+      "feature5": "Support prioritaire"
+    },
+    "tiers": {
+      "title": "Options de Vitesse de Livraison",
+      "standard": "Standard",
+      "standardTime": "Jusqu'à 24 heures",
+      "rush": "Urgent",
+      "rushTime": "Jusqu'à 12 heures",
+      "express": "Express",
+      "expressTime": "1–5 heures"
+    }
   },
   "footer": {
     "description": "Traduction professionnelle de documents propulsée par l'IA et vérifiée par des traducteurs experts. Rapide, précise et sécurisée.",
@@ -276,11 +301,20 @@
   "dashboard": {
     "navigation": {
       "title": "Nyota Translation Center",
-      "signOut": "Déconnexion"
+      "signOut": "D\u00e9connexion",
+      "newTranslation": "Nouvelle Traduction"
     },
     "header": {
       "title": "Mes Documents",
-      "subtitle": "Téléchargez des documents, visualisez les traductions et téléchargez vos fichiers traduits."
+      "subtitle": "T\u00e9l\u00e9chargez des documents, visualisez les traductions et t\u00e9l\u00e9chargez vos fichiers traduits."
+    },
+    "submissions": {
+      "title": "Mes Soumissions",
+      "loading": "Chargement des soumissions...",
+      "document": "Document",
+      "language": "Langue",
+      "speed": "Vitesse",
+      "date": "Date"
     },
     "upload": {
       "title": "📤 Télécharger Nouveau Document",
@@ -357,6 +391,8 @@
       "title": "Vérification Échouée",
       "invalidUrl": "URL de vérification invalide. ID du document manquant.",
       "notFound": "Document non trouvé ou vérification échouée.",
+      "notFoundTitle": "Certificat Non Trouvé",
+      "notFoundDescription": "Aucun document certifié ne correspond à cet identifiant. Veuillez vérifier l'identifiant et réessayer.",
       "generic": "Erreur lors de la vérification du document. Veuillez réessayer.",
       "tryAgain": "Réessayer"
     },
@@ -367,7 +403,40 @@
     "documentInfo": {
       "title": "Informations du Document",
       "studentName": "Nom de l'Étudiant",
-      "generationDate": "Date de Génération"
+      "generationDate": "Date de Génération",
+      "documentTitle": "Titre du Document",
+      "documentType": "Type de Document",
+      "translation": "Traduction"
+    },
+    "certified": {
+      "title": "Traduction Certifiée Vérifiée",
+      "description": "Ce document a été examiné professionnellement et certifié par Nyota Translation Center.",
+      "certId": "Identifiant de Certification",
+      "certifiedAt": "Certifié le",
+      "agent": "Examiné par"
+    },
+    "certInput": {
+      "label": "Identifiant de Certification",
+      "placeholder": "ex. NTC-2026-A7K9F2",
+      "verify": "Vérifier",
+      "hint": "Entrez l'identifiant de certification imprimé sur votre document (format: NTC-AAAA-XXXXXX)"
+    },
+    "hash": {
+      "title": "Détection de Falsification",
+      "description": "Téléchargez le PDF certifié pour vérifier qu'il n'a pas été modifié depuis la certification.",
+      "uploadPrompt": "Cliquez ou glissez pour télécharger le PDF certifié",
+      "verifyBtn": "Vérifier l'Intégrité",
+      "checking": "Vérification de l'intégrité...",
+      "intact": "Intégrité du Document Vérifiée",
+      "tampered": "Falsification Possible Détectée",
+      "tryAnother": "Essayer un autre fichier",
+      "fingerprint": "Empreinte SHA-256"
+    },
+    "idle": {
+      "title": "Comment vérifier votre document",
+      "step1": "Trouvez l'identifiant de certification sur votre document (ex. NTC-2026-A7K9F2)",
+      "step2": "Entrez l'identifiant ci-dessus et cliquez sur Vérifier",
+      "step3": "Téléchargez optionnellement le PDF pour détecter toute falsification"
     },
     "blockchain": {
       "title": "🔗 Vérification Sécurisée",
@@ -394,5 +463,22 @@
     "navigation": {
       "backToHome": "Retour à l'Accueil"
     }
+  },
+  "translate": {
+    "tabs": {
+      "newTranslation": "Nouvelle Traduction",
+      "myTranslations": "Mes Traductions"
+    },
+    "status": {
+      "processing": "Traitement de votre document...",
+      "complete": "Traduction terminée",
+      "waiting": "Appuyez sur une option ci-dessus pour continuer"
+    },
+    "startOver": "Recommencer",
+    "newTranslation": "Nouvelle Traduction"
+  },
+  "common": {
+    "language": "Langue",
+    "back": "Retour"
   }
 }

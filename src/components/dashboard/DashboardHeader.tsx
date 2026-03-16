@@ -7,9 +7,10 @@ import { LanguageSwitcher } from '../common';
 
 interface DashboardHeaderProps {
   userEmail: string;
+  onNavigate?: (page: string) => void;
 }
 
-const DashboardHeader: React.FC<DashboardHeaderProps> = ({ userEmail }) => {
+const DashboardHeader: React.FC<DashboardHeaderProps> = ({ userEmail, onNavigate }) => {
   const { t } = useTranslation();
 
   const handleSignOut = () => {
@@ -34,6 +35,18 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ userEmail }) => {
           </div>
           
           <div className="flex items-center gap-3">
+            {/* New Translation CTA */}
+            {onNavigate && (
+              <button
+                onClick={() => onNavigate('translate')}
+                className="hidden sm:inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                {t('dashboard.navigation.newTranslation', 'New Translation')}
+              </button>
+            )}
             {/* Avatar Dropdown */}
             <div className="relative group">
               <button className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors">

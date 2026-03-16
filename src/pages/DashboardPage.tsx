@@ -115,9 +115,9 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-UG', {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'UGX',
+      currency: 'USD',
       minimumFractionDigits: 0,
     }).format(amount);
   };
@@ -253,7 +253,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                   </div>
                 </div>
                 <p className="text-xs text-gray-500 mt-2">
-                  @ {formatCurrency(stats.pricePerDocument)} per document
+                  @ {formatCurrency(stats.pricePerDocument)} per page
                 </p>
               </div>
             </div>

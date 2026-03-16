@@ -20,7 +20,9 @@ import {
   AdminDashboardPage,
   TranslatorDashboardPage,
   PartnerDashboardPage,
-  SupportDashboardPage
+  SupportDashboardPage,
+  EmailVerificationPendingPage,
+  TranslatePage
 } from './pages';
 
 // Simple page routing state
@@ -32,11 +34,13 @@ type PageType =
   | 'login'
   | 'register'
   | 'dashboard'
+  | 'translate'
   | 'terms'
   | 'privacy'
   | 'forgot-password'
   | 'card-only'
   | 'verify'
+  | 'verify-email'
   | 'admin'
   | 'translator'
   | 'partner'
@@ -52,12 +56,14 @@ const getPageFromPath = (pathname: string): PageType => {
   if (pathname === '/login') return 'login';
   if (pathname === '/register') return 'register';
   if (pathname === '/dashboard') return 'dashboard';
+  if (pathname === '/translate') return 'translate';
   if (pathname === '/stats') return 'admin'; // Redirect stats to admin (will load /admin/statistics)
   if (pathname === '/terms') return 'terms';
   if (pathname === '/privacy') return 'privacy';
   if (pathname === '/forgot-password') return 'forgot-password';
   if (pathname === '/card-only') return 'card-only';
   if (pathname === '/verify' || pathname.startsWith('/verify?')) return 'verify';
+  if (pathname === '/verify-email') return 'verify-email';
   if (pathname.startsWith('/admin')) return 'admin';
   if (pathname.startsWith('/translator')) return 'translator';
   if (pathname.startsWith('/partner')) return 'partner';
@@ -78,11 +84,13 @@ const getPathFromPage = (page: PageType): string => {
     'login': '/login',
     'register': '/register',
     'dashboard': '/dashboard',
+    'translate': '/translate',
     'terms': '/terms',
     'privacy': '/privacy',
     'forgot-password': '/forgot-password',
     'card-only': '/card-only',
     'verify': '/verify',
+    'verify-email': '/verify-email',
     'admin': '/admin',
     'translator': '/translator',
     'partner': '/partner',
@@ -93,7 +101,7 @@ const getPathFromPage = (page: PageType): string => {
 
 // Auth-aware routing component
 const AuthAwareRouter: React.FC = () => {
-  const { currentUser, loading, userRole } = useAuth();
+  const { currentUser, loading, userRole, emailVerified } = useAuth();
   const [currentPage, setCurrentPage] = useState<PageType>(() => {
     return getPageFromPath(window.location.pathname);
   });
@@ -140,7 +148,7 @@ const AuthAwareRouter: React.FC = () => {
         hasRedirected.current = false;
       } else {
         // User just logged out - redirect to landing if on protected pages
-        if (['dashboard', 'admin', 'translator', 'partner', 'support'].includes(currentPage)) {
+        if (['dashboard', 'translate', 'admin', 'translator', 'partner', 'support'].includes(currentPage)) {
           navigateToPage('landing');
         }
         hasRedirected.current = false;
@@ -185,14 +193,14 @@ const AuthAwareRouter: React.FC = () => {
           navigateToPage('support');
           break;
         default:
-          navigateToPage('dashboard');
+          navigateToPage('translate');
       }
     }
   }, [isAuthenticated, userRole, currentPage]);
 
   // Public pages that don't need auth check
   const isPublicRoute = (page: PageType): boolean => {
-    return ['landing', 'terms', 'privacy', 'verify'].includes(page);
+    return ['landing', 'terms', 'privacy', 'verify', 'verify-email', 'card-only'].includes(page);
   };
 
   // Show branded loading screen for protected routes during initial auth check
@@ -202,7 +210,7 @@ const AuthAwareRouter: React.FC = () => {
 
   // Route protection logic
   const isProtectedRoute = (page: PageType): boolean => {
-    return ['dashboard', 'admin', 'translator', 'partner', 'support'].includes(page);
+    return ['dashboard', 'translate', 'admin', 'translator', 'partner', 'support'].includes(page);
   };
 
   // If user is authenticated but role not yet resolved, show branded loader to avoid flicker
@@ -219,6 +227,11 @@ const AuthAwareRouter: React.FC = () => {
     return <LoginPage onNavigate={navigateToPage} />;
   }
 
+  // Handle authenticated but email not verified (regular users only)
+  if (isProtectedRoute(currentPage) && isAuthenticated && !emailVerified && userRole === 'user') {
+    return <EmailVerificationPendingPage onNavigate={navigateToPage} email={currentUser?.email || ''} />;
+  }
+
   // Handle auth routes when already authenticated - redirect to role-based dashboard
   if (isAuthRoute(currentPage) && isAuthenticated) {
     switch (userRole) {
@@ -231,7 +244,7 @@ const AuthAwareRouter: React.FC = () => {
       case 'support':
         return <SupportDashboardPage />;
       default:
-        return <FirestoreOnlyDashboardPage />;
+        return <TranslatePage onNavigate={navigateToPage} />;
     }
   }
 
@@ -243,7 +256,9 @@ const AuthAwareRouter: React.FC = () => {
       case 'register':
         return <RegisterPage onNavigate={navigateToPage} />;
       case 'dashboard':
-        return <FirestoreOnlyDashboardPage />;
+        return <FirestoreOnlyDashboardPage onNavigate={navigateToPage as (page: string) => void} />;
+      case 'translate':
+        return <TranslatePage onNavigate={navigateToPage} />;
       case 'terms':
         return <TermsAndConditionsPage onNavigate={navigateToPage} />;
       case 'privacy':
@@ -252,6 +267,8 @@ const AuthAwareRouter: React.FC = () => {
         return <ForgotPasswordPage onNavigate={navigateToPage} />;
       case 'verify':
         return <DocumentVerificationPage onNavigate={navigateToPage} />;
+      case 'verify-email':
+        return <EmailVerificationPendingPage onNavigate={navigateToPage} email={currentUser?.email || ''} />;
       case 'card-only':
         return <CardOnlyPage />;
       case 'admin':

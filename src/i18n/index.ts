@@ -24,7 +24,7 @@ i18n
   // Initialize i18next
   .init({
     resources,
-    fallbackLng: 'fr', // Default language changed to French
+    fallbackLng: 'en',
     debug: false, // Set to true for development debugging
     
     interpolation: {

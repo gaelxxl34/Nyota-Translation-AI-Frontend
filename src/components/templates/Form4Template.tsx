@@ -402,7 +402,7 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
     if (isTableCell) {
       return (
         <div 
-          className={`w-full h-full relative ${className} ${isEditable ? 'cursor-pointer hover:bg-yellow-100 hover:shadow-sm px-1 py-0.5 rounded-none transition-colors duration-150' : ''} ${displayValue ? '' : 'text-gray-400 italic'}`}
+          className={`w-full h-full relative ${className} ${isEditable ? 'cursor-pointer hover:bg-blue-100 hover:shadow-md px-1 py-0.5 rounded-none transition-colors duration-150 border border-dashed border-transparent hover:border-blue-400' : ''} ${displayValue ? '' : 'text-gray-400 italic'}`}
           onClick={() => isEditable && setIsEditing(true)}
           title={isEditable ? 'Click to edit' : ''}
           style={{ 
@@ -432,7 +432,7 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
     
     return (
       <span 
-        className={`relative inline-block ${className} ${isEditable ? 'cursor-pointer hover:bg-yellow-100 hover:shadow-sm px-1 py-0.5 rounded-none transition-colors duration-150' : ''} ${displayValue ? '' : 'text-gray-400 italic'}`}
+        className={`relative inline-block ${className} ${isEditable ? 'cursor-pointer hover:bg-blue-100 hover:shadow-md px-1 py-0.5 rounded-none transition-colors duration-150 border border-dashed border-transparent hover:border-blue-400' : ''} ${displayValue ? '' : 'text-gray-400 italic'}`}
         onClick={() => isEditable && setIsEditing(true)}
         title={isEditable ? 'Click to edit' : ''}
         style={{ 
@@ -717,16 +717,13 @@ const Form4Template: React.FC<Form4TemplateProps> = ({
   
   // Document verification state
   const [documentId, setDocumentId] = useState<string>(propDocumentId || '');
-  
-  console.log('🔍 Form4Template - propDocumentId:', propDocumentId, 'documentId state:', documentId);
 
   // Update document ID when prop changes
   useEffect(() => {
-    if (propDocumentId && propDocumentId !== documentId) {
-      console.log('🔄 Form4Template - Setting prop documentId:', propDocumentId);
+    if (propDocumentId) {
       setDocumentId(propDocumentId);
     }
-  }, [propDocumentId, documentId]);
+  }, [propDocumentId]);
 
   // Drag handlers
   const handleDragStart = (e: React.DragEvent, groupIndex: number) => {

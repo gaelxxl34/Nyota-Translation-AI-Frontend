@@ -30,9 +30,11 @@ interface AuthContextType {
   loading: boolean;
   idToken: string | null;
   userRole: UserRole;
+  emailVerified: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, name: string) => Promise<void>;
   logout: () => Promise<void>;
+  getFreshToken: () => Promise<string>;
   error: string | null;
   clearError: () => void;
   sendPasswordReset: (email: string) => Promise<void>;
@@ -153,6 +155,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  // Get a fresh ID token (force refresh if needed)
+  const getFreshToken = async (): Promise<string> => {
+    if (!currentUser) throw new Error('Not authenticated');
+    const token = await currentUser.getIdToken(true);
+    setIdToken(token);
+    return token;
+  };
+
   // Logout user
   const logout = async (): Promise<void> => {
     try {
@@ -256,9 +266,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     loading,
     idToken,
     userRole,
+    emailVerified: currentUser?.emailVerified ?? false,
     login,
     register,
     logout,
+    getFreshToken,
     error,
     clearError,
     sendPasswordReset

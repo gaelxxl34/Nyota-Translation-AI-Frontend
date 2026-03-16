@@ -347,3 +347,35 @@ export const usePartnerStudents = () => {
     fetchStudents,
   };
 };
+
+/**
+ * Hook for partner promo codes
+ */
+export const usePartnerPromoCodes = () => {
+  const { idToken } = useAuth();
+  const [promoCodes, setPromoCodes] = useState<partnerService.PartnerPromoCode[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchPromoCodes = useCallback(async () => {
+    if (!idToken) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await partnerService.getPartnerPromoCodes(idToken);
+      setPromoCodes(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch promo codes');
+      console.error('Error fetching partner promo codes:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [idToken]);
+
+  return {
+    promoCodes,
+    loading,
+    error,
+    fetchPromoCodes,
+  };
+};

@@ -75,12 +75,12 @@ const PartnerStats: React.FC<PartnerStatsProps> = ({ stats, loading, onRefresh }
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h3 className="text-lg font-semibold text-white">Usage Statistics</h3>
+          <h3 className="text-lg font-semibold text-gray-900">Usage Statistics</h3>
           <p className="text-gray-400 text-sm">Analytics and insights for your organization</p>
         </div>
         <button
           onClick={onRefresh}
-          className="flex items-center justify-center gap-2 px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded-lg transition-colors text-sm self-start sm:self-auto"
+          className="flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors text-sm self-start sm:self-auto"
         >
           <svg className="w-4 sm:w-5 h-4 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path
@@ -96,11 +96,11 @@ const PartnerStats: React.FC<PartnerStatsProps> = ({ stats, loading, onRefresh }
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <div className="bg-gray-800/50 rounded-xl border border-gray-700 p-4 sm:p-5">
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-5">
           <div className="flex items-center justify-between">
             <div className="min-w-0">
-              <p className="text-gray-400 text-xs sm:text-sm">Total Docs</p>
-              <p className="text-xl sm:text-2xl font-bold text-white mt-1">{stats.totalDocuments || 0}</p>
+              <p className="text-gray-500 text-xs sm:text-sm">Total Docs</p>
+              <p className="text-xl sm:text-2xl font-bold text-gray-900 mt-1">{stats.totalDocuments || 0}</p>
             </div>
             <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
               <svg className="w-5 h-5 sm:w-6 sm:h-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -115,11 +115,11 @@ const PartnerStats: React.FC<PartnerStatsProps> = ({ stats, loading, onRefresh }
           </div>
         </div>
 
-        <div className="bg-gray-800/50 rounded-xl border border-gray-700 p-4 sm:p-5">
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-5">
           <div className="flex items-center justify-between">
             <div className="min-w-0">
-              <p className="text-gray-400 text-xs sm:text-sm">Students</p>
-              <p className="text-xl sm:text-2xl font-bold text-white mt-1">{stats.uniqueStudents || 0}</p>
+              <p className="text-gray-500 text-xs sm:text-sm">Clients</p>
+              <p className="text-xl sm:text-2xl font-bold text-gray-900 mt-1">{stats.uniqueStudents || 0}</p>
             </div>
             <div className="w-10 h-10 sm:w-12 sm:h-12 bg-green-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
               <svg className="w-5 h-5 sm:w-6 sm:h-6 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -134,11 +134,11 @@ const PartnerStats: React.FC<PartnerStatsProps> = ({ stats, loading, onRefresh }
           </div>
         </div>
 
-        <div className="bg-gray-800/50 rounded-xl border border-gray-700 p-4 sm:p-5">
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-5">
           <div className="flex items-center justify-between">
             <div className="min-w-0">
-              <p className="text-gray-400 text-xs sm:text-sm">This Period</p>
-              <p className="text-xl sm:text-2xl font-bold text-white mt-1">{stats.documentsInPeriod || 0}</p>
+              <p className="text-gray-500 text-xs sm:text-sm">This Period</p>
+              <p className="text-xl sm:text-2xl font-bold text-gray-900 mt-1">{stats.documentsInPeriod || 0}</p>
             </div>
             <div className="w-10 h-10 sm:w-12 sm:h-12 bg-purple-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
               <svg className="w-5 h-5 sm:w-6 sm:h-6 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -153,11 +153,11 @@ const PartnerStats: React.FC<PartnerStatsProps> = ({ stats, loading, onRefresh }
           </div>
         </div>
 
-        <div className="bg-gray-800/50 rounded-xl border border-gray-700 p-4 sm:p-5">
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-5">
           <div className="flex items-center justify-between">
             <div className="min-w-0">
-              <p className="text-gray-400 text-xs sm:text-sm">Approval %</p>
-              <p className="text-xl sm:text-2xl font-bold text-white mt-1">
+              <p className="text-gray-500 text-xs sm:text-sm">Approval %</p>
+              <p className="text-xl sm:text-2xl font-bold text-gray-900 mt-1">
                 {stats.totalDocuments > 0 
                   ? Math.round((stats.approvedDocuments / stats.totalDocuments) * 100) 
                   : 0}%
@@ -180,8 +180,8 @@ const PartnerStats: React.FC<PartnerStatsProps> = ({ stats, loading, onRefresh }
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Documents by Status */}
-        <div className="bg-gray-800/50 rounded-xl border border-gray-700 p-4 sm:p-6">
-          <h4 className="text-base sm:text-lg font-semibold text-white mb-4">Documents by Status</h4>
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6">
+          <h4 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Documents by Status</h4>
           {statusDistribution.length > 0 ? (
             <ResponsiveContainer width="100%" height={200}>
               <PieChart>
@@ -200,14 +200,14 @@ const PartnerStats: React.FC<PartnerStatsProps> = ({ stats, loading, onRefresh }
                 </Pie>
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: '#1F2937',
-                    border: '1px solid #374151',
+                    backgroundColor: '#FFFFFF',
+                    border: '1px solid #E5E7EB',
                     borderRadius: '8px',
                   }}
-                  labelStyle={{ color: '#F3F4F6' }}
+                  labelStyle={{ color: '#111827' }}
                 />
                 <Legend
-                  formatter={(value) => <span style={{ color: '#9CA3AF' }}>{value}</span>}
+                  formatter={(value) => <span style={{ color: '#6B7280' }}>{value}</span>}
                 />
               </PieChart>
             </ResponsiveContainer>
@@ -219,8 +219,8 @@ const PartnerStats: React.FC<PartnerStatsProps> = ({ stats, loading, onRefresh }
         </div>
 
         {/* Documents by Type */}
-        <div className="bg-gray-800/50 rounded-xl border border-gray-700 p-4 sm:p-6">
-          <h4 className="text-base sm:text-lg font-semibold text-white mb-4">Documents by Type</h4>
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6">
+          <h4 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Documents by Type</h4>
           {formTypeDistribution.length > 0 ? (
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={formTypeDistribution}>
@@ -235,11 +235,11 @@ const PartnerStats: React.FC<PartnerStatsProps> = ({ stats, loading, onRefresh }
                 <YAxis tick={{ fill: '#9CA3AF' }} />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: '#1F2937',
-                    border: '1px solid #374151',
+                    backgroundColor: '#FFFFFF',
+                    border: '1px solid #E5E7EB',
                     borderRadius: '8px',
                   }}
-                  labelStyle={{ color: '#F3F4F6' }}
+                  labelStyle={{ color: '#111827' }}
                 />
                 <Bar dataKey="value" fill="#3B82F6" radius={[4, 4, 0, 0]} />
               </BarChart>
@@ -253,8 +253,8 @@ const PartnerStats: React.FC<PartnerStatsProps> = ({ stats, loading, onRefresh }
       </div>
 
       {/* Monthly Trend */}
-      <div className="bg-gray-800/50 rounded-xl border border-gray-700 p-4 sm:p-6">
-        <h4 className="text-base sm:text-lg font-semibold text-white mb-4">Monthly Document Trend</h4>
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6">
+        <h4 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Monthly Document Trend</h4>
         {monthlyData.length > 0 ? (
           <ResponsiveContainer width="100%" height={250}>
             <LineChart data={monthlyData}>
@@ -263,14 +263,14 @@ const PartnerStats: React.FC<PartnerStatsProps> = ({ stats, loading, onRefresh }
               <YAxis tick={{ fill: '#9CA3AF' }} />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: '#1F2937',
-                  border: '1px solid #374151',
+                  backgroundColor: '#FFFFFF',
+                  border: '1px solid #E5E7EB',
                   borderRadius: '8px',
                 }}
-                labelStyle={{ color: '#F3F4F6' }}
+                labelStyle={{ color: '#111827' }}
               />
               <Legend
-                formatter={(value) => <span style={{ color: '#9CA3AF' }}>{value}</span>}
+                formatter={(value) => <span style={{ color: '#6B7280' }}>{value}</span>}
               />
               <Line
                 type="monotone"
@@ -299,23 +299,23 @@ const PartnerStats: React.FC<PartnerStatsProps> = ({ stats, loading, onRefresh }
 
       {/* Additional Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-        <div className="bg-gray-800/50 rounded-xl border border-gray-700 p-4 sm:p-5">
-          <p className="text-gray-400 text-xs sm:text-sm">Approved Documents</p>
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-5">
+          <p className="text-gray-500 text-xs sm:text-sm">Approved Documents</p>
           <p className="text-lg sm:text-xl font-bold text-green-400 mt-1">
             {stats.approvedDocuments || 0}
           </p>
           <p className="text-gray-500 text-xs mt-1">Successfully processed</p>
         </div>
-        <div className="bg-gray-800/50 rounded-xl border border-gray-700 p-4 sm:p-5">
-          <p className="text-gray-400 text-xs sm:text-sm">Pending Documents</p>
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-5">
+          <p className="text-gray-500 text-xs sm:text-sm">Pending Documents</p>
           <p className="text-lg sm:text-xl font-bold text-yellow-400 mt-1">
             {stats.pendingDocuments || 0}
           </p>
           <p className="text-gray-500 text-xs mt-1">Awaiting review</p>
         </div>
-        <div className="bg-gray-800/50 rounded-xl border border-gray-700 p-4 sm:p-5">
-          <p className="text-gray-400 text-xs sm:text-sm">Documents in Period</p>
-          <p className="text-lg sm:text-xl font-bold text-white mt-1">
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-5">
+          <p className="text-gray-500 text-xs sm:text-sm">Documents in Period</p>
+          <p className="text-lg sm:text-xl font-bold text-gray-900 mt-1">
             {stats.documentsInPeriod || 0}
           </p>
           <p className="text-gray-500 text-xs mt-1">Current reporting period</p>

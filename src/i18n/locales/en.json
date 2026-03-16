@@ -5,10 +5,10 @@
     "brandName": "Nyota Translation Center"
   },
   "hero": {
-    "badge": "Now Available: Academic Transcripts",
+    "badge": "Now Available: Academic & Official Documents",
     "title": "Translate Your Documents",
     "titleHighlight": "With Ease",
-    "subtitle": "AI-powered translation with expert human review. Fast, accurate, and secure document translation services for academic, official, and business documents.",
+    "subtitle": "AI-powered translation with expert human review. Fast, accurate, and secure document translation services for school bulletins, diplomas, transcripts, attestations, and more.",
     "currentService": "French ↔ English Academic Transcripts",
     "currentServiceDesc": "Now available - Start translating today",
     "startTranslation": "Start Translation",
@@ -22,15 +22,17 @@
   "services": {
     "badge": "Our Services",
     "title": "Document Translation Services",
-    "subtitle": "Professional translation services for all your document needs. Starting with academic transcripts, expanding to more document types.",
+    "subtitle": "Professional translation services for all your document needs. From school bulletins to state diplomas, we handle a wide range of academic and official documents.",
     "statusAvailable": "Available",
     "statusComing": "Coming Soon",
     "academic": {
-      "title": "Academic Transcripts",
-      "description": "French system transcripts translated to English format with expert verification.",
-      "feature1": "School bulletins & report cards",
-      "feature2": "University transcripts",
-      "feature3": "Diplomas & certificates"
+      "title": "Academic & Official Documents",
+      "description": "French-system academic documents translated to English with expert verification and certified output.",
+      "feature1": "School bulletins (primary & secondary)",
+      "feature2": "State diplomas & exam attestations",
+      "feature3": "College transcripts & attestations",
+      "feature4": "Bachelor's degree diplomas",
+      "feature5": "High school attestations"
     },
     "official": {
       "title": "Official Documents",
@@ -184,20 +186,43 @@
   },
   "pricing": {
     "sectionTitle": "Simple, Transparent Pricing",
-    "sectionSubtitle": "Pay per document with no hidden fees or monthly subscriptions",
+    "sectionSubtitle": "Start with a free AI draft, then upgrade to a certified translation when you're ready",
     "mostPopular": "Most Popular",
-    "perBulletin": "per document",
-    "noSubscription": "No subscription required • Pay as you go",
-    "whatsIncluded": "What's included:",
-    "features": {
-      "aiExtraction": "AI-powered translation",
-      "editableReview": "Expert human review",
-      "instantDownload": "Fast delivery",
-      "multipleFormats": "Multiple output formats",
-      "secureProcessing": "Secure and private processing"
-    },
+    "perBulletin": "per page",
+    "noSubscription": "No subscription required \u2022 Pay as you go",
     "startTranslation": "Start Translation",
-    "securePayment": "Secure payment processing with multiple options"
+    "securePayment": "Secure payment processing with multiple options",
+    "free": {
+      "badge": "FREE",
+      "title": "AI Draft",
+      "subtitle": "Try instantly \u2014 no payment required",
+      "price": "Free",
+      "feature1": "AI-powered translation",
+      "feature2": "Instant preview",
+      "feature3": "Watermarked draft PDF",
+      "feature4": "Multiple document types",
+      "cta": "Get Started Free"
+    },
+    "certified": {
+      "badge": "CERTIFIED",
+      "title": "Certified Translation",
+      "subtitle": "Expert-reviewed & tamper-proof",
+      "from": "from",
+      "feature1": "Expert human review",
+      "feature2": "Certified translation",
+      "feature3": "Tamper-proof PDF with QR code",
+      "feature4": "Digital verification",
+      "feature5": "Priority support"
+    },
+    "tiers": {
+      "title": "Delivery Speed Options",
+      "standard": "Standard",
+      "standardTime": "Up to 24 hours",
+      "rush": "Rush",
+      "rushTime": "Up to 12 hours",
+      "express": "Express",
+      "expressTime": "1–5 hours"
+    }
   },
   "footer": {
     "description": "Professional document translation powered by AI and verified by expert translators. Fast, accurate, and secure.",
@@ -276,11 +301,20 @@
   "dashboard": {
     "navigation": {
       "title": "Nyota Translation Center",
-      "signOut": "Sign Out"
+      "signOut": "Sign Out",
+      "newTranslation": "New Translation"
     },
     "header": {
       "title": "My Documents",
       "subtitle": "Upload documents, view translations, and download your translated files."
+    },
+    "submissions": {
+      "title": "My Submissions",
+      "loading": "Loading submissions...",
+      "document": "Document",
+      "language": "Language",
+      "speed": "Speed",
+      "date": "Date"
     },
     "upload": {
       "title": "📤 Upload New Document",
@@ -357,6 +391,8 @@
       "title": "Verification Failed",
       "invalidUrl": "Invalid verification URL. Document ID missing.",
       "notFound": "Document not found or verification failed.",
+      "notFoundTitle": "Certificate Not Found",
+      "notFoundDescription": "No certified document matches this ID. Please check the certification ID and try again.",
       "generic": "Error verifying document. Please try again.",
       "tryAgain": "Try Again"
     },
@@ -367,7 +403,40 @@
     "documentInfo": {
       "title": "Document Information",
       "studentName": "Student Name",
-      "generationDate": "Generation Date"
+      "generationDate": "Generation Date",
+      "documentTitle": "Document Title",
+      "documentType": "Document Type",
+      "translation": "Translation"
+    },
+    "certified": {
+      "title": "Certified Translation Verified",
+      "description": "This document has been professionally reviewed and certified by Nyota Translation Center.",
+      "certId": "Certification ID",
+      "certifiedAt": "Certified On",
+      "agent": "Reviewed By"
+    },
+    "certInput": {
+      "label": "Certification ID",
+      "placeholder": "e.g. NTC-2026-A7K9F2",
+      "verify": "Verify",
+      "hint": "Enter the certification ID printed on your document (format: NTC-YYYY-XXXXXX)"
+    },
+    "hash": {
+      "title": "Tamper Detection",
+      "description": "Upload the certified PDF to verify it has not been altered since certification.",
+      "uploadPrompt": "Click or drag to upload certified PDF",
+      "verifyBtn": "Verify Integrity",
+      "checking": "Checking integrity...",
+      "intact": "Document Integrity Verified",
+      "tampered": "Possible Tampering Detected",
+      "tryAnother": "Try another file",
+      "fingerprint": "SHA-256 Fingerprint"
+    },
+    "idle": {
+      "title": "How to verify your document",
+      "step1": "Find the Certification ID on your document (e.g. NTC-2026-A7K9F2)",
+      "step2": "Enter the ID above and click Verify",
+      "step3": "Optionally upload the PDF to detect any tampering"
     },
     "blockchain": {
       "title": "🔗 Secure Verification",
@@ -394,5 +463,22 @@
     "navigation": {
       "backToHome": "Back to Home"
     }
+  },
+  "translate": {
+    "tabs": {
+      "newTranslation": "New Translation",
+      "myTranslations": "My Translations"
+    },
+    "status": {
+      "processing": "Processing your document...",
+      "complete": "Translation complete",
+      "waiting": "Tap an option above to continue"
+    },
+    "startOver": "Start Over",
+    "newTranslation": "Start New Translation"
+  },
+  "common": {
+    "language": "Language",
+    "back": "Back"
   }
 }

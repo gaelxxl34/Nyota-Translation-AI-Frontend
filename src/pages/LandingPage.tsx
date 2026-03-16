@@ -16,7 +16,7 @@ import {
 } from '../components/landing';
 
 interface LandingPageProps {
-  onNavigate: (page: 'landing' | 'login' | 'register' | 'dashboard' | 'privacy' | 'terms') => void;
+  onNavigate: (page: 'landing' | 'login' | 'register' | 'dashboard' | 'privacy' | 'terms' | 'verify') => void;
 }
 
 const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
@@ -118,6 +118,31 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
 
       {/* Pricing Section */}
       <PricingSection onGetStarted={() => onNavigate('register')} />
+
+      {/* Document Verification Section */}
+      <section className="py-12 lg:py-16 bg-gradient-to-r from-primary-50 to-secondary-50">
+        <div className="container mx-auto px-4 sm:px-6 text-center">
+          <div className="max-w-2xl mx-auto">
+            <div className="inline-flex items-center justify-center w-14 h-14 bg-primary-100/60 rounded-2xl mb-4">
+              <svg className="w-7 h-7 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+              </svg>
+            </div>
+            <h2 className="text-2xl lg:text-3xl font-heading font-bold text-gray-900 mb-3">
+              {t('landing.verification.title', 'Verify a Certified Document')}
+            </h2>
+            <p className="text-gray-600 mb-6">
+              {t('landing.verification.description', 'Received a certified translation from NTC? Verify its authenticity instantly using the certification ID printed on your document.')}
+            </p>
+            <button
+              onClick={() => onNavigate('verify')}
+              className="btn-primary px-6 py-3 text-sm lg:text-base"
+            >
+              {t('landing.verification.cta', 'Verify Document')}
+            </button>
+          </div>
+        </div>
+      </section>
 
       {/* Footer */}
       <Footer onNavigate={onNavigate} />

@@ -75,7 +75,7 @@ const StudentDocuments: React.FC<StudentDocumentsProps> = ({
         {/* Back Button */}
         <button
           onClick={onBackToList}
-          className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
+          className="flex items-center gap-2 text-gray-500 hover:text-gray-900 transition-colors"
         >
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -84,13 +84,13 @@ const StudentDocuments: React.FC<StudentDocumentsProps> = ({
         </button>
 
         {/* Document Header */}
-        <div className="bg-gray-800/50 rounded-xl border border-gray-700 p-4 sm:p-6">
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6">
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
             <div className="min-w-0">
-              <h3 className="text-lg sm:text-xl font-bold text-white truncate">
-                {selectedDocument.studentName || 'Unknown Student'}
+              <h3 className="text-lg sm:text-xl font-bold text-gray-900 truncate">
+                {selectedDocument.studentName || 'Unknown Client'}
               </h3>
-              <p className="text-gray-400 text-sm">
+              <p className="text-gray-500 text-sm">
                 {formTypeLabels[selectedDocument.formType] || selectedDocument.formType}
               </p>
             </div>
@@ -102,44 +102,44 @@ const StudentDocuments: React.FC<StudentDocumentsProps> = ({
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4 text-sm">
             <div>
               <p className="text-gray-400">Document ID</p>
-              <p className="text-white font-mono">{selectedDocument.id.slice(0, 12)}...</p>
+              <p className="text-gray-900 font-mono">{selectedDocument.id.slice(0, 12)}...</p>
             </div>
             <div>
               <p className="text-gray-400">School</p>
-              <p className="text-white">{selectedDocument.schoolName || 'N/A'}</p>
+              <p className="text-gray-900">{selectedDocument.schoolName || 'N/A'}</p>
             </div>
             <div>
               <p className="text-gray-400">Class</p>
-              <p className="text-white">{selectedDocument.className || 'N/A'}</p>
+              <p className="text-gray-900">{selectedDocument.className || 'N/A'}</p>
             </div>
             <div>
               <p className="text-gray-400">Academic Year</p>
-              <p className="text-white">{selectedDocument.academicYear || 'N/A'}</p>
+              <p className="text-gray-900">{selectedDocument.academicYear || 'N/A'}</p>
             </div>
             <div>
               <p className="text-gray-400">Submitted</p>
-              <p className="text-white">{formatDate(selectedDocument.createdAt)}</p>
+              <p className="text-gray-900">{formatDate(selectedDocument.createdAt)}</p>
             </div>
             <div>
               <p className="text-gray-400">Approved</p>
-              <p className="text-white">{formatDate(selectedDocument.approvedAt)}</p>
+              <p className="text-gray-900">{formatDate(selectedDocument.approvedAt)}</p>
             </div>
             <div>
               <p className="text-gray-400">Approved By</p>
-              <p className="text-white">{selectedDocument.approvedByName || 'N/A'}</p>
+              <p className="text-gray-900">{selectedDocument.approvedByName || 'N/A'}</p>
             </div>
             <div>
               <p className="text-gray-400">User Email</p>
-              <p className="text-white truncate">{selectedDocument.userEmail}</p>
+              <p className="text-gray-900 truncate">{selectedDocument.userEmail}</p>
             </div>
           </div>
         </div>
 
         {/* Translated Data */}
         {selectedDocument.translatedData && (
-          <div className="bg-gray-800/50 rounded-xl border border-gray-700 p-6">
-            <h4 className="text-lg font-semibold text-white mb-4">Translated Data</h4>
-            <pre className="text-gray-300 text-sm whitespace-pre-wrap font-mono bg-gray-900 rounded-lg p-4 max-h-96 overflow-y-auto">
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+            <h4 className="text-lg font-semibold text-gray-900 mb-4">Translated Data</h4>
+            <pre className="text-gray-700 text-sm whitespace-pre-wrap font-mono bg-gray-100 rounded-lg p-4 max-h-96 overflow-y-auto">
               {JSON.stringify(selectedDocument.translatedData, null, 2)}
             </pre>
           </div>
@@ -170,7 +170,7 @@ const StudentDocuments: React.FC<StudentDocumentsProps> = ({
               href={selectedDocument.originalFileUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded-lg transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path
@@ -219,8 +219,8 @@ const StudentDocuments: React.FC<StudentDocumentsProps> = ({
               type="text"
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
-              placeholder="Search by student name or email..."
-              className="w-full bg-gray-700 border border-gray-600 rounded-lg pl-10 pr-4 py-2 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
+              placeholder="Search by client name or email..."
+              className="w-full bg-gray-50 border border-gray-300 rounded-lg pl-10 pr-4 py-2 text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
             />
           </div>
         </div>
@@ -231,7 +231,7 @@ const StudentDocuments: React.FC<StudentDocumentsProps> = ({
           <select
             value={statusFilter}
             onChange={(e) => onStatusFilterChange(e.target.value)}
-            className="flex-1 sm:flex-none bg-gray-700 border border-gray-600 rounded-lg px-3 sm:px-4 py-2 text-white focus:ring-2 focus:ring-blue-500 text-sm"
+            className="flex-1 sm:flex-none bg-gray-50 border border-gray-300 rounded-lg px-3 sm:px-4 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 text-sm"
           >
             <option value="">All Statuses</option>
             <option value="pending_review">Pending Review</option>
@@ -245,7 +245,7 @@ const StudentDocuments: React.FC<StudentDocumentsProps> = ({
           <select
             value={formTypeFilter}
             onChange={(e) => onFormTypeFilterChange(e.target.value)}
-            className="flex-1 sm:flex-none bg-gray-700 border border-gray-600 rounded-lg px-3 sm:px-4 py-2 text-white focus:ring-2 focus:ring-blue-500 text-sm"
+            className="flex-1 sm:flex-none bg-gray-50 border border-gray-300 rounded-lg px-3 sm:px-4 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 text-sm"
           >
             <option value="">All Types</option>
             <option value="bulletin">School Bulletin</option>
@@ -258,7 +258,7 @@ const StudentDocuments: React.FC<StudentDocumentsProps> = ({
       </div>
 
       {/* Documents Table */}
-      <div className="bg-gray-800/50 rounded-xl border border-gray-700 overflow-hidden">
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" />
@@ -282,22 +282,22 @@ const StudentDocuments: React.FC<StudentDocumentsProps> = ({
             <p className="text-gray-500 text-sm mt-1">
               {searchQuery || statusFilter || formTypeFilter
                 ? 'Try adjusting your filters'
-                : 'Documents will appear here when students submit them'}
+                : 'Documents will appear here when clients submit them'}
             </p>
           </div>
         ) : (
           <>
             {/* Mobile Card View */}
-            <div className="sm:hidden divide-y divide-gray-700">
+            <div className="sm:hidden divide-y divide-gray-200">
               {documents.map((doc) => (
                 <div
                   key={doc.id}
-                  className="p-4 hover:bg-gray-700/30 transition-colors cursor-pointer"
+                  className="p-4 hover:bg-gray-50 transition-colors cursor-pointer"
                   onClick={() => onDocumentSelect(doc.id)}
                 >
                   <div className="flex items-start justify-between gap-3 mb-2">
                     <div className="min-w-0">
-                      <p className="text-white font-medium truncate">{doc.studentName || 'Unknown'}</p>
+                      <p className="text-gray-900 font-medium truncate">{doc.studentName || 'Unknown'}</p>
                       <p className="text-gray-400 text-xs truncate">{doc.userEmail}</p>
                     </div>
                     <span className={`px-2 py-1 rounded text-xs font-medium flex-shrink-0 ${statusColors[doc.status]}`}>
@@ -315,10 +315,10 @@ const StudentDocuments: React.FC<StudentDocumentsProps> = ({
             {/* Desktop Table View */}
             <div className="hidden sm:block overflow-x-auto">
               <table className="w-full">
-              <thead className="bg-gray-700/50">
+              <thead className="bg-gray-50">
                 <tr>
                   <th className="text-left text-xs font-medium text-gray-400 uppercase tracking-wider px-6 py-3">
-                    Student
+                    Client
                   </th>
                   <th className="text-left text-xs font-medium text-gray-400 uppercase tracking-wider px-6 py-3">
                     Document Type
@@ -334,17 +334,17 @@ const StudentDocuments: React.FC<StudentDocumentsProps> = ({
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-700">
+              <tbody className="divide-y divide-gray-200">
                 {documents.map((doc) => (
                   <tr
                     key={doc.id}
-                    className="hover:bg-gray-700/30 transition-colors cursor-pointer"
+                    className="hover:bg-gray-50 transition-colors cursor-pointer"
                     onClick={() => onDocumentSelect(doc.id)}
                   >
                     <td className="px-6 py-4">
                       <div>
-                        <p className="text-white font-medium">{doc.studentName || 'Unknown'}</p>
-                        <p className="text-gray-400 text-sm">{doc.userEmail}</p>
+                        <p className="text-gray-900 font-medium">{doc.studentName || 'Unknown'}</p>
+                        <p className="text-gray-500 text-sm">{doc.userEmail}</p>
                       </div>
                     </td>
                     <td className="px-6 py-4">
@@ -358,7 +358,7 @@ const StudentDocuments: React.FC<StudentDocumentsProps> = ({
                         {statusLabels[doc.status] || doc.status}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-gray-400 text-sm">{formatDate(doc.createdAt)}</td>
+                    <td className="px-6 py-4 text-gray-500 text-sm">{formatDate(doc.createdAt)}</td>
                     <td className="px-6 py-4 text-right">
                       <button
                         onClick={(e) => {

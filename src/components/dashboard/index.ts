@@ -7,3 +7,5 @@ export { default as FileUploadZone } from './FileUploadZone';
 export { default as FilePreviewModal } from './FilePreviewModal';
 export { default as DocumentList } from './DocumentList';
 export { default as ErrorAlert } from './ErrorAlert';
+export { default as MySubmissions } from './MySubmissions';
+export { default as SupportPanel } from './SupportPanel';

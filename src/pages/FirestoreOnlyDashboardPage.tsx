@@ -10,7 +10,8 @@ import { useLoading } from '../contexts/LoadingContext';
 import { useTranslation } from 'react-i18next';
 import { SEOHead } from '../components/common';
 import {
-  DashboardHeader
+  DashboardHeader,
+  MySubmissions
 } from '../components/dashboard';
 import {
   Form4Template,
@@ -45,7 +46,11 @@ import {
 import type { BulletinRecord, FormType, FilterType } from '../types/bulletin';
 import Swal from 'sweetalert2';
 
-const FirestoreOnlyDashboardPage: React.FC = () => {
+interface FirestoreOnlyDashboardPageProps {
+  onNavigate?: (page: string) => void;
+}
+
+const FirestoreOnlyDashboardPage: React.FC<FirestoreOnlyDashboardPageProps> = ({ onNavigate }) => {
   const { currentUser } = useAuth();
   const { showSplash, hideSplash } = useLoading();
   const { t, i18n } = useTranslation();
@@ -796,7 +801,7 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
       />
       
       {/* Navigation Header */}
-      <DashboardHeader userEmail={currentUser.email || ''} />
+      <DashboardHeader userEmail={currentUser.email || ''} onNavigate={onNavigate} />
 
       <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-6 sm:py-8">
         {/* Responsive Header */}
@@ -1404,6 +1409,9 @@ const FirestoreOnlyDashboardPage: React.FC = () => {
             </div>
           </div>
         )}
+
+        {/* Certified Document Submissions */}
+        <MySubmissions onNavigate={onNavigate} />
 
         {/* Bulletins List */}
         <div className="mb-8 bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6">

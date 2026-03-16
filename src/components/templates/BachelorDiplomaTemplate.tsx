@@ -63,7 +63,7 @@ const EditableField: React.FC<{
 
   return (
     <span
-      className={`font-bold ${className} ${isEditable ? 'cursor-pointer hover:bg-yellow-100 hover:shadow-sm px-1 py-0.5 rounded-sm transition-colors duration-150' : ''} ${displayValue ? '' : 'text-gray-400 italic'}`}
+      className={`font-bold ${className} ${isEditable ? 'cursor-pointer hover:bg-blue-100 hover:shadow-md px-1 py-0.5 rounded-sm transition-colors duration-150 border border-dashed border-transparent hover:border-blue-400' : ''} ${displayValue ? '' : 'text-gray-400 italic'}`}
       style={style}
       onClick={() => isEditable && setIsEditing(true)}
       title={isEditable ? 'Click to edit' : ''}
@@ -118,53 +118,54 @@ interface BachelorDiplomaTemplateProps {
   documentId?: string;
 }
 
+// Default data defined outside component to maintain stable reference
+const DEFAULT_BACHELOR_DATA: BachelorDiplomaData = {
+  institutionName: "INSTITUT SUPERIEUR DE COMMERCE DE GOMA",
+  institutionLocation: "GOMA",
+  diplomaNumber: "430.00AA.20",
+  studentName: "STUDENT FULL NAME",
+  birthPlace: "LOCATION",
+  birthDate: "01 January 2000",
+  degree: "third-year undergraduate in sciences",
+  specialization: "business and finance",
+  orientation: "customs and excise",
+  gradeLevel: "bachelor of science",
+  gradeSpecialization: "BUSINESS AND FINANCE",
+  option: "customs and excise",
+  orientationDetail: "",
+  completionDate: "30 December 2023",
+  graduationYear: "second term",
+  issueLocation: "Goma",
+  issueDate: "15 March 2024",
+  registrationDate: "03 June 2024",
+  registrationNumber: "0000",
+  serialCode: "XXX",
+  examDate: "25 July 2024",
+  registerLetter: "M"
+};
+
 const BachelorDiplomaTemplate: React.FC<BachelorDiplomaTemplateProps> = ({ 
   data, 
   isEditable = false, 
   onDataChange,
   documentId: propDocumentId
 }) => {
-  // Default data structure
-  const defaultData: BachelorDiplomaData = {
-    institutionName: "INSTITUT SUPERIEUR DE COMMERCE DE GOMA",
-    institutionLocation: "GOMA",
-    diplomaNumber: "430.00AA.20",
-    studentName: "STUDENT FULL NAME",
-    birthPlace: "LOCATION",
-    birthDate: "01 January 2000",
-    degree: "third-year undergraduate in sciences",
-    specialization: "business and finance",
-    orientation: "customs and excise",
-    gradeLevel: "bachelor of science",
-    gradeSpecialization: "BUSINESS AND FINANCE",
-    option: "customs and excise",
-    orientationDetail: "",
-    completionDate: "30 December 2023",
-    graduationYear: "second term",
-    issueLocation: "Goma",
-    issueDate: "15 March 2024",
-    registrationDate: "03 June 2024",
-    registrationNumber: "0000",
-    serialCode: "XXX",
-    examDate: "25 July 2024",
-    registerLetter: "M"
-  };
 
   const [pdfData, setPdfData] = useState<BachelorDiplomaData | null>(null);
-  const [currentData, setCurrentData] = useState<BachelorDiplomaData>(defaultData);
+  const [currentData, setCurrentData] = useState<BachelorDiplomaData>(DEFAULT_BACHELOR_DATA);
   const [screenWidth, setScreenWidth] = useState<number>(typeof window !== 'undefined' ? window.innerWidth : 1024);
   const [documentId, setDocumentId] = useState<string>(propDocumentId || '');
 
   // Update document ID when prop changes
   useEffect(() => {
-    if (propDocumentId && propDocumentId !== documentId) {
+    if (propDocumentId) {
       setDocumentId(propDocumentId);
     }
-  }, [propDocumentId, documentId]);
+  }, [propDocumentId]);
 
   // Update current data when props change
   useEffect(() => {
-    const newData = pdfData || data || defaultData;
+    const newData = pdfData || data || DEFAULT_BACHELOR_DATA;
     setCurrentData(newData);
   }, [pdfData, data]);
 

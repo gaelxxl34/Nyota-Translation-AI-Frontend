@@ -58,7 +58,7 @@ const EditableField: React.FC<{
 
   return (
     <span
-      className={`${className} ${isEditable ? 'cursor-pointer hover:bg-yellow-100 hover:shadow-sm px-1 py-0.5 rounded-sm transition-colors duration-150' : ''} ${displayValue ? '' : 'text-gray-400 italic'}`}
+      className={`${className} ${isEditable ? 'cursor-pointer hover:bg-blue-100 hover:shadow-md px-1 py-0.5 rounded-sm transition-colors duration-150 border border-dashed border-transparent hover:border-blue-400' : ''} ${displayValue ? '' : 'text-gray-400 italic'}`}
       style={style}
       onClick={() => isEditable && setIsEditing(true)}
       title={isEditable ? 'Click to edit' : ''}
@@ -94,75 +94,62 @@ interface StateDiplomaTemplateProps {
   documentId?: string; // Allow passing document ID from parent
 }
 
+// Default data defined outside component to maintain stable reference
+const DEFAULT_DIPLOMA_DATA: DiplomaData = {
+  studentName: "STUDENT NAME",
+  gender: "male",
+  birthPlace: "BIRTHPLACE",
+  birthDate: {
+    day: "01",
+    month: "01",
+    year: "2000"
+  },
+  examSession: "JUNE 2023",
+  percentage: "00.0%",
+  percentageText: "PERCENTAGE IN WORDS",
+  section: "SECTION NAME",
+  option: "OPTION NAME",
+  issueDate: "JANUARY 1, 2023",
+  serialNumbers: ['T', 'S', '0', '7', '5', '2', '0', '7', '2', '4', '0', '7', '0', '3', '7', '0', '7', '0'],
+  serialCode: "3564229"
+};
+
 const StateDiplomaTemplate: React.FC<StateDiplomaTemplateProps> = ({ 
   data, 
   isEditable = false, 
   onDataChange,
   documentId: propDocumentId // Accept documentId as prop
 }) => {
-  // Create default empty data if no data is provided
-  const defaultData: DiplomaData = {
-    studentName: "STUDENT NAME",
-    gender: "male",
-    birthPlace: "BIRTHPLACE",
-    birthDate: {
-      day: "01",
-      month: "01",
-      year: "2000"
-    },
-    examSession: "JUNE 2023",
-    percentage: "00.0%",
-    percentageText: "PERCENTAGE IN WORDS",
-    section: "SECTION NAME",
-    option: "OPTION NAME",
-    issueDate: "JANUARY 1, 2023",
-    serialNumbers: ['T', 'S', '0', '7', '5', '2', '0', '7', '2', '4', '0', '7', '0', '3', '7', '0', '7', '0'], // First 4 (TS 07) + 14 individual boxes
-    serialCode: "3564229"
-  };
 
   // State for PDF generation mode data
   const [pdfData, setPdfData] = useState<DiplomaData | null>(null);
   // State for current working data 
-  const [currentData, setCurrentData] = useState<DiplomaData>(defaultData);
+  const [currentData, setCurrentData] = useState<DiplomaData>(DEFAULT_DIPLOMA_DATA);
   // State for screen width to handle responsiveness
   const [screenWidth, setScreenWidth] = useState<number>(typeof window !== 'undefined' ? window.innerWidth : 1024);
   // State for document ID and QR code
   const [documentId, setDocumentId] = useState<string>(propDocumentId || '');
-  
-  console.log('🔍 StateDiplomaTemplate - propDocumentId:', propDocumentId, 'documentId state:', documentId);
 
   // Update document ID when prop changes
   useEffect(() => {
-    if (propDocumentId && propDocumentId !== documentId) {
-      console.log('🔄 StateDiplomaTemplate - Setting prop documentId:', propDocumentId);
+    if (propDocumentId) {
       setDocumentId(propDocumentId);
     }
-  }, [propDocumentId, documentId]);
+  }, [propDocumentId]);
 
   // Update current data when props change
   useEffect(() => {
-    let newData = pdfData || data || defaultData;
-    
-    console.log('🔍 StateDiploma - Raw incoming data:', { 
-      serialNumbers: newData.serialNumbers,
-      serialNumbersType: typeof newData.serialNumbers,
-      isArray: Array.isArray(newData.serialNumbers),
-      serialCode: newData.serialCode 
-    });
+    let newData = pdfData || data || DEFAULT_DIPLOMA_DATA;
     
     // Normalize serialNumbers: convert string to array if needed
     if (newData.serialNumbers) {
       if (typeof newData.serialNumbers === 'string') {
-        // Convert string to array of characters, removing spaces
         const cleanString = (newData.serialNumbers as string).replace(/\s+/g, '');
-        console.log('📝 Converting string to array:', cleanString);
         newData = {
           ...newData,
-          serialNumbers: cleanString.split('').slice(0, 18) // Take first 18 characters
+          serialNumbers: cleanString.split('').slice(0, 18)
         };
       } else if (Array.isArray(newData.serialNumbers) && newData.serialNumbers.length < 18) {
-        // Pad array to 18 elements if too short
-        console.log('📝 Padding array from', newData.serialNumbers.length, 'to 18');
         const paddedArray = [...newData.serialNumbers];
         while (paddedArray.length < 18) {
           paddedArray.push('0');
@@ -174,14 +161,8 @@ const StateDiplomaTemplate: React.FC<StateDiplomaTemplateProps> = ({
       }
     }
     
-    console.log('✅ StateDiploma - Final normalized data:', { 
-      serialNumbers: newData.serialNumbers,
-      serialNumbersLength: newData.serialNumbers?.length 
-    });
-    
-    // Update data when props change or PDF data arrives
     setCurrentData(newData);
-  }, [pdfData, data, defaultData]);
+  }, [pdfData, data]);
 
   // Handle window resize for responsiveness
   useEffect(() => {
@@ -261,9 +242,9 @@ const StateDiplomaTemplate: React.FC<StateDiplomaTemplateProps> = ({
         const subTitle = document.getElementById('diploma-sub-title');
         const diplomaTitle = document.getElementById('diploma-title');
         
-        if (mainTitle) mainTitle.style.fontSize = `${flagHeight * 0.32}px`; //  now 0.32  
-        if (subTitle) subTitle.style.fontSize = `${flagHeight * 0.32}px`; // now 0.32   
-        if (diplomaTitle) diplomaTitle.style.fontSize = `${flagHeight * 0.56}px`; // now 0.56
+        if (mainTitle) mainTitle.style.fontSize = `${flagHeight * 0.44}px`;
+        if (subTitle) subTitle.style.fontSize = `${flagHeight * 0.34}px`;
+        if (diplomaTitle) diplomaTitle.style.fontSize = `${flagHeight * 0.65}px`;
       }
     };
 
@@ -279,32 +260,35 @@ const StateDiplomaTemplate: React.FC<StateDiplomaTemplateProps> = ({
 
   // Define responsive styles as objects for better TypeScript support
   const diplomaContainerStyle: React.CSSProperties = {
-    maxWidth: screenWidth < 640 ? '100%' : '1140px', // Full width on mobile
+    maxWidth: screenWidth < 640 ? '100%' : '1140px',
     width: '100%',
-    aspectRatio: screenWidth < 640 ? 'auto' : '4/3', // Auto height on mobile
+    minHeight: '100vh',
     margin: '0 auto',
     backgroundColor: '#f8f5e3',
     boxShadow: '0 0 30px rgba(0, 0, 0, 0.15)',
     fontFamily: '"Times New Roman", serif',
     lineHeight: 1.5,
     position: 'relative',
-    minHeight: screenWidth < 640 ? 'auto' : undefined, // Allow content to dictate height on mobile
+    display: 'flex',
+    flexDirection: 'column',
   };
 
   // PDF-friendly gradient border using pseudo-elements and background
   const borderWrapperStyle: React.CSSProperties = {
-    padding: screenWidth < 640 ? '8px' : '15px', // Smaller padding on mobile
+    padding: screenWidth < 640 ? '8px' : '12px',
     background: 'repeating-linear-gradient(45deg, #ff6b6b, #ff6b6b 15px, #ff8a8a 15px, #ff8a8a 25px)',
     width: '100%',
-    height: '100%',
+    flex: 1,
     boxSizing: 'border-box',
+    display: 'flex',
+    flexDirection: 'column',
   };
 
   const diplomaContentStyle: React.CSSProperties = {
-    padding: screenWidth < 640 ? '8px 12px' : '10px 30px', // Smaller padding on mobile
+    padding: screenWidth < 640 ? '8px 12px' : '8px 25px',
     background: '#f8f5e3',
     position: 'relative',
-    height: '100%',
+    flex: 1,
     boxSizing: 'border-box',
     display: 'flex',
     flexDirection: 'column',
@@ -313,8 +297,8 @@ const StateDiplomaTemplate: React.FC<StateDiplomaTemplateProps> = ({
   const mainTextStyle: React.CSSProperties = {
     textAlign: 'justify',
     color: '#333',
-    fontSize: screenWidth < 640 ? '11px' : '14px', // Smaller font on mobile
-    lineHeight: 1.5,
+    fontSize: screenWidth < 640 ? '11px' : '13px',
+    lineHeight: 1.45,
   };
 
   const infoLineStyle: React.CSSProperties = {
@@ -322,7 +306,7 @@ const StateDiplomaTemplate: React.FC<StateDiplomaTemplateProps> = ({
     alignItems: 'center',
     marginBottom: '2px',
     flexWrap: 'wrap',
-    fontSize: screenWidth < 640 ? '11px' : '14px', // Smaller font on mobile
+    fontSize: screenWidth < 640 ? '11px' : '13px',
   };
 
   const checkboxStyle: React.CSSProperties = {
@@ -343,7 +327,7 @@ const StateDiplomaTemplate: React.FC<StateDiplomaTemplateProps> = ({
     fontFamily: '"Courier New", monospace',
     fontWeight: 'bold',
     flex: 1,
-    fontSize: screenWidth < 640 ? '14px' : '19px', // Smaller on mobile
+    fontSize: screenWidth < 640 ? '13px' : '17px',
   };
 
   const dateBoxStyle: React.CSSProperties = {
@@ -354,7 +338,7 @@ const StateDiplomaTemplate: React.FC<StateDiplomaTemplateProps> = ({
     justifyContent: 'center',
     alignItems: 'center',
     fontWeight: 'bold',
-    fontSize: screenWidth < 640 ? '12px' : '15px',
+    fontSize: screenWidth < 640 ? '13px' : '17px',
   };
 
   const resultBoxStyle: React.CSSProperties = {
@@ -365,7 +349,7 @@ const StateDiplomaTemplate: React.FC<StateDiplomaTemplateProps> = ({
     justifyContent: 'center',
     alignItems: 'center',
     fontWeight: 'bold',
-    fontSize: screenWidth < 640 ? '12px' : '15px',
+    fontSize: screenWidth < 640 ? '13px' : '17px',
   };
 
   const signatureRowStyle: React.CSSProperties = {
@@ -379,13 +363,13 @@ const StateDiplomaTemplate: React.FC<StateDiplomaTemplateProps> = ({
 
   const signatureBoxStyle: React.CSSProperties = {
     textAlign: 'center',
-    fontSize: screenWidth < 640 ? '12px' : '15px', // Smaller on mobile
-    width: screenWidth < 640 ? '100%' : '25%', // Full width on mobile
+    fontSize: screenWidth < 640 ? '10px' : '13px',
+    width: screenWidth < 640 ? '100%' : '25%',
   };
 
   const photoPlaceholderStyle: React.CSSProperties = {
-    width: screenWidth < 640 ? '45px' : '60px', // Smaller on mobile
-    height: screenWidth < 640 ? '45px' : '60px',
+    width: screenWidth < 640 ? '35px' : '45px',
+    height: screenWidth < 640 ? '35px' : '45px',
     border: '2px solid #333',
     display: 'flex',
     justifyContent: 'center',
@@ -394,8 +378,8 @@ const StateDiplomaTemplate: React.FC<StateDiplomaTemplateProps> = ({
   };
 
   const signatureLineStyle: React.CSSProperties = {
-    width: screenWidth < 640 ? '40px' : '50px', // Smaller on mobile
-    height: screenWidth < 640 ? '20px' : '25px',
+    width: screenWidth < 640 ? '40px' : '50px',
+    height: screenWidth < 640 ? '16px' : '20px',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
@@ -447,33 +431,32 @@ const StateDiplomaTemplate: React.FC<StateDiplomaTemplateProps> = ({
           <div style={borderWrapperStyle}>
             <div style={diplomaContentStyle}>
               {/* Header */}
-              <div className="flex items-start justify-between mb-3 sm:mb-6">
+              <div className="flex items-start justify-between mb-2 sm:mb-4">
                 {/* Flag Left */}
                 <img
                   id="diploma-flag"
                   src="/flag.png"
                   alt="DRC Flag"
-                  className="h-12 sm:h-20 object-contain flex-shrink-0"
+                  className="h-10 sm:h-18 object-contain flex-shrink-0"
                 />
 
                 {/* Center titles */}
-                <div className="flex-1 text-center px-2 sm:px-6 min-w-0">
+                <div className="flex-1 text-center px-2 sm:px-4 min-w-0">
                   <h1
                     id="diploma-main-title"
-                    className="font-serif font-bold uppercase tracking-wide sm:tracking-widest leading-tight text-xs sm:text-base"
+                    className="font-serif font-bold uppercase tracking-wide sm:tracking-widest leading-tight text-xs sm:text-xl"
                   >
                     DEMOCRATIC REPUBLIC OF THE CONGO
                   </h1>
                   <h2
                     id="diploma-sub-title"
-                    className="font-serif uppercase text-gray-700 leading-tight sm:leading-snug mt-1 text-xs sm:text-sm"
+                    className="font-serif uppercase text-gray-700 leading-none mt-0.5 text-xs sm:text-lg"
                   >
-                    MINISTRY OF PRIMARY, SECONDARY<br />
-                    AND TECHNICAL EDUCATION
+                    MINISTRY OF PRIMARY, SECONDARY AND TECHNICAL EDUCATION
                   </h2>
                   <h3
                     id="diploma-title"
-                    className="font-serif font-bold uppercase tracking-wide sm:tracking-wider leading-tight sm:leading-none mt-1 sm:mt-2 text-sm sm:text-lg"
+                    className="font-serif font-bold uppercase tracking-wide sm:tracking-wider leading-tight mt-1 text-sm sm:text-2xl"
                   >
                     STATE DIPLOMA
                   </h3>
@@ -484,23 +467,23 @@ const StateDiplomaTemplate: React.FC<StateDiplomaTemplateProps> = ({
                   id="diploma-coat"
                   src="/Coat.png"
                   alt="DRC Coat of Arms"
-                  className="h-12 sm:h-20 object-contain flex-shrink-0"
+                  className="h-10 sm:h-18 object-contain flex-shrink-0"
                 />
               </div>
 
               {/* Main Content */}              <div style={mainTextStyle}>
-                <p style={{ marginBottom: screenWidth < 640 ? '6px' : '10px' }}>
+                <p style={{ marginBottom: screenWidth < 640 ? '4px' : '8px' }}>
                   WE THE UNDERSIGNED, MEMBERS OF THE JURY FOR THE STATE EXAMINATION
                   FOR THE COMPLETION OF SECONDARY EDUCATION IN THE LONG CYCLE,
                   ESTABLISHED BY ORDINANCE N°. 88-092 OF 07 JULY 1988;
                 </p>
 
-                <p style={{ marginBottom: screenWidth < 640 ? '6px' : '10px' }}>
+                <p style={{ marginBottom: screenWidth < 640 ? '4px' : '8px' }}>
                   HAVING REGARD TO FRAMEWORK LAW N°. 14/004 OF 11 FEBRUARY 2014 ON
                   NATIONAL EDUCATION, PARTICULARLY IN ITS ARTICLES 8, 151 AND 193;
                 </p>
 
-                <p style={{ marginBottom: screenWidth < 640 ? '8px' : '13px' }}>
+                <p style={{ marginBottom: screenWidth < 640 ? '4px' : '10px' }}>
                   HAVING REGARD TO, AS AMENDED AND SUPPLEMENTED TO DATE, MINISTERIAL
                   DECREE N°. MINEPSP/CABMIN/0493/2017 OF 23 MAY 2017 AMENDING AND
                   SUPPLEMENTING MINISTERIAL DECREE N°. MINEPSP/CABMIN/0040/2004 OF 20
@@ -510,7 +493,7 @@ const StateDiplomaTemplate: React.FC<StateDiplomaTemplateProps> = ({
                 </p>
 
                 {/* Student Info */}
-                <div style={{ margin: screenWidth < 640 ? '10px 0' : '15px 0' }}>
+                <div style={{ margin: screenWidth < 640 ? '6px 0' : '12px 0' }}>
             <div style={infoLineStyle}>
               <span style={{ marginRight: '6px' }}>
                 HEREBY CERTIFY THAT
@@ -518,7 +501,7 @@ const StateDiplomaTemplate: React.FC<StateDiplomaTemplateProps> = ({
               <div 
                 style={checkboxStyle}
                 onClick={() => isEditable && handleFieldChange('gender', 'male')}
-                className={isEditable ? 'cursor-pointer hover:bg-yellow-100' : ''}
+                className={isEditable ? 'cursor-pointer hover:bg-blue-100' : ''}
                 title={isEditable ? 'Click to select male' : ''}
               >
                 {diplomaData.gender === 'male' ? '✓' : ''}
@@ -545,7 +528,7 @@ const StateDiplomaTemplate: React.FC<StateDiplomaTemplateProps> = ({
               <div 
                 style={checkboxStyle}
                 onClick={() => isEditable && handleFieldChange('gender', 'female')}
-                className={isEditable ? 'cursor-pointer hover:bg-yellow-100' : ''}
+                className={isEditable ? 'cursor-pointer hover:bg-blue-100' : ''}
                 title={isEditable ? 'Click to select female' : ''}
               >
                 {diplomaData.gender === 'female' ? '✓' : ''}
@@ -646,7 +629,7 @@ const StateDiplomaTemplate: React.FC<StateDiplomaTemplateProps> = ({
               </div>
             </div>
           </div>                {/* Exam Results */}
-                <div style={{ margin: screenWidth < 640 ? '10px 0' : '15px 0' }}>
+                <div style={{ margin: screenWidth < 640 ? '6px 0' : '12px 0' }}>
                   <div style={infoLineStyle}>
                     <span>PARTICIPATED IN THE SESSION</span>
                     <EditableField
@@ -715,7 +698,7 @@ const StateDiplomaTemplate: React.FC<StateDiplomaTemplateProps> = ({
               <span>
                 PERCENT OF THE POINTS UNDER THE CONDITIONS
               </span>
-            </div>                  <div style={{ marginBottom: screenWidth < 640 ? '6px' : '8px' }}>
+            </div>                  <div style={{ marginBottom: screenWidth < 640 ? '4px' : '5px' }}>
                     <span>
                       FOR SUCCESS ESTABLISHED BY THE AFOREMENTIONED ORDINANCE.
                     </span>
@@ -723,8 +706,8 @@ const StateDiplomaTemplate: React.FC<StateDiplomaTemplateProps> = ({
                 </div>
 
                 {/* Diploma Details */}
-                <div style={{ margin: screenWidth < 640 ? '10px 0' : '15px 0' }}>
-                  <div style={{ marginBottom: screenWidth < 640 ? '6px' : '8px' }}>
+                <div style={{ margin: screenWidth < 640 ? '6px 0' : '12px 0' }}>
+                  <div style={{ marginBottom: screenWidth < 640 ? '4px' : '5px' }}>
                     <span>
                       IN WITNESS WHEREOF, WE HEREBY AWARD THE PRESENT DIPLOMA OF
                       SECONDARY EDUCATION IN THE LONG CYCLE
@@ -769,14 +752,17 @@ const StateDiplomaTemplate: React.FC<StateDiplomaTemplateProps> = ({
                 />
               </div>
             </div>
-          </div>                {/* Signatures */}
-                <div style={{ margin: screenWidth < 640 ? '10px 0' : '15px 0', position: 'relative' }}>
+          </div>                {/* Spacer to push signatures to bottom */}
+                <div style={{ flex: 1 }} />
+
+                {/* Signatures */}
+                <div style={{ margin: screenWidth < 640 ? '6px 0' : '8px 0', position: 'relative' }}>
                   <img
                     src="/stamp.png"
                     alt="Official Stamp"
                     style={{
-                      width: screenWidth < 640 ? '100px' : '150px',
-                      height: screenWidth < 640 ? '100px' : '150px',
+                      width: screenWidth < 640 ? '80px' : '110px',
+                      height: screenWidth < 640 ? '80px' : '110px',
                       objectFit: 'contain',
                       position: 'absolute',
                       left: '50%',
@@ -813,7 +799,7 @@ const StateDiplomaTemplate: React.FC<StateDiplomaTemplateProps> = ({
           </div>
                 
                 {/* Reference Numbers */}
-                <div style={{ margin: screenWidth < 640 ? '10px 0' : '15px 0', textAlign: 'center' }}>
+                <div style={{ margin: screenWidth < 640 ? '6px 0' : '8px 0', textAlign: 'center' }}>
                   <div
                     style={{
                       display: 'flex',

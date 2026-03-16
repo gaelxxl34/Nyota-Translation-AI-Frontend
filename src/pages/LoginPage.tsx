@@ -19,6 +19,11 @@ const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
     password: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [verifiedBanner, setVerifiedBanner] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('verified') === 'true';
+  });
+  const [emailNotVerified, setEmailNotVerified] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -31,24 +36,33 @@ const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
     if (error) {
       clearError();
     }
+    if (verifiedBanner) {
+      setVerifiedBanner(false);
+    }
+    if (emailNotVerified) {
+      setEmailNotVerified(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setEmailNotVerified(false);
     
     try {
       setIsSubmitting(true);
       await login(formData.email, formData.password);
       // Don't manually navigate - let the AuthAwareRouter handle it
-      // This prevents navigation on failed login attempts
     } catch (error) {
-      // Error is handled by AuthProvider and displayed via error state
-      // Stay on login page to show error message
       console.error('Login failed:', error);
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  // Check if backend returns EMAIL_NOT_VERIFIED on any API call after login
+  // This is handled via the AuthProvider error state
+  // We also watch for the specific error message
+  const showEmailNotVerified = emailNotVerified;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50">
@@ -75,6 +89,38 @@ const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
 
         <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
           <div className="bg-white py-8 px-4 shadow-2xl rounded-xl border border-gray-100 sm:px-10">
+          {/* Email Verified Success Banner */}
+          {verifiedBanner && (
+            <div className="mb-6 bg-green-50 border border-green-200 rounded-md p-4">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm text-green-700 font-medium">Email verified successfully! You can now sign in.</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Email Not Verified Warning */}
+          {showEmailNotVerified && (
+            <div className="mb-6 bg-yellow-50 border border-yellow-200 rounded-md p-4">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm text-yellow-700">Please verify your email address before signing in. Check your inbox for a verification link.</p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Error Message */}
           {error && (
             <div className="mb-6 bg-red-50 border border-red-200 rounded-md p-4">

@@ -61,7 +61,7 @@ const EditableField: React.FC<{
 
   return (
     <span
-      className={`${className} ${isEditable ? 'cursor-pointer hover:bg-yellow-100 hover:shadow-sm px-1 py-0.5 rounded-sm transition-colors' : ''} ${displayValue ? '' : 'text-gray-400 italic'}`}
+      className={`${className} ${isEditable ? 'cursor-pointer hover:bg-blue-100 hover:shadow-md px-1 py-0.5 rounded-sm transition-colors duration-150 border border-dashed border-transparent hover:border-blue-400' : ''} ${displayValue ? '' : 'text-gray-400 italic'}`}
       style={style}
       onClick={() => isEditable && setIsEditing(true)}
       title={isEditable ? 'Click to edit' : ''}
@@ -153,122 +153,84 @@ interface CollegeAnnualTranscriptTemplateProps {
   documentId?: string;
 }
 
+// Default data defined outside component to maintain stable reference
+const DEFAULT_TRANSCRIPT_DATA: CollegeTranscriptData = {
+  country: "DEMOCRATIC REPUBLIC OF THE CONGO",
+  institutionType: "HIGHER EDUCATION AND UNIVERSITY",
+  institutionName: "INSTITUT SUPÉRIEUR DE COMMERCE",
+  institutionAbbreviation: "I.S.C - Beni",
+  institutionEmail: "iscbeni@yahoo.fr / iscbeni@gmail.com",
+  departmentName: "Academic Services",
+  documentTitle: "TRANSCRIPT OF SUBJECTS AND GRADES",
+  documentNumber: "N° ISC/BN/S.SC.C.F/5686/2020-2021",
+  studentName: "STUDENT FULL NAME",
+  matricule: "000/00",
+  hasFollowedCourses: "regularly followed the subjects planned in the program in",
+  section: "Commercial Sciences and Finance Section",
+  option: "Fiscal Option",
+  level: "First Year License",
+  academicYear: "2020-2021",
+  session: "First Session",
+  tableFormat: "simple",
+  courses: [
+    { courseNumber: 1, courseName: "Business Economics", creditHours: "120H", grade: "44/60" },
+    { courseNumber: 2, courseName: "Quantitative Management Methods", creditHours: "120H", grade: "61/80" },
+    { courseNumber: 3, courseName: "Fiscal Law and Procedures", creditHours: "90H", grade: "41/60" },
+    { courseNumber: 4, courseName: "Business Law and Ethics", creditHours: "60H", grade: "24/40" },
+    { courseNumber: 5, courseName: "Project Preparation and Evaluation", creditHours: "60H", grade: "24.5/40" },
+    { courseNumber: 6, courseName: "Business Taxation", creditHours: "60H", grade: "30.5/40" },
+    { courseNumber: 7, courseName: "In-depth Questions in HR Management", creditHours: "60H", grade: "28.5/40" },
+    { courseNumber: 8, courseName: "Financial Management", creditHours: "45H", grade: "22.5/30" },
+    { courseNumber: 9, courseName: "Business English I", creditHours: "45H", grade: "24/30" },
+    { courseNumber: 10, courseName: "In-depth IT Questions I", creditHours: "45H", grade: "20/30" },
+    { courseNumber: 11, courseName: "Customs and Finance Law", creditHours: "45H", grade: "20/30" },
+    { courseNumber: 12, courseName: "National Accounting", creditHours: "30H", grade: "13.5/20" },
+    { courseNumber: 13, courseName: "Scientific Research Methods", creditHours: "30H", grade: "10/20" },
+  ],
+  summaryRows: [
+    {
+      label: "Overall Total",
+      values: { grade: "363.5/540" },
+      type: "total",
+      isBold: true,
+    },
+    {
+      label: "Percentage",
+      values: { grade: "67.3 %" },
+      type: "percentage",
+      isBold: true,
+    },
+  ],
+  decision: "PASSED WITH SATISFACTION",
+  issueLocation: "Beni",
+  issueDate: "March 21, 2022",
+  secretary: "MUMBERE LWANZO SAUL",
+  secretaryTitle: "Academic Secretary of Sections",
+  chiefOfWorks: "KAMBALE SIKULISIMWA Chrysenthe",
+  chiefOfWorksTitle: "The Chief of Sections of I.S.C./Beni",
+};
+
 const CollegeAnnualTranscriptTemplate: React.FC<CollegeAnnualTranscriptTemplateProps> = ({ 
   data, 
   isEditable = false, 
   onDataChange,
   documentId: propDocumentId
 }) => {
-  // Default data structure based on the ISC transcript
-  const defaultData: CollegeTranscriptData = {
-    country: "DEMOCRATIC REPUBLIC OF THE CONGO",
-    institutionType: "HIGHER EDUCATION AND UNIVERSITY",
-    institutionName: "INSTITUT SUPÉRIEUR DE COMMERCE",
-    institutionAbbreviation: "I.S.C - Beni",
-    institutionEmail: "iscbeni@yahoo.fr / iscbeni@gmail.com",
-    departmentName: "Academic Services",
-    documentTitle: "TRANSCRIPT OF SUBJECTS AND GRADES",
-    documentNumber: "N° ISC/BN/S.SC.C.F/5686/2020-2021",
-    studentName: "STUDENT FULL NAME",
-    matricule: "000/00",
-    hasFollowedCourses: "regularly followed the subjects planned in the program in",
-    section: "Commercial Sciences and Finance Section",
-    option: "Fiscal Option",
-    level: "First Year License",
-    academicYear: "2020-2021",
-    session: "First Session",
-    tableFormat: "simple", // "simple" for 3-column or "weighted" for 4-column
-    courses: [
-      { courseNumber: 1, courseName: "Business Economics", creditHours: "120H", grade: "44/60" },
-      { courseNumber: 2, courseName: "Quantitative Management Methods", creditHours: "120H", grade: "61/80" },
-      { courseNumber: 3, courseName: "Fiscal Law and Procedures", creditHours: "90H", grade: "41/60" },
-      { courseNumber: 4, courseName: "Business Law and Ethics", creditHours: "60H", grade: "24/40" },
-      { courseNumber: 5, courseName: "Project Preparation and Evaluation", creditHours: "60H", grade: "24.5/40" },
-      { courseNumber: 6, courseName: "Business Taxation", creditHours: "60H", grade: "30.5/40" },
-      { courseNumber: 7, courseName: "In-depth Questions in HR Management", creditHours: "60H", grade: "28.5/40" },
-      { courseNumber: 8, courseName: "Financial Management", creditHours: "45H", grade: "22.5/30" },
-      { courseNumber: 9, courseName: "Business English I", creditHours: "45H", grade: "24/30" },
-      { courseNumber: 10, courseName: "In-depth IT Questions I", creditHours: "45H", grade: "20/30" },
-      { courseNumber: 11, courseName: "Customs and Finance Law", creditHours: "45H", grade: "20/30" },
-      { courseNumber: 12, courseName: "National Accounting", creditHours: "30H", grade: "13.5/20" },
-      { courseNumber: 13, courseName: "Scientific Research Methods", creditHours: "30H", grade: "10/20" },
-    ],
-    // Using new summaryRows structure
-    // For simple format (3-column):
-    summaryRows: [
-      {
-        label: "Overall Total",
-        values: { grade: "363.5/540" },
-        type: "total",
-        isBold: true,
-      },
-      {
-        label: "Percentage",
-        values: { grade: "67.3 %" },
-        type: "percentage",
-        isBold: true,
-      },
-    ],
-    // For weighted format (4-column), use this structure instead:
-    // summaryRows: [
-    //   {
-    //     label: "TOTAL",
-    //     values: { hours: "870", units: "58", maxGrade: "1160", grade: "761" },
-    //     type: "total",
-    //     isBold: true,
-    //   },
-    //   {
-    //     label: "COURSE PERCENTAGE",
-    //     values: { grade: "65.6" },
-    //     type: "percentage",
-    //     isBold: true,
-    //   },
-    //   {
-    //     label: "Mémoire",
-    //     values: { maxGrade: "175", grade: "121" },
-    //     type: "component",
-    //   },
-    //   {
-    //     label: "Stage",
-    //     values: { maxGrade: "175", grade: "123" },
-    //     type: "component",
-    //   },
-    //   {
-    //     label: "Overall Total",
-    //     values: { grade: "484/700" },
-    //     type: "total",
-    //     isBold: true,
-    //   },
-    //   {
-    //     label: "Percentage",
-    //     values: { grade: "69.1 %" },
-    //     type: "percentage",
-    //     isBold: true,
-    //   },
-    // ],
-    decision: "PASSED WITH SATISFACTION",
-    issueLocation: "Beni",
-    issueDate: "March 21, 2022",
-    secretary: "MUMBERE LWANZO SAUL",
-    secretaryTitle: "Academic Secretary of Sections",
-    chiefOfWorks: "KAMBALE SIKULISIMWA Chrysenthe",
-    chiefOfWorksTitle: "The Chief of Sections of I.S.C./Beni",
-  };
 
   const [pdfData, setPdfData] = useState<CollegeTranscriptData | null>(null);
-  const [currentData, setCurrentData] = useState<CollegeTranscriptData>(defaultData);
+  const [currentData, setCurrentData] = useState<CollegeTranscriptData>(DEFAULT_TRANSCRIPT_DATA);
   const [documentId, setDocumentId] = useState<string>(propDocumentId || '');
 
   // Update document ID when prop changes
   useEffect(() => {
-    if (propDocumentId && propDocumentId !== documentId) {
+    if (propDocumentId) {
       setDocumentId(propDocumentId);
     }
-  }, [propDocumentId, documentId]);
+  }, [propDocumentId]);
 
   // Update current data when props change
   useEffect(() => {
-    const newData = pdfData || data || defaultData;
+    const newData = pdfData || data || DEFAULT_TRANSCRIPT_DATA;
     setCurrentData(newData);
   }, [pdfData, data]);
 

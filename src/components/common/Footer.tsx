@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 
 interface FooterProps {
-  onNavigate?: (page: 'landing' | 'login' | 'register' | 'dashboard' | 'privacy' | 'terms') => void;
+  onNavigate?: (page: 'landing' | 'login' | 'register' | 'dashboard' | 'privacy' | 'terms' | 'verify') => void;
 }
 
 const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
@@ -15,7 +15,8 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
     { key: 'features', label: t('footer.links.features'), page: 'landing' as const },
     { key: 'pricing', label: t('footer.links.pricing'), page: 'landing' as const },
     { key: 'privacy', label: t('footer.links.privacy'), page: 'privacy' as const },
-    { key: 'terms', label: t('footer.links.terms'), page: 'terms' as const }
+    { key: 'terms', label: t('footer.links.terms'), page: 'terms' as const },
+    { key: 'verify', label: t('footer.links.verify', 'Verify Document'), page: 'verify' as const }
   ];
 
   const socialLinks = [

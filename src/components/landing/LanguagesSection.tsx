@@ -14,19 +14,19 @@ const LanguagesSection: React.FC = () => {
       bidirectional: true,
     },
     {
+      from: { code: 'AR', name: t('languages.arabic'), flag: '🇸🇦' },
+      to: { code: 'EN', name: t('languages.english'), flag: '🇬🇧' },
+      status: 'available',
+      bidirectional: true,
+    },
+    {
       from: { code: 'ES', name: t('languages.spanish'), flag: '🇪🇸' },
       to: { code: 'EN', name: t('languages.english'), flag: '🇬🇧' },
-      status: 'coming',
+      status: 'available',
       bidirectional: true,
     },
     {
       from: { code: 'PT', name: t('languages.portuguese'), flag: '🇵🇹' },
-      to: { code: 'EN', name: t('languages.english'), flag: '🇬🇧' },
-      status: 'coming',
-      bidirectional: true,
-    },
-    {
-      from: { code: 'AR', name: t('languages.arabic'), flag: '🇸🇦' },
       to: { code: 'EN', name: t('languages.english'), flag: '🇬🇧' },
       status: 'coming',
       bidirectional: true,

@@ -96,7 +96,7 @@ const EditableField: React.FC<{
 
   return (
     <span
-      className={`${className} ${isEditable ? 'cursor-pointer hover:bg-yellow-100 hover:shadow-sm px-1 py-0.5 rounded-sm transition-colors duration-150' : ''} ${displayValue ? '' : 'text-gray-400 italic'}`}
+      className={`${className} ${isEditable ? 'cursor-pointer hover:bg-blue-100 hover:shadow-md px-1 py-0.5 rounded-sm transition-colors duration-150 border border-dashed border-transparent hover:border-blue-400' : ''} ${displayValue ? '' : 'text-gray-400 italic'}`}
       style={style}
       onClick={() => isEditable && setIsEditing(true)}
       title={isEditable ? 'Click to edit' : ''}
@@ -144,48 +144,49 @@ interface HighSchoolAttestationTemplateProps {
   documentId?: string;
 }
 
+// Default data defined outside component to maintain stable reference
+const DEFAULT_HS_ATTESTATION_DATA: HighSchoolAttestationData = {
+  schoolName: "School Name",
+  schoolAddress: "School Address",
+  province: "Province",
+  division: "Division",
+  documentTitle: "School Attendance Certificate",
+  studentName: "Student Name",
+  studentGender: "M",
+  birthPlace: "Birth Place",
+  birthDate: "Birth Date",
+  mainContent: "Certificate content will be extracted and translated from your uploaded document.",
+  purpose: "This document is issued for official purposes.",
+  issueLocation: "City",
+  issueDate: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+  signatoryName: "Signatory Name",
+  signatoryTitle: "Signatory Title"
+};
+
 const HighSchoolAttestationTemplate: React.FC<HighSchoolAttestationTemplateProps> = ({ 
   data, 
   isEditable = false, 
   onDataChange,
   documentId: propDocumentId
 }) => {
-  // Minimal placeholder data - AI will populate actual values from uploaded document
-  const defaultData: HighSchoolAttestationData = {
-    schoolName: "School Name",
-    schoolAddress: "School Address",
-    province: "Province",
-    division: "Division",
-    documentTitle: "School Attendance Certificate", // In English, editable
-    studentName: "Student Name",
-    studentGender: "M",
-    birthPlace: "Birth Place",
-    birthDate: "Birth Date",
-    mainContent: "Certificate content will be extracted and translated from your uploaded document.",
-    purpose: "This document is issued for official purposes.",
-    issueLocation: "City",
-    issueDate: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
-    signatoryName: "Signatory Name",
-    signatoryTitle: "Signatory Title"
-  };
 
   const [pdfData, setPdfData] = useState<HighSchoolAttestationData | null>(null);
   const [currentData, setCurrentData] = useState<HighSchoolAttestationData>(
-    data || defaultData
+    data || DEFAULT_HS_ATTESTATION_DATA
   );
   const [screenWidth, setScreenWidth] = useState<number>(typeof window !== 'undefined' ? window.innerWidth : 1024);
   const [documentId, setDocumentId] = useState<string>(propDocumentId || '');
 
   // Update document ID when prop changes
   useEffect(() => {
-    if (propDocumentId && propDocumentId !== documentId) {
+    if (propDocumentId) {
       setDocumentId(propDocumentId);
     }
-  }, [propDocumentId, documentId]);
+  }, [propDocumentId]);
 
   // Update current data when props change
   useEffect(() => {
-    const newData = pdfData || data || defaultData;
+    const newData = pdfData || data || DEFAULT_HS_ATTESTATION_DATA;
     setCurrentData(newData);
   }, [pdfData, data]);
 

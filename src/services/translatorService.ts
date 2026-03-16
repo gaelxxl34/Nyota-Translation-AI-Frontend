@@ -15,19 +15,31 @@ export interface QueueDocument {
   userId: string;
   userEmail: string;
   formType: string;
-  status: 'pending_review' | 'in_review' | 'ai_completed' | 'approved' | 'rejected';
+  status: 'pending_review' | 'in_review' | 'ai_completed' | 'approved' | 'rejected' | 'certified' | 'draft';
   priority: 'low' | 'normal' | 'high' | 'urgent';
   studentName?: string;
   schoolName?: string;
+  documentTitle?: string;
   assignedTo?: string;
   assignedToName?: string;
   aiConfidenceScore?: number;
+  speedTier?: { id: string; label: string; description: string } | null;
+  sourceLanguage?: string;
+  source?: 'documents' | 'certifiedDocuments';
+  rejectionHistory?: Array<{
+    reason: string;
+    rejectionType: string;
+    reviewedBy: string;
+    reviewedAt: string;
+  }>;
+  resubmissionCount?: number;
   createdAt: string;
   updatedAt: string;
 }
 
 export interface DocumentDetail extends QueueDocument {
   originalFileUrl?: string;
+  originalFileName?: string;
   extractedData?: Record<string, unknown>;
   translatedData?: Record<string, unknown>;
   aiNotes?: string;
@@ -36,6 +48,7 @@ export interface DocumentDetail extends QueueDocument {
   approvedByName?: string;
   approvedAt?: string;
   assignedAt?: string;
+  documentTitle?: string;
 }
 
 export interface DocumentRevision {

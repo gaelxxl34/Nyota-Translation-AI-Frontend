@@ -1,452 +1,462 @@
-// Document Verification Page Component for NTC
-// Displays document authenticity verification with blockchain-powered trust
+// Document Verification Page — Enhanced with hash check, agent info, tamper detection
+// Supports both legacy ?doc= (bulletin) and ?cert=NTC-YYYY-XXXXXX (certified)
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SEOHead, LanguageSwitcher, Footer } from '../components/common';
-// Import verification utilities
-import { getVerificationData } from '../utils/documentVerification';
-import type { VerificationData } from '../utils/documentVerification';
+import {
+  getVerificationData,
+  verifyCertifiedDocument,
+  isCertificationId,
+} from '../utils/documentVerification';
+import type {
+  VerificationData,
+  CertifiedVerificationData,
+} from '../utils/documentVerification';
 
 interface DocumentVerificationPageProps {
-  onNavigate?: (page: 'landing' | 'login' | 'register' | 'dashboard' | 'privacy' | 'terms') => void;
-  documentId?: string;
+  onNavigate?: (page: 'landing' | 'login' | 'register' | 'dashboard' | 'privacy' | 'terms' | 'verify') => void;
 }
 
-const DocumentVerificationPage: React.FC<DocumentVerificationPageProps> = ({ 
-  onNavigate = () => {} 
+type VerifyMode = 'idle' | 'loading' | 'legacy' | 'certified' | 'not-found' | 'error';
+
+const LANG_LABELS: Record<string, string> = {
+  fr: 'French', ar: 'Arabic', es: 'Spanish', en: 'English',
+};
+
+const DocumentVerificationPage: React.FC<DocumentVerificationPageProps> = ({
+  onNavigate = () => {},
 }) => {
   const { t } = useTranslation();
-  const [isLoading, setIsLoading] = useState(true);
-  const [isVerified, setIsVerified] = useState(false);
-  const [documentData, setDocumentData] = useState<VerificationData | null>(null);
-  const [error, setError] = useState<string>('');
 
+  // State
+  const [mode, setMode] = useState<VerifyMode>('idle');
+  const [certIdInput, setCertIdInput] = useState('');
+  const [legacyData, setLegacyData] = useState<VerificationData | null>(null);
+  const [certData, setCertData] = useState<CertifiedVerificationData | null>(null);
+  const [errorMsg, setErrorMsg] = useState('');
+
+
+
+  // ── Auto-verify from URL params on mount ──
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const documentId = params.get('doc');
-    
-    console.log('🔍 DocumentVerificationPage - Starting verification');
-    console.log('🔍 DocumentId from URL:', documentId);
-    console.log('📱 User Agent:', navigator.userAgent);
-    console.log('🌐 Online:', navigator.onLine);
-    console.log('📍 Location:', window.location.href);
-    
-    if (!documentId) {
-      console.error('❌ No documentId in URL query params');
-      setError(t('verification.error.invalidUrl'));
-      setIsLoading(false);
-      return;
-    }
+    const certParam = params.get('cert');
+    const docParam = params.get('doc');
 
-    const fetchVerificationData = async () => {
-      try {
-        console.log('📤 Fetching verification data for:', documentId);
-        const data = await getVerificationData(documentId);
-        
-        console.log('📥 Received verification data:', data);
-        
-        if (data) {
-          setDocumentData(data);
-          setIsVerified(true);
-          console.log('✅ Document verified successfully');
-        } else {
-          console.error('❌ No data returned from verification');
-          setError(t('verification.error.notFound'));
-        }
-      } catch (err) {
-        console.error('❌ Verification error:', err);
-        console.error('❌ Error details:', {
-          message: (err as Error)?.message,
-          stack: (err as Error)?.stack,
-          name: (err as Error)?.name
-        });
-        setError(t('verification.error.generic'));
-      } finally {
-        setIsLoading(false);
-        console.log('🏁 Verification process complete');
+    if (certParam) {
+      lookupCertified(certParam);
+    } else if (docParam) {
+      // Legacy: could be a certification ID passed as doc=
+      if (isCertificationId(docParam)) {
+        lookupCertified(docParam);
+      } else {
+        lookupLegacy(docParam);
       }
-    };
-
-    fetchVerificationData();
+    }
+    // If no params, stay in idle (manual input mode)
   }, []);
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+  // ── Lookup functions ──
+  const lookupCertified = useCallback(async (certId: string) => {
+    setMode('loading');
+    setErrorMsg('');
+    setCertIdInput(certId);
+
+    try {
+      const result = await verifyCertifiedDocument(certId);
+      if (result) {
+        setCertData(result);
+        setMode('certified');
+      } else {
+        setMode('not-found');
+      }
+    } catch {
+      setMode('error');
+      setErrorMsg(t('verification.error.generic'));
+    }
+  }, [t]);
+
+  const lookupLegacy = useCallback(async (docId: string) => {
+    setMode('loading');
+    setErrorMsg('');
+
+    try {
+      const result = await getVerificationData(docId);
+      if (result) {
+        setLegacyData(result);
+        setMode('legacy');
+      } else {
+        setMode('not-found');
+      }
+    } catch {
+      setMode('error');
+      setErrorMsg(t('verification.error.generic'));
+    }
+  }, [t]);
+
+  // ── Manual cert ID submit ──
+  const handleManualLookup = (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = certIdInput.trim().toUpperCase();
+    if (!trimmed) return;
+
+    if (isCertificationId(trimmed)) {
+      lookupCertified(trimmed);
+    } else {
+      // Try as legacy Firestore ID
+      lookupLegacy(trimmed);
+    }
+  };
+
+  // ── Helpers ──
+  const formatCertDate = (certifiedAt: CertifiedVerificationData['certifiedAt']): string => {
+    if (!certifiedAt) return 'N/A';
+    let date: Date;
+    if (typeof certifiedAt === 'string') {
+      date = new Date(certifiedAt);
+    } else if (certifiedAt._seconds) {
+      date = new Date(certifiedAt._seconds * 1000);
+    } else {
+      return 'N/A';
+    }
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric', month: 'long', day: 'numeric',
+      hour: '2-digit', minute: '2-digit',
     });
   };
 
-  // Get documentId for display purposes
-  const params = new URLSearchParams(window.location.search);
-  const displayDocumentId = params.get('doc') || 'Document';
+  const formatLegacyDate = (dateStr: string): string => {
+    return new Date(dateStr).toLocaleDateString('en-US', {
+      year: 'numeric', month: 'long', day: 'numeric',
+      hour: '2-digit', minute: '2-digit',
+    });
+  };
+
+  // ── Info Row component ──
+  const InfoRow: React.FC<{ label: string; value: React.ReactNode }> = ({ label, value }) => (
+    <div className="grid grid-cols-[140px_1fr] sm:grid-cols-[180px_1fr] items-start">
+      <span className="px-5 py-3 text-sm font-medium text-gray-500 bg-gray-50/50">{label}</span>
+      <span className="px-5 py-3 text-sm font-semibold text-gray-900">{value}</span>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50">
-      <SEOHead 
-        title={`Document Verification - ${displayDocumentId} | Nyota Translation Center`}
-        description="Verify the authenticity of academic documents generated through Nyota Translation Center's blockchain-powered platform."
-        keywords="document verification, blockchain, academic documents, IUEA, authenticity"
-        url={`https://nyotatranslate.com/verify/${displayDocumentId}`}
+      <SEOHead
+        title="Document Verification | Nyota Translation Center"
+        description="Verify the authenticity and integrity of certified translations from Nyota Translation Center."
+        keywords="document verification, certification, tamper detection, NTC"
+        url="https://nyotatranslate.com/verify"
       />
-      
-      {/* Minimal Navigation Header - Logo + Language Only */}
+
+      {/* Nav header */}
       <div className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-200/50 shadow-sm">
         <nav className="container mx-auto px-4 sm:px-6 py-3">
           <div className="flex items-center justify-between">
-            {/* Logo */}
             <button onClick={() => onNavigate('landing')} className="flex-shrink-0">
-              <img
-                src="/logo-wide.png"
-                alt="Nyota Translation Center"
-                className="h-8 sm:h-10 w-auto rounded-lg"
-              />
+              <img src="/logo-wide.png" alt="Nyota Translation Center" className="h-8 sm:h-10 w-auto rounded-lg" />
             </button>
-
-            {/* Language Switcher */}
             <LanguageSwitcher />
           </div>
         </nav>
       </div>
 
-      {/* Main Content */}
-      <motion.div 
+      {/* Main content */}
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
+        transition={{ duration: 0.5 }}
         className="container mx-auto px-4 sm:px-6 py-8 lg:py-16"
       >
-        <div className="max-w-4xl mx-auto">
-          {/* Header Section */}
-          <motion.div 
-            className="text-center mb-8 lg:mb-12"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-          >
-            <motion.div 
-              className="inline-flex items-center justify-center w-20 h-20 bg-primary-100/50 backdrop-blur-sm rounded-2xl mb-6 relative overflow-hidden"
-              whileHover={{ scale: 1.05 }}
-              transition={{ type: "spring", stiffness: 400, damping: 10 }}
-            >
-              <motion.div 
-                className="absolute inset-0 bg-gradient-to-br from-primary-400/20 to-secondary-400/20"
-                animate={{ 
-                  rotate: 360,
-                  scale: [1, 1.2, 1],
-                }}
-                transition={{ 
-                  duration: 3,
-                  repeat: Infinity,
-                  ease: "linear"
-                }}
-              />
-              <svg className="w-10 h-10 text-primary-600 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.40A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+        <div className="max-w-2xl mx-auto">
+          {/* Page header */}
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-100/60 rounded-2xl mb-5">
+              <svg className="w-8 h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
               </svg>
-            </motion.div>
-            <motion.h1 
-              className="text-4xl lg:text-5xl font-heading font-bold text-gray-900 mb-4"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.4 }}
-            >
+            </div>
+            <h1 className="text-3xl lg:text-4xl font-heading font-bold text-gray-900 mb-3">
               {t('verification.pageTitle')}
-            </motion.h1>
-            <motion.p 
-              className="text-lg text-gray-600 max-w-2xl mx-auto"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.6 }}
-            >
+            </h1>
+            <p className="text-gray-600 max-w-lg mx-auto">
               {t('verification.pageSubtitle')}
-            </motion.p>
-          </motion.div>
+            </p>
+          </div>
 
-          {/* Verification Content */}
+          {/* Certification ID Input — always visible when in idle or after result */}
+          {(mode === 'idle' || mode === 'certified' || mode === 'legacy' || mode === 'not-found' || mode === 'error') && (
+            <motion.form
+              onSubmit={handleManualLookup}
+              className="bg-white rounded-xl shadow-lg border border-gray-200/50 p-6 mb-6"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {t('verification.certInput.label', 'Certification ID')}
+              </label>
+              <div className="flex gap-3">
+                <input
+                  type="text"
+                  value={certIdInput}
+                  onChange={(e) => setCertIdInput(e.target.value.toUpperCase())}
+                  placeholder={t('verification.certInput.placeholder', 'e.g. NTC-2026-A7K9F2')}
+                  className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent font-mono tracking-wide"
+                  maxLength={17}
+                  autoComplete="off"
+                  spellCheck={false}
+                />
+                <button
+                  type="submit"
+                  disabled={!certIdInput.trim()}
+                  className="px-5 py-2.5 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {t('verification.certInput.verify', 'Verify')}
+                </button>
+              </div>
+              <p className="text-xs text-gray-400 mt-2">
+                {t('verification.certInput.hint', 'Enter the certification ID printed on your document (format: NTC-YYYY-XXXXXX)')}
+              </p>
+            </motion.form>
+          )}
+
           <AnimatePresence mode="wait">
-            {isLoading ? (
-              <motion.div 
-                key="loading"
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl border border-gray-200/50 p-8 text-center"
-              >
-                <motion.div 
-                  className="relative w-16 h-16 mx-auto mb-6"
-                  animate={{ 
-                    rotate: 360,
-                  }}
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    ease: "linear"
-                  }}
-                >
-                  <div className="absolute inset-0 rounded-full border-t-2 border-primary-600/30" />
-                  <div className="absolute inset-0 rounded-full border-t-2 border-primary-600" 
-                       style={{ clipPath: 'inset(0 0 50% 50%)' }} />
-                </motion.div>
-                <motion.h3 
-                  className="text-xl font-semibold text-gray-900 mb-2"
-                  animate={{ 
-                    opacity: [0.5, 1, 0.5],
-                  }}
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    ease: "easeInOut"
-                  }}
-                >
-                  {t('verification.loading.title')}
-                </motion.h3>
-                <p className="text-gray-600">{t('verification.loading.description')}</p>
-              </motion.div>
-            ) : error ? (
-              <motion.div 
-                key="error"
-                initial={{ opacity: 0, x: -50 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 50 }}
-                className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl border border-red-200/50 p-8 text-center"
-              >
-                <motion.div 
-                  className="inline-flex items-center justify-center w-16 h-16 bg-red-100/50 backdrop-blur-sm rounded-2xl mb-4"
-                  animate={{ 
-                    scale: [1, 1.1, 1],
-                    rotate: [0, -5, 5, 0]
-                  }}
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    ease: "easeInOut"
-                  }}
-                >
-                  <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16c-.77.833.192 2.5 1.732 2.5z" />
-                  </svg>
-                </motion.div>
-                <h3 className="text-xl font-semibold text-red-900 mb-2">{t('verification.error.title')}</h3>
-                <p className="text-red-600 mb-6">{error}</p>
-                
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => window.location.reload()}
-                  className="btn-primary"
-                >
-                  {t('verification.error.tryAgain')}
-                </motion.button>
-              </motion.div>
-            ) : isVerified && documentData ? (
+            {/* Loading */}
+            {mode === 'loading' && (
               <motion.div
-                key="verified" 
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -30 }}
-                className="max-w-2xl mx-auto space-y-6"
+                key="loading"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="bg-white rounded-xl shadow-lg border border-gray-200/50 p-8 text-center"
               >
-                {/* Success Status */}
-                <motion.div 
-                  className="bg-white rounded-xl shadow-lg border border-green-200/30 p-6"
-                  initial={{ scale: 0.95 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-                >
-                  <div className="flex items-center justify-center mb-4">
-                    <motion.div 
-                      className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center"
-                      animate={{ 
-                        rotate: [0, 360],
-                        scale: [1, 1.1, 1]
-                      }}
-                      transition={{
-                        rotate: { duration: 0.6, ease: "easeInOut" },
-                        scale: { duration: 1, repeat: Infinity, repeatType: "reverse" }
-                      }}
-                    >
-                      <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                    </motion.div>
-                  </div>
-                  <div className="text-center">
-                    <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('verification.success.title')}</h2>
-                    <p className="text-gray-600">{t('verification.success.description')}</p>
-                  </div>
-                </motion.div>
+                <div className="w-12 h-12 mx-auto mb-4 border-2 border-primary-200 border-t-primary-600 rounded-full animate-spin" />
+                <h3 className="text-lg font-semibold text-gray-900 mb-1">{t('verification.loading.title')}</h3>
+                <p className="text-sm text-gray-500">{t('verification.loading.description')}</p>
+              </motion.div>
+            )}
 
-                {/* Document Details */}
-                <motion.div 
-                  className="bg-white rounded-xl shadow-lg border border-gray-200/30 overflow-hidden"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.4 }}
-                >
-                  {/* Header */}
-                  <div className="bg-gray-50 px-6 py-4 border-b border-gray-100">
-                    <h3 className="text-lg font-semibold text-gray-900 text-center">{t('verification.documentInfo.title')}</h3>
+            {/* ── CERTIFIED DOCUMENT RESULT ── */}
+            {mode === 'certified' && certData && (
+              <motion.div
+                key="certified"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="space-y-5"
+              >
+                {/* Verified badge */}
+                <div className="bg-green-50 border border-green-200 rounded-xl p-5 flex items-center gap-4">
+                  <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
                   </div>
+                  <div>
+                    <h2 className="text-lg font-bold text-green-900">
+                      {t('verification.certified.title', 'Certified Translation Verified')}
+                    </h2>
+                    <p className="text-sm text-green-700">
+                      {t('verification.certified.description', 'This document has been professionally reviewed and certified by Nyota Translation Center.')}
+                    </p>
+                  </div>
+                </div>
 
-                  {/* Table-style info rows */}
+                {/* Certificate details */}
+                <div className="bg-white rounded-xl shadow-lg border border-gray-200/50 overflow-hidden">
+                  <div className="bg-gray-50 px-5 py-3 border-b border-gray-100">
+                    <h3 className="text-sm font-semibold text-gray-800">{t('verification.documentInfo.title')}</h3>
+                  </div>
                   <div className="divide-y divide-gray-100">
-                    {/* Document Title */}
-                    {documentData.documentTitle && (
-                      <div className="grid grid-cols-[140px_1fr] sm:grid-cols-[180px_1fr] items-start">
-                        <span className="px-5 py-4 text-sm font-medium text-gray-500 bg-gray-50/50">{t('verification.documentInfo.documentTitle', 'Document Title')}</span>
-                        <span className="px-5 py-4 text-sm font-semibold text-gray-900">{documentData.documentTitle}</span>
-                      </div>
+                    <InfoRow
+                      label={t('verification.certified.certId', 'Certification ID')}
+                      value={
+                        <span className="font-mono text-primary-700 bg-primary-50 px-2 py-0.5 rounded text-xs">
+                          {certData.certificationId}
+                        </span>
+                      }
+                    />
+                    {certData.documentTitle && (
+                      <InfoRow label={t('verification.documentInfo.documentTitle', 'Document Title')} value={certData.documentTitle} />
                     )}
-
-                    {/* Document Type */}
-                    {documentData.documentType && (
-                      <div className="grid grid-cols-[140px_1fr] sm:grid-cols-[180px_1fr] items-start">
-                        <span className="px-5 py-4 text-sm font-medium text-gray-500 bg-gray-50/50">{t('verification.documentInfo.documentType', 'Document Type')}</span>
-                        <span className="px-5 py-4 text-sm font-semibold text-gray-900">{documentData.documentType}</span>
-                      </div>
+                    {certData.studentName && (
+                      <InfoRow label={t('verification.documentInfo.studentName')} value={certData.studentName} />
                     )}
-
-                    {/* Student Name - only for non-general documents */}
-                    {documentData.formType !== 'generalDocument' && (
-                      <div className="grid grid-cols-[140px_1fr] sm:grid-cols-[180px_1fr] items-start">
-                        <span className="px-5 py-4 text-sm font-medium text-gray-500 bg-gray-50/50">{t('verification.documentInfo.studentName')}</span>
-                        <span className="px-5 py-4 text-sm font-semibold text-gray-900">{documentData.studentName}</span>
-                      </div>
+                    <InfoRow
+                      label={t('verification.documentInfo.translation', 'Translation')}
+                      value={`${LANG_LABELS[certData.sourceLanguage] || certData.sourceLanguage} → ${LANG_LABELS[certData.targetLanguage] || certData.targetLanguage}`}
+                    />
+                    <InfoRow
+                      label={t('verification.certified.certifiedAt', 'Certified On')}
+                      value={formatCertDate(certData.certifiedAt)}
+                    />
+                    {certData.certifiedByName && (
+                      <InfoRow
+                        label={t('verification.certified.agent', 'Reviewed By')}
+                        value={
+                          <span className="flex items-center gap-1.5">
+                            <svg className="w-4 h-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                            {certData.certifiedByName}
+                          </span>
+                        }
+                      />
                     )}
-
-                    {/* Languages */}
-                    {documentData.sourceLanguage && documentData.targetLanguage && (
-                      <div className="grid grid-cols-[140px_1fr] sm:grid-cols-[180px_1fr] items-start">
-                        <span className="px-5 py-4 text-sm font-medium text-gray-500 bg-gray-50/50">{t('verification.documentInfo.translation', 'Translation')}</span>
-                        <span className="px-5 py-4 text-sm font-semibold text-gray-900 capitalize">{documentData.sourceLanguage} → {documentData.targetLanguage}</span>
-                      </div>
-                    )}
-
-                    {/* Generation Date */}
-                    <div className="grid grid-cols-[140px_1fr] sm:grid-cols-[180px_1fr] items-start">
-                      <span className="px-5 py-4 text-sm font-medium text-gray-500 bg-gray-50/50">{t('verification.documentInfo.generationDate')}</span>
-                      <span className="px-5 py-4 text-sm font-semibold text-gray-900">{formatDate(documentData.generationDate)}</span>
-                    </div>
                   </div>
-                </motion.div>
+                </div>
 
-                {/* Institution Info */}
-                <motion.div 
-                  className="bg-white rounded-xl shadow-lg border border-gray-200/30 p-6 text-center"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.6 }}
-                >
-                  <motion.img 
-                    src="/iuea-Logo.png" 
-                    alt="IUEA Logo" 
-                    className="w-32 h-32 object-contain mx-auto mb-6"
-                    whileHover={{ scale: 1.05 }}
-                    transition={{ type: "spring", stiffness: 400, damping: 10 }}
-                  />
-                  <h4 className="text-lg font-semibold text-gray-900 mb-2">
-                    {t('verification.institution.title')}
-                  </h4>
-                  <p className="text-sm text-gray-600 mb-4">
-                    {t('verification.institution.description')}
-                  </p>
-                </motion.div>
-
-                {/* Contact Information */}
-                <motion.div 
-                  className="bg-gradient-to-r from-primary-50 to-secondary-50 rounded-xl border border-primary-200/30 p-6 text-center"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.8 }}
-                >
-                  <h4 className="text-lg font-semibold text-gray-900 mb-4">{t('verification.contact.title')}</h4>
-                  <p className="text-gray-600 mb-6">
-                    {t('verification.contact.description')}
-                  </p>
-                  
-                  <div className="space-y-3 mb-6">
-                    <div className="flex items-center justify-center space-x-2 text-sm text-gray-700">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                      </svg>
-                      <span className="font-medium">{t('verification.contact.email')}</span>
-                    </div>
-                    <div className="flex items-center justify-center space-x-2 text-sm text-gray-700">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                      </svg>
-                      <span className="font-medium">{t('verification.contact.phone')}</span>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                    <motion.a 
+                {/* NTC attribution */}
+                <div className="bg-gradient-to-r from-primary-50 to-secondary-50 rounded-xl border border-primary-200/30 p-5 text-center">
+                  <h4 className="text-sm font-semibold text-gray-900 mb-2">{t('verification.institution.title')}</h4>
+                  <p className="text-xs text-gray-600 mb-4">{t('verification.institution.description')}</p>
+                  <div className="flex flex-col sm:flex-row gap-2 justify-center">
+                    <a
                       href={`mailto:${t('verification.contact.email')}`}
-                      className="btn-secondary text-sm px-6 py-2"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
+                      className="btn-secondary text-xs px-4 py-2"
                     >
                       {t('verification.contact.sendEmail')}
-                    </motion.a>
-                    <motion.a 
-                      href={`tel:${t('verification.contact.phone')}`}
-                      className="btn-secondary text-sm px-6 py-2"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      {t('verification.contact.callUs')}
-                    </motion.a>
-                    <motion.button 
-                      onClick={() => window.location.href = 'https://nyotatranslate.com'}
-                      className="btn-primary text-sm px-6 py-2"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
+                    </a>
+                    <button
+                      onClick={() => onNavigate('landing')}
+                      className="btn-primary text-xs px-4 py-2"
                     >
                       {t('verification.contact.backHome')}
-                    </motion.button>
+                    </button>
                   </div>
-                </motion.div>
+                </div>
               </motion.div>
-            ) : (
+            )}
+
+            {/* ── LEGACY DOCUMENT RESULT ── */}
+            {mode === 'legacy' && legacyData && (
               <motion.div
-                key="invalid"
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl border border-red-200/50 p-8 text-center"
+                key="legacy"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="space-y-5"
               >
-                <motion.div 
-                  className="inline-flex items-center justify-center w-16 h-16 bg-red-100/50 backdrop-blur-sm rounded-2xl mb-4"
-                  animate={{ 
-                    x: [0, -10, 10, -5, 5, 0],
-                    scale: [1, 1.05, 1]
-                  }}
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    ease: "easeInOut"
-                  }}
-                >
-                  <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <div className="bg-blue-50 border border-blue-200 rounded-xl p-5 flex items-center gap-4">
+                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-bold text-blue-900">{t('verification.success.title')}</h2>
+                    <p className="text-sm text-blue-700">{t('verification.success.description')}</p>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-xl shadow-lg border border-gray-200/50 overflow-hidden">
+                  <div className="bg-gray-50 px-5 py-3 border-b border-gray-100">
+                    <h3 className="text-sm font-semibold text-gray-800">{t('verification.documentInfo.title')}</h3>
+                  </div>
+                  <div className="divide-y divide-gray-100">
+                    {legacyData.documentTitle && (
+                      <InfoRow label={t('verification.documentInfo.documentTitle', 'Document Title')} value={legacyData.documentTitle} />
+                    )}
+                    {legacyData.studentName && (
+                      <InfoRow label={t('verification.documentInfo.studentName')} value={legacyData.studentName} />
+                    )}
+                    {legacyData.sourceLanguage && legacyData.targetLanguage && (
+                      <InfoRow
+                        label={t('verification.documentInfo.translation', 'Translation')}
+                        value={`${LANG_LABELS[legacyData.sourceLanguage] || legacyData.sourceLanguage} → ${LANG_LABELS[legacyData.targetLanguage] || legacyData.targetLanguage}`}
+                      />
+                    )}
+                    <InfoRow
+                      label={t('verification.documentInfo.generationDate')}
+                      value={formatLegacyDate(legacyData.generationDate)}
+                    />
+                  </div>
+                </div>
+
+                <div className="text-center">
+                  <button onClick={() => onNavigate('landing')} className="btn-primary text-sm px-6 py-2">
+                    {t('verification.contact.backHome')}
+                  </button>
+                </div>
+              </motion.div>
+            )}
+
+            {/* ── NOT FOUND ── */}
+            {mode === 'not-found' && (
+              <motion.div
+                key="not-found"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="bg-white rounded-xl shadow-lg border border-amber-200/50 p-8 text-center"
+              >
+                <div className="w-14 h-14 mx-auto mb-4 bg-amber-100 rounded-full flex items-center justify-center">
+                  <svg className="w-7 h-7 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                </motion.div>
-                <h3 className="text-xl font-semibold text-red-900 mb-2">{t('verification.invalid.title')}</h3>
-                <p className="text-red-600 mb-6">{t('verification.invalid.description')}</p>
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => onNavigate('landing')}
-                  className="btn-primary"
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  {t('verification.error.notFoundTitle', 'Certificate Not Found')}
+                </h3>
+                <p className="text-sm text-gray-500 mb-4">
+                  {t('verification.error.notFoundDescription', 'No certified document matches this ID. Please check the certification ID and try again.')}
+                </p>
+              </motion.div>
+            )}
+
+            {/* ── ERROR ── */}
+            {mode === 'error' && (
+              <motion.div
+                key="error"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="bg-white rounded-xl shadow-lg border border-red-200/50 p-8 text-center"
+              >
+                <div className="w-14 h-14 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
+                  <svg className="w-7 h-7 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-semibold text-red-900 mb-2">{t('verification.error.title')}</h3>
+                <p className="text-sm text-red-600 mb-4">{errorMsg || t('verification.error.generic')}</p>
+                <button
+                  onClick={() => { setMode('idle'); setErrorMsg(''); }}
+                  className="btn-primary text-sm"
                 >
-                  {t('verification.invalid.backHome')}
-                </motion.button>
+                  {t('verification.error.tryAgain')}
+                </button>
+              </motion.div>
+            )}
+
+            {/* ── IDLE — instructions ── */}
+            {mode === 'idle' && (
+              <motion.div
+                key="idle"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="bg-white rounded-xl shadow-lg border border-gray-200/50 p-6 text-center"
+              >
+                <h3 className="text-sm font-semibold text-gray-800 mb-3">
+                  {t('verification.idle.title', 'How to verify your document')}
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs text-gray-600 max-w-md mx-auto">
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="w-10 h-10 bg-primary-50 rounded-full flex items-center justify-center">
+                      <span className="text-primary-700 font-bold text-sm">1</span>
+                    </div>
+                    <p>{t('verification.idle.step1', 'Find the Certification ID on your document (e.g. NTC-2026-A7K9F2)')}</p>
+                  </div>
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="w-10 h-10 bg-primary-50 rounded-full flex items-center justify-center">
+                      <span className="text-primary-700 font-bold text-sm">2</span>
+                    </div>
+                    <p>{t('verification.idle.step2', 'Enter the ID above and click Verify')}</p>
+                  </div>
+                </div>
               </motion.div>
             )}
           </AnimatePresence>

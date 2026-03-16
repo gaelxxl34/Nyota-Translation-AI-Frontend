@@ -9,10 +9,11 @@ import {
   usePartnerDocuments,
   usePartnerStats,
   usePartnerReports,
+  usePartnerPromoCodes,
 } from '../../hooks/usePartner';
 import type { PartnerReportConfig, PartnerReportItem } from '../../hooks/usePartner';
 
-type TabType = 'documents' | 'reports' | 'statistics' | 'settings';
+type TabType = 'documents' | 'promo-codes' | 'reports' | 'statistics' | 'settings';
 
 const PartnerDashboardPage: React.FC = () => {
   const { currentUser, logout } = useAuth();
@@ -38,6 +39,7 @@ const PartnerDashboardPage: React.FC = () => {
     clearSelectedDocument,
   } = usePartnerDocuments();
   const { stats, loading: statsLoading, fetchStats } = usePartnerStats();
+  const { promoCodes, loading: promoCodesLoading, fetchPromoCodes } = usePartnerPromoCodes();
   const {
     documentsReport: _documentsReport,
     loading: reportsLoading,
@@ -63,7 +65,8 @@ const PartnerDashboardPage: React.FC = () => {
   useEffect(() => {
     fetchProfile();
     fetchStats();
-  }, [fetchProfile, fetchStats]);
+    fetchPromoCodes();
+  }, [fetchProfile, fetchStats, fetchPromoCodes]);
 
   // Fetch documents when filters change
   useEffect(() => {
@@ -171,6 +174,20 @@ const PartnerDashboardPage: React.FC = () => {
       ),
     },
     {
+      id: 'promo-codes',
+      label: 'Promo Codes',
+      icon: (
+        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+          />
+        </svg>
+      ),
+    },
+    {
       id: 'reports',
       label: 'Reports',
       icon: (
@@ -221,7 +238,7 @@ const PartnerDashboardPage: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-900">
+    <div className="min-h-screen bg-gray-50">
       {/* Mobile Header */}
       <header className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 px-4 py-3">
         <div className="flex items-center justify-center">
@@ -230,7 +247,7 @@ const PartnerDashboardPage: React.FC = () => {
       </header>
 
       {/* Desktop Header */}
-      <header className="hidden lg:block bg-gray-800 border-b border-gray-700">
+      <header className="hidden lg:block bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
@@ -238,17 +255,17 @@ const PartnerDashboardPage: React.FC = () => {
                 <span className="text-white font-bold text-lg">N</span>
               </div>
               <div className="min-w-0">
-                <h1 className="text-xl font-bold text-white truncate">Partner Portal</h1>
-                <p className="text-gray-400 text-sm truncate">
+                <h1 className="text-xl font-bold text-gray-900 truncate">Partner Portal</h1>
+                <p className="text-gray-500 text-sm truncate">
                   {partner?.name || 'Loading...'}
                 </p>
               </div>
             </div>
             <div className="flex items-center gap-4">
-              <span className="text-gray-400 text-sm">{currentUser?.email}</span>
+              <span className="text-gray-500 text-sm">{currentUser?.email}</span>
               <button
                 onClick={async () => { await logout(); window.location.href = '/'; }}
-                className="flex items-center gap-2 text-red-400 hover:text-red-300 transition-colors text-sm"
+                className="flex items-center gap-2 text-red-500 hover:text-red-600 transition-colors text-sm"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -263,7 +280,7 @@ const PartnerDashboardPage: React.FC = () => {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8 pt-[72px] lg:pt-8">
         {/* Tab Navigation */}
-        <div className="flex gap-1 mb-6 sm:mb-8 bg-gray-800/50 rounded-xl p-1 border border-gray-700 overflow-x-auto scrollbar-hide">
+        <div className="flex gap-1 mb-6 sm:mb-8 bg-white rounded-xl p-1 border border-gray-200 shadow-sm overflow-x-auto scrollbar-hide">
           {tabs.map((tab) => (
             <button
               key={tab.id}
@@ -271,7 +288,7 @@ const PartnerDashboardPage: React.FC = () => {
               className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap text-sm sm:text-base flex-shrink-0 ${
                 activeTab === tab.id
                   ? 'bg-blue-600 text-white'
-                  : 'text-gray-400 hover:text-white hover:bg-gray-700'
+                  : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
               }`}
             >
               {tab.icon}
@@ -281,7 +298,7 @@ const PartnerDashboardPage: React.FC = () => {
           {/* Mobile Logout Button */}
           <button
             onClick={async () => { await logout(); window.location.href = '/'; }}
-            className="lg:hidden flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap text-sm sm:text-base flex-shrink-0 text-red-400 hover:text-red-300 hover:bg-red-500/10 ml-auto"
+            className="lg:hidden flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap text-sm sm:text-base flex-shrink-0 text-red-500 hover:text-red-600 hover:bg-red-50 ml-auto"
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -307,6 +324,94 @@ const PartnerDashboardPage: React.FC = () => {
           />
         )}
 
+        {activeTab === 'promo-codes' && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Your Promo Codes</h3>
+                  <p className="text-sm text-gray-500 mt-0.5">Share these codes with clients to give them discounts</p>
+                </div>
+                <button
+                  onClick={() => fetchPromoCodes()}
+                  className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                  title="Refresh"
+                >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                </button>
+              </div>
+
+              {promoCodesLoading ? (
+                <div className="space-y-3 animate-pulse">
+                  {[...Array(3)].map((_, i) => (
+                    <div key={i} className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
+                      <div className="w-24 h-8 bg-gray-200 rounded" />
+                      <div className="flex-1">
+                        <div className="h-3 w-32 bg-gray-200 rounded" />
+                        <div className="h-3 w-20 bg-gray-100 rounded mt-2" />
+                      </div>
+                      <div className="w-16 h-6 bg-gray-200 rounded-full" />
+                    </div>
+                  ))}
+                </div>
+              ) : promoCodes.length === 0 ? (
+                <div className="text-center py-12">
+                  <svg className="w-12 h-12 text-gray-300 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                  </svg>
+                  <p className="text-gray-500">No promo codes assigned yet</p>
+                  <p className="text-sm text-gray-400 mt-1">Contact the admin to get promo codes for your partner account</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {promoCodes.map((code) => {
+                    const isExpired = code.validUntil && new Date(code.validUntil) < new Date();
+                    const isMaxed = code.maxUses !== null && code.currentUses >= code.maxUses;
+                    const statusLabel = !code.isActive ? 'Inactive' : isExpired ? 'Expired' : isMaxed ? 'Maxed Out' : 'Active';
+                    const statusColor = !code.isActive ? 'bg-gray-100 text-gray-500' : isExpired ? 'bg-red-50 text-red-600' : isMaxed ? 'bg-amber-50 text-amber-600' : 'bg-green-50 text-green-600';
+
+                    return (
+                      <div
+                        key={code.id}
+                        className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-4 bg-gray-50 rounded-lg border border-gray-100"
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <span className="inline-flex items-center px-3 py-1.5 rounded-lg bg-gray-900 text-white font-mono text-sm font-semibold tracking-wider flex-shrink-0">
+                            {code.code}
+                          </span>
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium text-gray-900">
+                              {code.type === 'percentage' ? `${code.value}% off` : `$${code.value} off`}
+                            </p>
+                            {code.description && (
+                              <p className="text-xs text-gray-400 truncate">{code.description}</p>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3 sm:ml-auto flex-shrink-0">
+                          <span className="text-xs text-gray-500">
+                            {code.currentUses}/{code.maxUses ?? '∞'} used
+                          </span>
+                          {code.validUntil && (
+                            <span className="text-xs text-gray-400">
+                              Exp: {new Date(code.validUntil).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                            </span>
+                          )}
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${statusColor}`}>
+                            {statusLabel}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {activeTab === 'reports' && (
           <PartnerReports
             reports={generatedReports}
@@ -325,11 +430,11 @@ const PartnerDashboardPage: React.FC = () => {
         {activeTab === 'settings' && (
           <div className="space-y-6">
             {/* Organization Settings */}
-            <div className="bg-gray-800/50 rounded-xl border border-gray-700 p-6">
-              <h3 className="text-lg font-semibold text-white mb-4">Organization Settings</h3>
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Organization Settings</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-gray-600 mb-2">
                     Organization Name
                   </label>
                   <input
@@ -338,11 +443,11 @@ const PartnerDashboardPage: React.FC = () => {
                     onChange={(e) =>
                       setSettingsForm({ ...settingsForm, name: e.target.value })
                     }
-                    className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-blue-500"
+                    className="w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-gray-600 mb-2">
                     Contact Email
                   </label>
                   <input
@@ -351,11 +456,11 @@ const PartnerDashboardPage: React.FC = () => {
                     onChange={(e) =>
                       setSettingsForm({ ...settingsForm, email: e.target.value })
                     }
-                    className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-blue-500"
+                    className="w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-gray-600 mb-2">
                     Contact Phone
                   </label>
                   <input
@@ -364,37 +469,37 @@ const PartnerDashboardPage: React.FC = () => {
                     onChange={(e) =>
                       setSettingsForm({ ...settingsForm, phone: e.target.value })
                     }
-                    className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-blue-500"
+                    className="w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Address</label>
+                  <label className="block text-sm font-medium text-gray-600 mb-2">Address</label>
                   <textarea
                     value={settingsForm.address}
                     onChange={(e) => setSettingsForm({ ...settingsForm, address: e.target.value })}
                     rows={2}
-                    className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-blue-500"
+                    className="w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
               </div>
             </div>
 
             {/* Branding Settings */}
-            <div className="bg-gray-800/50 rounded-xl border border-gray-700 p-6">
-              <h3 className="text-lg font-semibold text-white mb-4">Branding</h3>
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Branding</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Logo URL</label>
+                  <label className="block text-sm font-medium text-gray-600 mb-2">Logo URL</label>
                   <input
                     type="url"
                     value={brandingForm.logo}
                     onChange={(e) => setBrandingForm({ ...brandingForm, logo: e.target.value })}
                     placeholder="https://example.com/logo.png"
-                    className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-blue-500"
+                    className="w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-gray-600 mb-2">
                     Primary Color
                   </label>
                   <div className="flex gap-2">
@@ -412,7 +517,7 @@ const PartnerDashboardPage: React.FC = () => {
                       onChange={(e) =>
                         setBrandingForm({ ...brandingForm, primaryColor: e.target.value })
                       }
-                      className="flex-1 bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-blue-500"
+                      className="flex-1 bg-gray-50 border border-gray-300 rounded-lg px-4 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                 </div>

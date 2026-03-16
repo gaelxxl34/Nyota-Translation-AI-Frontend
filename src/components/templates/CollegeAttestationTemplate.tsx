@@ -67,7 +67,7 @@ const EditableField: React.FC<{
 
   return (
     <span
-      className={`${className} ${isEditable ? 'cursor-pointer hover:bg-yellow-100 hover:shadow-sm px-1 py-0.5 rounded-sm transition-colors duration-150' : ''} ${displayValue ? '' : 'text-gray-400 italic'}`}
+      className={`${className} ${isEditable ? 'cursor-pointer hover:bg-blue-100 hover:shadow-md px-1 py-0.5 rounded-sm transition-colors duration-150 border border-dashed border-transparent hover:border-blue-400' : ''} ${displayValue ? '' : 'text-gray-400 italic'}`}
       style={style}
       onClick={() => isEditable && setIsEditing(true)}
       title={isEditable ? 'Click to edit' : ''}
@@ -133,64 +133,65 @@ interface CollegeAttestationTemplateProps {
   documentId?: string;
 }
 
+// Default data defined outside component to maintain stable reference
+const DEFAULT_COLLEGE_ATTESTATION_DATA: CollegeAttestationData = {
+  country: "Democratic Republic of the Congo",
+  institutionType: "HIGHER EDUCATION AND UNIVERSITY",
+  institutionName: "INSTITUT SUPÉRIEUR DE COMMERCE",
+  institutionAbbreviation: "(I.S.C. / BENI)",
+  institutionEmail: "iscbeni@yahoo.fr / iscbeni@gmail.com",
+  institutionWebsite: "www.isc.beni.ac",
+  departmentName: "General Academic Secretariat",
+  documentTitle: "CERTIFICATE OF ATTENDANCE",
+  documentNumber: "N° 1532/SGAC/S.SC.F/MMF/2022",
+  signatoryTitle: "Chief of Works",
+  signatoryName: "MUHINDO MUHASA Faustin",
+  signatoryPosition: "General Academic Secretary",
+  studentName: "MBUSA KALISYA Riphin",
+  studentGender: "le",
+  birthPlace: "Beni",
+  birthDate: "21/07/1999",
+  matricule: "AZ.3707/20",
+  enrollmentStatus: "regularly enrolled in the Section of",
+  section: "Commercial Sciences and Finance",
+  option: "Fiscal Option",
+  institutionLocation: "Beni",
+  academicYear: "2021-2022",
+  yearLevel: "Second Year License",
+  performance: "SATISFACTORY grade",
+  percentage: "(69.1%)",
+  session: "in the first session",
+  purpose: "This certificate of attendance is issued to serve whatever purpose it may be required for.",
+  issueLocation: "Beni",
+  issueDate: "April 24, 2023",
+  secretaryTitle: "The General Academic Secretary,",
+  chiefTitle: "MUHINDO MUHASA Faustin",
+  chiefName: "MUHINDO MUHASA Faustin",
+  chiefPosition: "Chief of Works"
+};
+
 const CollegeAttestationTemplate: React.FC<CollegeAttestationTemplateProps> = ({ 
   data, 
   isEditable = false, 
   onDataChange,
   documentId: propDocumentId
 }) => {
-  // Default data structure based on the ISC attestation
-  const defaultData: CollegeAttestationData = {
-    country: "Democratic Republic of the Congo",
-    institutionType: "HIGHER EDUCATION AND UNIVERSITY",
-    institutionName: "INSTITUT SUPÉRIEUR DE COMMERCE",
-    institutionAbbreviation: "(I.S.C. / BENI)",
-    institutionEmail: "iscbeni@yahoo.fr / iscbeni@gmail.com",
-    institutionWebsite: "www.isc.beni.ac",
-    departmentName: "General Academic Secretariat",
-    documentTitle: "CERTIFICATE OF ATTENDANCE",
-    documentNumber: "N° 1532/SGAC/S.SC.F/MMF/2022",
-    signatoryTitle: "Chief of Works",
-    signatoryName: "MUHINDO MUHASA Faustin",
-    signatoryPosition: "General Academic Secretary",
-    studentName: "MBUSA KALISYA Riphin",
-    studentGender: "le",
-    birthPlace: "Beni",
-    birthDate: "21/07/1999",
-    matricule: "AZ.3707/20",
-    enrollmentStatus: "regularly enrolled in the Section of",
-    section: "Commercial Sciences and Finance",
-    option: "Fiscal Option",
-    institutionLocation: "Beni",
-    academicYear: "2021-2022",
-    yearLevel: "Second Year License",
-    performance: "SATISFACTORY grade",
-    percentage: "(69.1%)",
-    session: "in the first session",
-    purpose: "This certificate of attendance is issued to serve whatever purpose it may be required for.",
-    issueLocation: "Beni",
-    issueDate: "April 24, 2023",
-    secretaryTitle: "The General Academic Secretary,",
-    chiefTitle: "MUHINDO MUHASA Faustin",
-    chiefName: "MUHINDO MUHASA Faustin",
-    chiefPosition: "Chief of Works"
-  };
 
   const [pdfData, setPdfData] = useState<CollegeAttestationData | null>(null);
-  const [currentData, setCurrentData] = useState<CollegeAttestationData>(defaultData);
+  const [currentData, setCurrentData] = useState<CollegeAttestationData>(DEFAULT_COLLEGE_ATTESTATION_DATA);
   const [screenWidth, setScreenWidth] = useState<number>(typeof window !== 'undefined' ? window.innerWidth : 1024);
   const [documentId, setDocumentId] = useState<string>(propDocumentId || '');
 
   // Update document ID when prop changes
   useEffect(() => {
-    if (propDocumentId && propDocumentId !== documentId) {
+    if (propDocumentId) {
       setDocumentId(propDocumentId);
     }
-  }, [propDocumentId, documentId]);
+  }, [propDocumentId]);
 
   // Update current data when props change
   useEffect(() => {
-    const newData = pdfData || data || defaultData;
+    const newData = pdfData || data || DEFAULT_COLLEGE_ATTESTATION_DATA;
     setCurrentData(newData);
   }, [pdfData, data]);
 

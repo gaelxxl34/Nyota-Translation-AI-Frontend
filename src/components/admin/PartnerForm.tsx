@@ -15,6 +15,7 @@ const PARTNER_TYPES = [
   { value: 'university', label: 'University', icon: '🎓' },
   { value: 'highschool', label: 'High School', icon: '🏫' },
   { value: 'organization', label: 'Organization', icon: '🏢' },
+  { value: 'individual', label: 'Individual', icon: '👤' },
 ];
 
 // Default commission tiers
@@ -193,7 +194,7 @@ const PartnerForm: React.FC<PartnerFormProps> = ({
             {/* Name */}
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-2">
-                Organization Name *
+                {formData.type === 'individual' ? 'Full Name' : 'Organization Name'} *
               </label>
               <input
                 type="text"
@@ -201,7 +202,7 @@ const PartnerForm: React.FC<PartnerFormProps> = ({
                 value={formData.name}
                 onChange={(e) => handleNameChange(e.target.value)}
                 className="w-full px-4 py-2.5 bg-slate-900 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="University of Kinshasa"
+                placeholder={formData.type === 'individual' ? 'John Doe' : 'University of Kinshasa'}
               />
             </div>
 
@@ -229,7 +230,7 @@ const PartnerForm: React.FC<PartnerFormProps> = ({
               <label className="block text-sm font-medium text-slate-300 mb-2">
                 Organization Type *
               </label>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-4 gap-3">
                 {PARTNER_TYPES.map((type) => (
                   <label
                     key={type.value}
@@ -244,7 +245,7 @@ const PartnerForm: React.FC<PartnerFormProps> = ({
                       name="type"
                       value={type.value}
                       checked={formData.type === type.value}
-                      onChange={(e) => setFormData({ ...formData, type: e.target.value as 'university' | 'highschool' | 'organization' })}
+                      onChange={(e) => setFormData({ ...formData, type: e.target.value as 'university' | 'highschool' | 'organization' | 'individual' })}
                       className="sr-only"
                     />
                     <span className="text-2xl mb-1">{type.icon}</span>
@@ -302,7 +303,7 @@ const PartnerForm: React.FC<PartnerFormProps> = ({
                 <div>
                   <h3 className="text-sm font-medium text-white">Referral Commission</h3>
                   <p className="text-xs text-slate-400 mt-0.5">
-                    Enable to pay partner a percentage per document based on student volume
+                    Enable to pay partner a percentage per document based on client volume
                   </p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
@@ -320,7 +321,7 @@ const PartnerForm: React.FC<PartnerFormProps> = ({
                 <div className="space-y-4 bg-slate-900/50 rounded-lg p-4 border border-slate-700">
                   <div className="flex items-center justify-between">
                     <p className="text-xs text-slate-400">
-                      💡 Define percentage tiers based on number of students referred
+                      💡 Define percentage tiers based on number of clients referred
                     </p>
                     <button
                       type="button"
@@ -405,7 +406,7 @@ const PartnerForm: React.FC<PartnerFormProps> = ({
                     <div className="text-xs text-slate-300 space-y-1">
                       {(formData.commissionTiers || []).map((tier, index) => (
                         <p key={index}>
-                          {tier.minStudents} - {tier.maxStudents ?? '∞'} students → <span className="text-green-400 font-medium">{tier.percentage}%</span> per document
+                          {tier.minStudents} - {tier.maxStudents ?? '∞'} clients → <span className="text-green-400 font-medium">{tier.percentage}%</span> per page
                         </p>
                       ))}
                     </div>

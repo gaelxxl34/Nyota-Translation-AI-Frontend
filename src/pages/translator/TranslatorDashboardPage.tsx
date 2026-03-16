@@ -100,9 +100,13 @@ const TranslatorDashboardPage: React.FC = () => {
       if (success) {
         fetchQueue();
         fetchQueueStats();
+        // If claiming from review page, re-fetch the document to update status
+        if (currentPage === 'review') {
+          await fetchDocument(docId);
+        }
       }
     },
-    [claimDocument, fetchQueue, fetchQueueStats]
+    [claimDocument, fetchQueue, fetchQueueStats, currentPage, fetchDocument]
   );
 
   // Handle back from review
@@ -218,7 +222,7 @@ const TranslatorDashboardPage: React.FC = () => {
 
   return (
     <RoleGuard allowedRoles={['superadmin', 'translator']}>
-      <div className="min-h-screen bg-gray-900 lg:flex">
+      <div className="min-h-screen bg-gray-50 lg:flex">
         {/* Mobile Header */}
         <header className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 px-4 py-3">
           <div className="flex items-center justify-between">
@@ -260,19 +264,19 @@ const TranslatorDashboardPage: React.FC = () => {
         {/* Sidebar */}
         <aside className={`
           fixed lg:sticky top-0 left-0 z-[70] lg:z-auto h-screen
-          w-64 bg-gray-800 border-r border-gray-700 flex flex-col
+          w-64 bg-white border-r border-gray-200 shadow-sm flex flex-col
           transform transition-transform duration-300 ease-in-out
           ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         `}>
           {/* Logo / Header */}
-          <div className="p-6 border-b border-gray-700 flex items-center justify-between">
+          <div className="p-6 border-b border-gray-200 flex items-center justify-between">
             <div>
-              <h1 className="text-xl font-bold text-white">NTC Translator</h1>
-              <p className="text-gray-400 text-sm mt-1">Translation Portal</p>
+              <h1 className="text-xl font-bold text-gray-900">NTC Translator</h1>
+              <p className="text-gray-500 text-sm mt-1">Translation Portal</p>
             </div>
             <button
               onClick={() => setMobileMenuOpen(false)}
-              className="lg:hidden p-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg"
+              className="lg:hidden p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -295,7 +299,7 @@ const TranslatorDashboardPage: React.FC = () => {
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors ${
                   currentPage === item.id
                     ? 'bg-blue-600 text-white'
-                    : 'text-gray-300 hover:bg-gray-700'
+                    : 'text-gray-600 hover:bg-gray-100'
                 }`}
               >
                 {item.icon}
@@ -310,21 +314,21 @@ const TranslatorDashboardPage: React.FC = () => {
           </nav>
 
           {/* User Info & Logout */}
-          <div className="p-4 border-t border-gray-700">
+          <div className="p-4 border-t border-gray-200">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">
                 {currentUser?.email?.charAt(0).toUpperCase() || 'T'}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-white text-sm font-medium truncate">
+                <p className="text-gray-900 text-sm font-medium truncate">
                   {currentUser?.displayName || currentUser?.email}
                 </p>
-                <p className="text-gray-400 text-xs">Translator</p>
+                <p className="text-gray-500 text-xs">Translator</p>
               </div>
             </div>
             <button
               onClick={handleLogout}
-              className="w-full flex items-center gap-2 px-4 py-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-colors"
+              className="w-full flex items-center gap-2 px-4 py-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path
@@ -342,16 +346,16 @@ const TranslatorDashboardPage: React.FC = () => {
         {/* Main Content */}
         <main className="flex-1 overflow-auto pt-[72px] lg:pt-0">
           {/* Desktop Header */}
-          <header className="hidden lg:block bg-gray-800 border-b border-gray-700 px-8 py-4">
+          <header className="hidden lg:block bg-white border-b border-gray-200 shadow-sm px-8 py-4">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-2xl font-bold text-white">
+                <h2 className="text-2xl font-bold text-gray-900">
                   {currentPage === 'queue' && 'Document Queue'}
                   {currentPage === 'assigned' && 'My Assigned Documents'}
                   {currentPage === 'review' && 'Document Review'}
                   {currentPage === 'stats' && 'My Statistics'}
                 </h2>
-                <p className="text-gray-400 text-sm mt-1">
+                <p className="text-gray-500 text-sm mt-1">
                   {currentPage === 'queue' && 'Review and approve pending translations'}
                   {currentPage === 'assigned' && 'Documents you are currently working on'}
                   {currentPage === 'review' && 'Review, edit, and approve this document'}
@@ -362,7 +366,7 @@ const TranslatorDashboardPage: React.FC = () => {
               <div className="relative">
                 <button
                   onClick={() => fetchNotifications()}
-                  className="p-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-colors relative"
+                  className="p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors relative"
                 >
                   <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path
@@ -383,8 +387,8 @@ const TranslatorDashboardPage: React.FC = () => {
           </header>
 
           {/* Mobile Page Title */}
-          <div className="lg:hidden px-4 py-3 bg-gray-800/50">
-            <h2 className="text-lg font-bold text-white">
+          <div className="lg:hidden px-4 py-3 bg-white border-b border-gray-200">
+            <h2 className="text-lg font-bold text-gray-900">
               {currentPage === 'queue' && 'Document Queue'}
               {currentPage === 'assigned' && 'My Assigned'}
               {currentPage === 'review' && 'Document Review'}
@@ -396,7 +400,7 @@ const TranslatorDashboardPage: React.FC = () => {
           <div className="p-4 lg:p-8">
             {/* Error Display */}
             {reviewError && (
-              <div className="mb-6 p-4 bg-red-500/20 border border-red-500/30 rounded-lg text-red-400">
+              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600">
                 {reviewError}
               </div>
             )}
@@ -424,6 +428,7 @@ const TranslatorDashboardPage: React.FC = () => {
                 onApprove={handleApprove}
                 onReject={handleReject}
                 onRelease={handleRelease}
+                onClaim={handleClaimDocument}
                 onBack={handleBackFromReview}
               />
             )}

@@ -4,7 +4,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../AuthProvider';
 import * as adminService from '../services/adminService';
-import type { User, Partner, SystemAnalytics, UserStats } from '../services/adminService';
+import type { User, Partner, SystemAnalytics, UserStats, PromoCode, CreatePromoCodeData } from '../services/adminService';
 
 // User role type
 export type UserRole = 'superadmin' | 'translator' | 'partner' | 'support' | 'user';
@@ -194,6 +194,14 @@ export const useAdminUsers = () => {
     return updatedUser;
   };
 
+  const deleteUser = async (uid: string): Promise<void> => {
+    if (!idToken) throw new Error('Not authenticated');
+    
+    await adminService.deleteUser(idToken, uid);
+    await fetchUsers();
+    await fetchStats();
+  };
+
   return {
     users,
     stats,
@@ -205,6 +213,7 @@ export const useAdminUsers = () => {
     updateRole,
     deactivate,
     reactivate,
+    deleteUser,
   };
 };
 
@@ -285,5 +294,59 @@ export const useAdminAnalytics = () => {
     loading,
     error,
     fetchAnalytics,
+  };
+};
+
+// Hook for promo code management
+export const useAdminPromoCodes = () => {
+  const { idToken } = useAuth();
+  const [promoCodes, setPromoCodes] = useState<PromoCode[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchPromoCodes = useCallback(async (filters?: { partnerId?: string; isActive?: boolean; type?: string }) => {
+    if (!idToken) return;
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const data = await adminService.getPromoCodes(idToken, filters);
+      setPromoCodes(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch promo codes');
+    } finally {
+      setLoading(false);
+    }
+  }, [idToken]);
+
+  const createPromoCode = async (data: CreatePromoCodeData): Promise<PromoCode> => {
+    if (!idToken) throw new Error('Not authenticated');
+    const newCode = await adminService.createPromoCode(idToken, data);
+    await fetchPromoCodes();
+    return newCode;
+  };
+
+  const updatePromoCode = async (promoCodeId: string, updates: Partial<PromoCode>): Promise<PromoCode> => {
+    if (!idToken) throw new Error('Not authenticated');
+    const updated = await adminService.updatePromoCode(idToken, promoCodeId, updates);
+    await fetchPromoCodes();
+    return updated;
+  };
+
+  const deletePromoCode = async (promoCodeId: string): Promise<void> => {
+    if (!idToken) throw new Error('Not authenticated');
+    await adminService.deletePromoCode(idToken, promoCodeId);
+    await fetchPromoCodes();
+  };
+
+  return {
+    promoCodes,
+    loading,
+    error,
+    fetchPromoCodes,
+    createPromoCode,
+    updatePromoCode,
+    deletePromoCode,
   };
 };
