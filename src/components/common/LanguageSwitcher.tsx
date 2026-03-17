@@ -26,6 +26,18 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
       name: 'Français', 
       flag: '🇫🇷',
       displayCode: 'FR'
+    },
+    { 
+      code: 'ar', 
+      name: 'العربية', 
+      flag: '🇸🇦',
+      displayCode: 'AR'
+    },
+    { 
+      code: 'es', 
+      name: 'Español', 
+      flag: '🇪🇸',
+      displayCode: 'ES'
     }
   ];
 

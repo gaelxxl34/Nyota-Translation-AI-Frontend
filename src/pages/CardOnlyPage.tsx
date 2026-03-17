@@ -45,7 +45,8 @@ const CardOnlyPage: React.FC = () => {
           const data = certData.certifiedData || certData.editedData || certData.originalData;
           if (data) {
             data.formType = certData.formType || data.formType || 'form6';
-            data.documentId = certData.bulletinId || certDocId;
+            // Use certification ID for QR code so scanning shows certified verification
+            data.documentId = certData.certification?.certificationId || certData.bulletinId || certDocId;
             data.firestoreId = certData.bulletinId || certDocId;
             data.id = certData.bulletinId || certDocId;
           }

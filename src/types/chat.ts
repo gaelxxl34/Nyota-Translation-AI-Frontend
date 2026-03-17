@@ -81,58 +81,36 @@ export interface ChatState {
   error: string | null;
 }
 
-export const LANGUAGE_OPTIONS: ChatOption[] = [
-  { id: "drc", label: "🇨🇩 DRC Format", value: "drc", description: "Congo — French academic documents" },
-  { id: "fr", label: "🇫🇷 French", value: "fr", description: "Français" },
-  { id: "ar", label: "🇸🇦 Arabic", value: "ar", description: "العربية" },
-  { id: "es", label: "🇪🇸 Spanish", value: "es", description: "Español" },
-  { id: "auto", label: "🔍 Auto-detect", value: "auto", description: "Let AI detect the language" },
+// TFunction type for i18next t()
+type TFunction = (key: string, options?: Record<string, unknown>) => string;
+
+export const getLanguageOptions = (t: TFunction): ChatOption[] => [
+  { id: "drc", label: t("chat.options.drc"), value: "drc", description: t("chat.options.drcDesc") },
+  { id: "fr", label: t("chat.options.french"), value: "fr", description: t("chat.options.frenchDesc") },
+  { id: "ar", label: t("chat.options.arabic"), value: "ar", description: t("chat.options.arabicDesc") },
+  { id: "es", label: t("chat.options.spanish"), value: "es", description: t("chat.options.spanishDesc") },
+  { id: "auto", label: t("chat.options.autoDetect"), value: "auto", description: t("chat.options.autoDetectDesc") },
 ];
 
-export const DRC_TEMPLATE_OPTIONS: ChatOption[] = [
-  { id: "form4", label: "📝 Bulletin Form 4", value: "form4", description: "Bulletin Scolaire, 4ème Secondaire" },
-  { id: "form6", label: "📝 Bulletin Form 6", value: "form6", description: "Bulletin Scolaire, 6ème Secondaire" },
-  { id: "stateDiploma", label: "🎓 State Diploma", value: "stateDiploma", description: "Diplôme d'État" },
-  { id: "stateExamAttestation", label: "📋 State Exam Attestation", value: "stateExamAttestation", description: "Attestation de Réussite" },
-  { id: "bachelorDiploma", label: "🎓 Bachelor's Diploma", value: "bachelorDiploma", description: "Diplôme de Licence / Graduat" },
-  { id: "collegeTranscript", label: "📊 College Transcript", value: "collegeTranscript", description: "Relevé de Notes Universitaire" },
-  { id: "collegeAttestation", label: "📋 College Attestation", value: "collegeAttestation", description: "Attestation de Fréquentation" },
-  { id: "highSchoolAttestation", label: "📋 High School Attestation", value: "highSchoolAttestation", description: "Attestation de Scolarité" },
-  { id: "generalDRC", label: "📄 Other DRC Document", value: "generalDocument", description: "Autre document congolais" },
+export const getDrcTemplateOptions = (t: TFunction): ChatOption[] => [
+  { id: "form4", label: t("chat.options.form4"), value: "form4", description: t("chat.options.form4Desc") },
+  { id: "form6", label: t("chat.options.form6"), value: "form6", description: t("chat.options.form6Desc") },
+  { id: "stateDiploma", label: t("chat.options.stateDiploma"), value: "stateDiploma", description: t("chat.options.stateDiplomaDesc") },
+  { id: "stateExamAttestation", label: t("chat.options.stateExamAttestation"), value: "stateExamAttestation", description: t("chat.options.stateExamAttestationDesc") },
+  { id: "bachelorDiploma", label: t("chat.options.bachelorDiploma"), value: "bachelorDiploma", description: t("chat.options.bachelorDiplomaDesc") },
+  { id: "collegeTranscript", label: t("chat.options.collegeTranscript"), value: "collegeTranscript", description: t("chat.options.collegeTranscriptDesc") },
+  { id: "collegeAttestation", label: t("chat.options.collegeAttestation"), value: "collegeAttestation", description: t("chat.options.collegeAttestationDesc") },
+  { id: "highSchoolAttestation", label: t("chat.options.highSchoolAttestation"), value: "highSchoolAttestation", description: t("chat.options.highSchoolAttestationDesc") },
+  { id: "generalDRC", label: t("chat.options.otherDrc"), value: "generalDocument", description: t("chat.options.otherDrcDesc") },
 ];
 
-export const SPEED_TIER_OPTIONS: ChatOption[] = [
-  {
-    id: "express",
-    label: "🚀 Express — $45",
-    value: "express",
-    description: "1–5 hours",
-  },
-  {
-    id: "rush",
-    label: "⚡ Rush — $35",
-    value: "rush",
-    description: "Up to 12 hours",
-  },
-  {
-    id: "standard",
-    label: "📋 Standard — $30",
-    value: "standard",
-    description: "Up to 24 hours",
-  },
+export const getSpeedTierOptions = (t: TFunction): ChatOption[] => [
+  { id: "express", label: t("chat.options.express"), value: "express", description: t("chat.options.expressDesc") },
+  { id: "rush", label: t("chat.options.rush"), value: "rush", description: t("chat.options.rushDesc") },
+  { id: "standard", label: t("chat.options.standard"), value: "standard", description: t("chat.options.standardDesc") },
 ];
 
-export const ACTION_OPTIONS: ChatOption[] = [
-  {
-    id: "view_draft",
-    label: "👁 View Free Draft",
-    value: "view_draft",
-    description: "Preview AI-generated draft in browser",
-  },
-  {
-    id: "certify",
-    label: "✅ Get Certified Translation",
-    value: "certify",
-    description: "Agent-reviewed, tamper-proof",
-  },
+export const getActionOptions = (t: TFunction): ChatOption[] => [
+  { id: "view_draft", label: t("chat.options.viewDraft"), value: "view_draft", description: t("chat.options.viewDraftDesc") },
+  { id: "certify", label: t("chat.options.certify"), value: "certify", description: t("chat.options.certifyDesc") },
 ];

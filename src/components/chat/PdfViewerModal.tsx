@@ -1,6 +1,7 @@
 // PdfViewerModal — fullscreen overlay to view a draft PDF in the browser
 
 import React from "react";
+import { useTranslation } from "react-i18next";
 
 interface PdfViewerModalProps {
   pdfUrl: string;
@@ -15,6 +16,7 @@ const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
   onDownload,
   studentName,
 }) => {
+  const { t } = useTranslation();
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-black/60 backdrop-blur-sm">
       {/* Header bar */}
@@ -24,10 +26,10 @@ const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
           <span className="text-sm font-medium text-gray-800 truncate">
-            {studentName ? `${studentName} — Draft Preview` : "Draft Preview"}
+            {studentName ? `${studentName} — ${t("chat.pdfModal.draftPreview")}` : t("chat.pdfModal.draftPreview")}
           </span>
           <span className="hidden sm:inline-flex items-center px-2 py-0.5 bg-amber-50 text-amber-700 rounded-full text-[10px] font-medium">
-            AI DRAFT
+            {t("chat.preview.aiDraft")}
           </span>
         </div>
         <div className="flex items-center gap-2">
@@ -38,12 +40,12 @@ const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
             </svg>
-            Download
+            {t("chat.pdfModal.download")}
           </button>
           <button
             onClick={onClose}
             className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors"
-            aria-label="Close preview"
+            aria-label={t("chat.pdfModal.closePreview")}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -56,7 +58,7 @@ const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
       <div className="flex-1 overflow-hidden">
         <iframe
           src={pdfUrl}
-          title="Draft PDF Preview"
+          title={t("chat.pdfModal.iframeTitle")}
           className="w-full h-full border-0"
         />
       </div>

@@ -1,0 +1,606 @@
+{
+  "navigation": {
+    "login": "Iniciar sesión",
+    "getStarted": "Comenzar",
+    "brandName": "Nyota Translation Center"
+  },
+  "hero": {
+    "badge": "Ya disponible: Documentos académicos y oficiales",
+    "title": "Traduce tus documentos",
+    "titleHighlight": "con facilidad",
+    "subtitle": "Traducción impulsada por IA con revisión de expertos humanos. Servicios de traducción de documentos rápidos, precisos y seguros para boletines escolares, diplomas, expedientes académicos, certificados y más.",
+    "currentService": "Francés ↔ Inglés - Expedientes académicos",
+    "currentServiceDesc": "Disponible ahora - Comienza a traducir hoy",
+    "startTranslation": "Comenzar traducción",
+    "alreadyHaveAccount": "Iniciar sesión",
+    "moreLanguages": "Más idiomas próximamente",
+    "imageAlt": "Ilustración de traducción de documentos",
+    "trustAI": "Impulsado por IA",
+    "trustExpert": "Revisión de expertos",
+    "trustSecure": "100% Seguro"
+  },
+  "services": {
+    "badge": "Nuestros servicios",
+    "title": "Servicios de traducción de documentos",
+    "subtitle": "Servicios de traducción profesional para todas tus necesidades documentales. Desde boletines escolares hasta diplomas estatales, manejamos una amplia gama de documentos académicos y oficiales.",
+    "statusAvailable": "Disponible",
+    "statusComing": "Próximamente",
+    "academic": {
+      "title": "Documentos académicos y oficiales",
+      "description": "Documentos académicos del sistema francés traducidos al inglés con verificación de expertos y resultado certificado.",
+      "feature1": "Boletines escolares (primaria y secundaria)",
+      "feature2": "Diplomas estatales y certificados de examen",
+      "feature3": "Expedientes y certificados universitarios",
+      "feature4": "Diplomas de licenciatura",
+      "feature5": "Certificados de bachillerato"
+    },
+    "official": {
+      "title": "Documentos oficiales",
+      "description": "Documentos gubernamentales traducidos con precisión certificada.",
+      "feature1": "Certificados de nacimiento y matrimonio",
+      "feature2": "Documentos legales",
+      "feature3": "Documentos de inmigración"
+    },
+    "business": {
+      "title": "Documentos comerciales",
+      "description": "Documentos corporativos y empresariales para operaciones internacionales.",
+      "feature1": "Contratos y acuerdos",
+      "feature2": "Informes financieros",
+      "feature3": "Material de marketing"
+    },
+    "personal": {
+      "title": "Documentos personales",
+      "description": "Correspondencia personal y documentos para necesidades individuales.",
+      "feature1": "Cartas y correos electrónicos",
+      "feature2": "Historiales médicos",
+      "feature3": "Declaraciones personales"
+    }
+  },
+  "languages": {
+    "badge": "Idiomas compatibles",
+    "title": "Múltiples pares de idiomas",
+    "subtitle": "Traduce documentos entre múltiples pares de idiomas. Estamos ampliando constantemente nuestro soporte lingüístico.",
+    "available": "Disponible",
+    "comingSoon": "Próximamente",
+    "moreComingSoon": "Se agregan más pares de idiomas regularmente. Contáctanos para solicitudes de idiomas específicos.",
+    "french": "Francés",
+    "english": "Inglés",
+    "spanish": "Español",
+    "portuguese": "Portugués",
+    "arabic": "Árabe",
+    "swahili": "Suajili",
+    "chinese": "Chino"
+  },
+  "features": {
+    "badge": "Por qué elegirnos",
+    "sectionTitle": "La ventaja Nyota",
+    "sectionSubtitle": "Combinando la velocidad de la IA con la experiencia humana para una calidad de traducción inigualable.",
+    "hybrid": {
+      "aiTitle": "Traducción IA",
+      "aiDesc": "Procesamiento rápido y consistente",
+      "expertTitle": "Revisión de expertos",
+      "expertDesc": "Precisión humana y contexto",
+      "result": "Resultados perfectos"
+    },
+    "aiPowered": {
+      "title": "Traducción impulsada por IA",
+      "description": "La IA avanzada extrae y traduce contenido con alta precisión, asegurando tiempos de entrega rápidos."
+    },
+    "expertReview": {
+      "title": "Revisión de expertos humanos",
+      "description": "Traductores especializados revisan cada documento para garantizar la precisión y el contexto cultural."
+    },
+    "multiLanguage": {
+      "title": "Soporte multilingüe",
+      "description": "Traduce entre múltiples pares de idiomas con más idiomas agregados regularmente."
+    },
+    "multiDocument": {
+      "title": "Múltiples tipos de documentos",
+      "description": "Expedientes académicos, documentos oficiales, documentos comerciales y más."
+    },
+    "secure": {
+      "title": "Seguro y privado",
+      "description": "Tus documentos están cifrados y se manejan con estricta confidencialidad."
+    },
+    "fast": {
+      "title": "Entrega rápida",
+      "description": "Obtén tus documentos traducidos rápidamente sin sacrificar la calidad."
+    }
+  },
+  "howItWorks": {
+    "badge": "Proceso simple",
+    "sectionTitle": "Cómo funciona",
+    "sectionSubtitle": "Obtén tu documento traducido profesionalmente en 5 simples pasos",
+    "aiPowered": "Impulsado por IA",
+    "expertReview": "Verificado por expertos",
+    "steps": {
+      "upload": {
+        "title": "Subir documento",
+        "description": "Sube tu documento en formato PDF o imagen"
+      },
+      "aiTranslate": {
+        "title": "Traducción IA",
+        "description": "Nuestra IA extrae y traduce el contenido al instante"
+      },
+      "expertReview": {
+        "title": "Revisión de expertos",
+        "description": "Traductores especializados verifican la precisión y el contexto"
+      },
+      "qualityCheck": {
+        "title": "Control de calidad",
+        "description": "La revisión final asegura formato y precisión perfectos"
+      },
+      "download": {
+        "title": "Descargar",
+        "description": "Obtén tu documento traducido profesionalmente"
+      }
+    }
+  },
+  "partners": {
+    "badge": "Socios de confianza",
+    "title": "Con la confianza de instituciones líderes",
+    "subtitle": "Nos asociamos con organizaciones respetadas para ofrecer excelencia en servicios de traducción.",
+    "visitWebsite": "Visitar sitio web",
+    "becomePartner": "¿Interesado en asociarte con nosotros?",
+    "contactUs": "Contáctanos",
+    "iuea": {
+      "description": "Socio académico que brinda experiencia educativa y validación."    },
+    "bora": {
+      "description": "Socio tecnológico que impulsa el procesamiento seguro de pagos y la infraestructura de la plataforma."
+    },
+    "criPgla": {
+      "description": "Centre de Recherche Interdisciplinaire de Grands Lacs en Afrique, promoción de la paz y el desarrollo sostenible en la región de los Grandes Lagos."    }
+  },
+  "templates": {
+    "sectionTitle": "Plantillas de documentos",
+    "sectionSubtitle": "Vista previa de los formatos profesionales que generamos para tus documentos traducidos",
+    "featured": "Más popular",
+    "useTemplate": "Usar esta plantilla",
+    "fullPreview": "Ver vista previa completa",
+    "navigation": {
+      "previous": "Plantilla anterior",
+      "next": "Siguiente plantilla",
+      "goToSlide": "Ir a la diapositiva"
+    },
+    "pauseAutoplay": "Pausar reproducción automática",
+    "resumeAutoplay": "Reanudar reproducción automática",
+    "chooseTemplate": "Elegir tipo de plantilla",
+    "previewOptions": "Opciones de vista previa",
+    "showPreview": "Mostrar vista previa",
+    "hidePreview": "Ocultar vista previa",
+    "currentlyShowing": "Mostrando actualmente:",
+    "templatePreview": "Vista previa de la plantilla",
+    "form4": {
+      "title": "Plantilla Form 4",
+      "subtitle": "Boletines de escuela secundaria"
+    },
+    "form6": {
+      "title": "Plantilla Form 6",
+      "subtitle": "Certificados de nivel avanzado e informes de último año"
+    },
+    "stateDiploma": {
+      "title": "Diploma estatal",
+      "subtitle": "Certificados oficiales del gobierno"
+    },
+    "status": {
+      "printReady": "Listo para imprimir A4",
+      "printReadyMobile": "Listo para imprimir",
+      "officialTemplate": "Plantilla oficial"
+    }
+  },
+  "pricing": {
+    "sectionTitle": "Precios simples y transparentes",
+    "sectionSubtitle": "Comienza con un borrador de IA gratuito, luego actualiza a una traducción certificada cuando estés listo",
+    "mostPopular": "Más popular",
+    "perBulletin": "por página",
+    "noSubscription": "Sin suscripción requerida • Paga por uso",
+    "startTranslation": "Comenzar traducción",
+    "securePayment": "Procesamiento de pago seguro con múltiples opciones",
+    "free": {
+      "badge": "GRATIS",
+      "title": "Borrador IA",
+      "subtitle": "Prueba al instante — sin pago",
+      "price": "Gratis",
+      "feature1": "Traducción impulsada por IA",
+      "feature2": "Vista previa instantánea",
+      "feature3": "PDF borrador con marca de agua",
+      "feature4": "Múltiples tipos de documentos",
+      "cta": "Comenzar gratis"
+    },
+    "certified": {
+      "badge": "CERTIFICADO",
+      "title": "Traducción certificada",
+      "subtitle": "Revisada por expertos y a prueba de manipulación",
+      "from": "desde",
+      "feature1": "Revisión de experto humano",
+      "feature2": "Traducción certificada",
+      "feature3": "PDF a prueba de manipulación con código QR",
+      "feature4": "Verificación digital",
+      "feature5": "Soporte prioritario"
+    },
+    "tiers": {
+      "title": "Opciones de velocidad de entrega",
+      "standard": "Estándar",
+      "standardTime": "Hasta 24 horas",
+      "rush": "Urgente",
+      "rushTime": "Hasta 12 horas",
+      "express": "Exprés",
+      "expressTime": "1–5 horas"
+    }
+  },
+  "footer": {
+    "description": "Traducción profesional de documentos impulsada por IA y verificada por traductores expertos. Rápida, precisa y segura.",
+    "quickLinks": "Enlaces rápidos",
+    "connect": "Conéctate con nosotros",
+    "links": {
+      "about": "Acerca de",
+      "features": "Características",
+      "pricing": "Precios",
+      "privacy": "Política de privacidad",
+      "terms": "Términos de servicio"
+    },
+    "contact": {
+      "email": "Correo electrónico",
+      "phone": "Teléfono"
+    },
+    "copyright": "© 2025 Nyota Innovations. Todos los derechos reservados.",
+    "partnerWith": "Socio: IUEA"
+  },
+  "trustIndicators": {
+    "title": "Confianza mundial",
+    "badges": {
+      "secure": "Seguro y privado",
+      "fast": "Procesamiento rápido",
+      "accurate": "Verificado por expertos"
+    },
+    "poweredBy": "Impulsado por Nyota Innovations"
+  },
+  "auth": {
+    "login": {
+      "title": "Bienvenido de nuevo",
+      "subtitle": "Inicia sesión en tu cuenta para continuar",
+      "emailLabel": "Correo electrónico",
+      "emailPlaceholder": "Ingresa tu correo electrónico",
+      "passwordLabel": "Contraseña",
+      "passwordPlaceholder": "Ingresa tu contraseña",
+      "rememberMe": "Recordarme",
+      "forgotPassword": "¿Olvidaste tu contraseña?",
+      "signInButton": "Iniciar sesión",
+      "signingIn": "Iniciando sesión...",
+      "noAccount": "¿No tienes una cuenta?",
+      "createAccount": "Crear nueva cuenta"
+    },
+    "register": {
+      "title": "Crea tu cuenta",
+      "subtitle": "Únete a NTC para comenzar a traducir documentos",
+      "nameLabel": "Nombre completo",
+      "namePlaceholder": "Ingresa tu nombre completo",
+      "emailLabel": "Correo electrónico",
+      "emailPlaceholder": "Ingresa tu correo electrónico",
+      "passwordLabel": "Contraseña",
+      "passwordPlaceholder": "Crea una contraseña",
+      "passwordHint": "Debe tener al menos 6 caracteres",
+      "confirmPasswordLabel": "Confirmar contraseña",
+      "confirmPasswordPlaceholder": "Confirma tu contraseña",
+      "termsText": "Acepto los",
+      "termsLink": "Términos y condiciones",
+      "and": "y",
+      "privacyLink": "Política de privacidad",
+      "createButton": "Crear cuenta",
+      "creatingAccount": "Creando cuenta...",
+      "haveAccount": "¿Ya tienes una cuenta?",
+      "signInInstead": "Inicia sesión en su lugar"
+    },
+    "forgotPassword": {
+      "title": "Contraseña olvidada",
+      "subtitle": "Ingresa tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña.",
+      "backToLogin": "Volver al inicio de sesión"
+    },
+    "validation": {
+      "passwordsNoMatch": "Las contraseñas no coinciden",
+      "passwordTooShort": "La contraseña debe tener al menos 6 caracteres",
+      "nameRequired": "Por favor ingresa tu nombre completo"
+    }
+  },
+  "dashboard": {
+    "navigation": {
+      "title": "Nyota Translation Center",
+      "signOut": "Cerrar sesión",
+      "newTranslation": "Nueva traducción"
+    },
+    "header": {
+      "title": "Mis documentos",
+      "subtitle": "Sube documentos, visualiza traducciones y descarga tus archivos traducidos."
+    },
+    "submissions": {
+      "title": "Mis envíos",
+      "loading": "Cargando envíos...",
+      "document": "Documento",
+      "language": "Idioma",
+      "speed": "Velocidad",
+      "date": "Fecha"
+    },
+    "upload": {
+      "title": "📤 Subir nuevo documento",
+      "selectType": "Seleccionar tipo de documento",
+      "form4": {
+        "title": "Boletín Form 4",
+        "subtitle": "4.° Secundaria / 2.° Humanidades"
+      },
+      "form6": {
+        "title": "Boletín Form 6",
+        "subtitle": "4.° Humanidades / 6.° Secundaria"
+      },
+      "collegeTranscript": {
+        "title": "Expediente universitario",
+        "subtitle": "Expediente académico anual"
+      },
+      "collegeAttestation": {
+        "title": "Certificado de asistencia",
+        "subtitle": "Certificado de inscripción universitaria"
+      },
+      "stateDiploma": {
+        "title": "Diploma estatal",
+        "subtitle": "Certificado oficial del estado"
+      },
+      "bachelorDiploma": {
+        "title": "Diploma de licenciatura",
+        "subtitle": "Certificado de grado universitario"
+      },
+      "highSchoolAttestation": {
+        "title": "Certificado de bachillerato",
+        "subtitle": "Certificado de asistencia escolar"
+      },
+      "stateExamAttestation": {
+        "title": "Certificado de examen estatal",
+        "subtitle": "Certificado provisional de aprobación"
+      },
+      "dragDrop": "Arrastra y suelta tu documento aquí o haz clic para seleccionar",
+      "uploading": "Subiendo...",
+      "processing": "Procesando tu documento",
+      "completed": "Completado",
+      "selectFile": "Seleccionar archivo",
+      "supportedFormats": "Compatible con PNG, JPG, JPEG, GIF, WEBP (máx. 10MB)",
+      "preparingUpload": "Preparando la subida..."
+    },
+    "bulletinsList": {
+      "title": "Tus documentos",
+      "noUploads": "Aún no se han subido documentos. ¡Sube tu primer documento arriba!",
+      "student": "Estudiante",
+      "uploaded": "Subido",
+      "status": "Estado",
+      "actions": "Acciones",
+      "view": "Ver",
+      "edit": "Editar",
+      "download": "Descargar",
+      "delete": "Eliminar"
+    },
+    "editor": {
+      "title": "Editar datos del documento",
+      "save": "Guardar cambios",
+      "cancel": "Cancelar",
+      "saving": "Guardando...",
+      "success": "¡Cambios guardados con éxito!",
+      "backToList": "← Volver a la lista"
+    }
+  },
+  "verification": {
+    "pageTitle": "Verificación de documento",
+    "pageSubtitle": "Verifica la autenticidad de los documentos traducidos con nuestro sistema de verificación seguro",
+    "loading": {
+      "title": "Verificando documento...",
+      "description": "Por favor espera mientras verificamos la autenticidad del documento"
+    },
+    "error": {
+      "title": "Verificación fallida",
+      "invalidUrl": "URL de verificación no válida. Falta el ID del documento.",
+      "notFound": "Documento no encontrado o verificación fallida.",
+      "notFoundTitle": "Certificado no encontrado",
+      "notFoundDescription": "Ningún documento certificado coincide con este ID. Verifica el ID de certificación e intenta de nuevo.",
+      "generic": "Error al verificar el documento. Por favor, inténtalo de nuevo.",
+      "tryAgain": "Intentar de nuevo"
+    },
+    "success": {
+      "title": "Documento verificado",
+      "description": "Este documento ha sido verificado con éxito y es auténtico."
+    },
+    "draft": {
+      "title": "Borrador generado por IA",
+      "description": "Este documento fue generado por IA y NO ha sido revisado ni certificado por un traductor profesional. No debe utilizarse como traducción oficial."
+    },
+    "documentInfo": {
+      "title": "Información del documento",
+      "studentName": "Nombre del estudiante",
+      "generationDate": "Fecha de generación",
+      "documentTitle": "Título del documento",
+      "documentType": "Tipo de documento",
+      "translation": "Traducción"
+    },
+    "certified": {
+      "title": "Traducción certificada verificada",
+      "description": "Este documento ha sido revisado profesionalmente y certificado por Nyota Translation Center.",
+      "certId": "ID de certificación",
+      "certifiedAt": "Certificado el",
+      "agent": "Revisado por"
+    },
+    "certInput": {
+      "label": "ID de certificación",
+      "placeholder": "ej. NTC-2026-A7K9F2",
+      "verify": "Verificar",
+      "hint": "Ingresa el ID de certificación impreso en tu documento (formato: NTC-AAAA-XXXXXX)"
+    },
+    "hash": {
+      "title": "Detección de manipulación",
+      "description": "Sube el PDF certificado para verificar que no ha sido alterado desde la certificación.",
+      "uploadPrompt": "Haz clic o arrastra para subir el PDF certificado",
+      "verifyBtn": "Verificar integridad",
+      "checking": "Comprobando integridad...",
+      "intact": "Integridad del documento verificada",
+      "tampered": "Posible manipulación detectada",
+      "tryAnother": "Probar otro archivo",
+      "fingerprint": "Huella SHA-256"
+    },
+    "idle": {
+      "title": "Cómo verificar tu documento",
+      "step1": "Encuentra el ID de certificación en tu documento (ej. NTC-2026-A7K9F2)",
+      "step2": "Ingresa el ID arriba y haz clic en Verificar",
+      "step3": "Opcionalmente sube el PDF para detectar cualquier manipulación"
+    },
+    "blockchain": {
+      "title": "🔗 Verificación segura",
+      "description": "Esta verificación de documentos garantiza la autenticidad y previene la manipulación."
+    },
+    "institution": {
+      "title": "Nyota Translation Center",
+      "description": "Este documento ha sido verificado como auténtico y fue generado a través de nuestro sistema seguro."
+    },
+    "contact": {
+      "title": "¿Necesitas ayuda o tienes preguntas?",
+      "description": "Para cualquier consulta sobre la verificación de este documento, contacta directamente a Nyota Translation Center.",
+      "email": "contact@nyotainnovation.com",
+      "phone": "+256749117690",
+      "sendEmail": "Enviar correo",
+      "callUs": "Llámanos",
+      "backHome": "Volver al inicio"
+    },
+    "invalid": {
+      "title": "❌ Documento no válido",
+      "description": "Este documento no pudo ser verificado o ha sido manipulado.",
+      "backHome": "Volver al inicio"
+    },
+    "navigation": {
+      "backToHome": "Volver al inicio"
+    }
+  },
+  "translate": {
+    "tabs": {
+      "newTranslation": "Nueva traducción",
+      "myTranslations": "Mis traducciones"
+    },
+    "status": {
+      "processing": "Procesando tu documento...",
+      "complete": "Traducción completada",
+      "waiting": "Toca una opción arriba para continuar"
+    },
+    "startOver": "Empezar de nuevo",
+    "newTranslation": "Nueva traducción"
+  },
+  "common": {
+    "language": "Idioma",
+    "back": "Atrás"
+  },
+  "chat": {
+    "welcome": "👋 ¡Bienvenido al Centro de Traducción Nyota!",
+    "welcomeBack": "👋 ¡Bienvenido de nuevo!",
+    "selectDocType": "Te ayudaré a traducir tu documento académico al inglés. Primero, ¿qué tipo de documento tienes?",
+    "selectDrcTemplate": "¿Qué tipo de documento congoleño quieres traducir?",
+    "uploadPrompt": "¡Gran elección! Ahora sube tu documento. Puedes tomar una foto o seleccionar un archivo.",
+    "uploadPromptShort": "Ahora sube tu documento. Puedes tomar una foto o seleccionar un archivo.",
+    "uploadRetry": "Intentemos de nuevo. Sube tu documento abajo.",
+    "uploading": "Subiendo y analizando tu documento...",
+    "documentProcessed": "✅ ¡Documento procesado! Encontré un documento para **{{name}}**. Aquí está tu borrador generado por IA.",
+    "resumeDocument": "Encontré tu documento para **{{name}}**. Aquí está tu borrador generado por IA.",
+    "selectAction": "¿Qué te gustaría hacer con esta traducción?",
+    "selectSpeed": "¿Qué tan rápido necesitas tu traducción certificada?",
+    "paymentPrompt": "💳 Por favor completa tu pago para enviar tu documento para traducción certificada **{{tier}}**.",
+    "paymentCancel": "¡No hay problema! ¿Te gustaría elegir un plan diferente o volver?",
+    "paymentSuccess": "🎉 ¡Pago confirmado y tu documento ha sido enviado para traducción certificada **{{tier}}**! Un traductor profesional lo revisará. Recibirás un correo cuando esté listo.",
+    "paymentSuccessNext": "Puedes verificar el estado de tu documento y el historial de pagos desde tu panel. ¿Te gustaría traducir otro documento?",
+    "paymentFailedSubmit": "⚠️ Tu pago fue procesado pero el envío falló: {{error}}. No te preocupes — tu pago está seguro. Intenta enviar de nuevo o contacta soporte.",
+    "paymentFailed": "❌ Pago fallido: {{error}}. Tu documento no ha sido enviado. Puedes intentar de nuevo con otra tarjeta.",
+    "processingSubmission": "¡Pago exitoso! Enviando para revisión...",
+    "preparingOrder": "Preparando tu pedido...",
+    "loadingDocument": "Cargando tu documento...",
+    "pdfOpened": "📄 ¡Tu borrador PDF se ha abierto en una nueva pestaña! ¿Qué te gustaría hacer ahora?",
+    "pdfGenerating": "Generando tu borrador PDF...",
+    "pdfGeneratingDesc": "Esto puede tomar un momento. El documento aparecerá aquí automáticamente.",
+    "errorUpload": "❌ Lo siento, no pude procesar tu documento: {{error}}.",
+    "errorLoadDoc": "❌ Lo siento, no pude cargar tu documento: {{error}}",
+    "errorMissingData": "❌ Datos del documento faltantes. Por favor intenta subir de nuevo.",
+    "errorPdfFailed": "❌ Error al generar la vista previa del PDF: {{error}}",
+    "goBackPrompt": "¡No hay problema! ¿Qué tipo de documento tienes?",
+    "goBackFresh": "¡No hay problema! Empecemos de nuevo. ¿Qué tipo de documento tienes?",
+    "statusPending": "⏳ Pendiente de revisión",
+    "statusInReview": "🔍 En revisión",
+    "statusCertified": "✅ Certificado",
+    "statusRejected": "❌ Rechazado",
+    "resumeCertified": "Tu documento para **{{name}}** ha sido **certificado** ({{certId}}).\n\nPuedes descargar el PDF certificado desde la pestaña **Mis Traducciones**. Aún puedes ver el borrador gratuito abajo.",
+    "resumeRejected": "Tu documento para **{{name}}** fue **rechazado** por el revisor.{{reason}}\n\nPuedes volver a subir una imagen más clara desde la pestaña **Mis Traducciones**. Aún puedes ver el borrador gratuito abajo.",
+    "resumeInProgress": "Tu documento para **{{name}}** está actualmente **{{status}}**. Un traductor está trabajando en él.\n\nAún puedes ver el borrador gratuito mientras esperas.",
+    "rejectionReason": "\n\n**Razón:** {{reason}}",
+    "back": "← Atrás",
+    "tryAgain": "🔄 Intentar de nuevo",
+    "startOver": "🏠 Empezar de nuevo",
+    "translateAnother": "📄 Traducir otro",
+    "goToDashboard": "📊 Ir al panel",
+    "retrySubmission": "🔄 Reintentar envío",
+    "retryPayment": "💳 Intentar de nuevo",
+    "changePlan": "← Cambiar plan",
+    "options": {
+      "drc": "🇨🇩 Formato RDC",
+      "drcDesc": "Congo — Documentos académicos franceses",
+      "french": "🇫🇷 Francés",
+      "frenchDesc": "Français",
+      "arabic": "🇸🇦 Árabe",
+      "arabicDesc": "العربية",
+      "spanish": "🇪🇸 Español",
+      "spanishDesc": "Español",
+      "autoDetect": "🔍 Detección automática",
+      "autoDetectDesc": "Dejar que la IA detecte el idioma",
+      "form4": "📝 Boletín Form 4",
+      "form4Desc": "Boletín Escolar, 4.° Secundaria",
+      "form6": "📝 Boletín Form 6",
+      "form6Desc": "Boletín Escolar, 6.° Secundaria",
+      "stateDiploma": "🎓 Diploma Estatal",
+      "stateDiplomaDesc": "Diplôme d'État",
+      "stateExamAttestation": "📋 Certificado de Examen Estatal",
+      "stateExamAttestationDesc": "Attestation de Réussite",
+      "bachelorDiploma": "🎓 Diploma de Licenciatura",
+      "bachelorDiplomaDesc": "Diplôme de Licence / Graduat",
+      "collegeTranscript": "📊 Expediente Universitario",
+      "collegeTranscriptDesc": "Relevé de Notes Universitaire",
+      "collegeAttestation": "📋 Certificado Universitario",
+      "collegeAttestationDesc": "Attestation de Fréquentation",
+      "highSchoolAttestation": "📋 Certificado de Bachillerato",
+      "highSchoolAttestationDesc": "Attestation de Scolarité",
+      "otherDrc": "📄 Otro Documento RDC",
+      "otherDrcDesc": "Autre document congolais",
+      "viewDraft": "👁 Ver borrador gratuito",
+      "viewDraftDesc": "Vista previa del borrador IA en el navegador",
+      "certify": "✅ Obtener traducción certificada",
+      "certifyDesc": "Revisada por agente, a prueba de manipulación",
+      "express": "🚀 Exprés — $45",
+      "expressDesc": "1–5 horas",
+      "rush": "⚡ Urgente — $35",
+      "rushDesc": "Hasta 12 horas",
+      "standard": "📋 Estándar — $30",
+      "standardDesc": "Hasta 24 horas"
+    },
+    "upload": {
+      "dropPrompt": "Suelta tu documento aquí o toca para explorar",
+      "formats": "PNG, JPG, WEBP, o PDF — hasta {{size}}MB",
+      "invalidType": "Por favor sube una imagen (PNG, JPG, WEBP) o archivo PDF.",
+      "tooLarge": "El archivo debe ser menor de {{size}}MB."
+    },
+    "preview": {
+      "translatedDocument": "Documento traducido",
+      "aiDraft": "BORRADOR IA",
+      "page": "página",
+      "pages": "páginas",
+      "student": "Estudiante:",
+      "school": "Escuela:",
+      "disclaimer": "Vista previa de borrador generado por IA",
+      "langFrench": "Francés",
+      "langArabic": "Árabe",
+      "langSpanish": "Español",
+      "langEnglish": "Inglés",
+      "langAutoDetected": "Detectado automáticamente"
+    },
+    "pdfModal": {
+      "draftPreview": "Vista previa del borrador",
+      "download": "Descargar",
+      "closePreview": "Cerrar vista previa",
+      "iframeTitle": "Vista previa del borrador PDF"
+    }
+  }
+}

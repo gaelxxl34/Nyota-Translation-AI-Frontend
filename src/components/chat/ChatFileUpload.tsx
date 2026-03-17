@@ -1,6 +1,7 @@
 // Chat File Upload — inline file upload area within the chat
 
 import React, { useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 interface ChatFileUploadProps {
   onFileSelect: (file: File) => void;
@@ -24,16 +25,17 @@ const ChatFileUpload: React.FC<ChatFileUploadProps> = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { t } = useTranslation();
 
   const validateAndSelect = (file: File) => {
     setError(null);
 
     if (!ACCEPTED_TYPES.includes(file.type)) {
-      setError("Please upload an image (PNG, JPG, WEBP) or PDF file.");
+      setError(t("chat.upload.invalidType"));
       return;
     }
     if (file.size > MAX_SIZE_MB * 1024 * 1024) {
-      setError(`File must be under ${MAX_SIZE_MB}MB.`);
+      setError(t("chat.upload.tooLarge", { size: MAX_SIZE_MB }));
       return;
     }
 
@@ -93,10 +95,10 @@ const ChatFileUpload: React.FC<ChatFileUploadProps> = ({
             </svg>
           </div>
           <p className="text-sm font-medium text-gray-700">
-            Drop your document here or tap to browse
+            {t("chat.upload.dropPrompt")}
           </p>
           <p className="text-xs text-gray-400">
-            PNG, JPG, WEBP, or PDF — up to {MAX_SIZE_MB}MB
+            {t("chat.upload.formats", { size: MAX_SIZE_MB })}
           </p>
         </div>
       </div>

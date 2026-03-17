@@ -2,6 +2,7 @@
 // Manages conversation steps, messages, and API calls
 
 import { useState, useCallback, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../AuthProvider";
 import type {
   ChatState,
@@ -10,17 +11,15 @@ import type {
   DraftPreview,
 } from "../types/chat";
 import {
-  LANGUAGE_OPTIONS,
-  DRC_TEMPLATE_OPTIONS,
-  ACTION_OPTIONS,
-  SPEED_TIER_OPTIONS,
+  getLanguageOptions,
+  getDrcTemplateOptions,
+  getActionOptions,
+  getSpeedTierOptions,
 } from "../types/chat";
 import * as chatService from "../services/chatService";
 
 let messageCounter = 0;
 const nextId = () => `msg_${++messageCounter}_${Date.now()}`;
-
-const BACK_OPTION = { id: "back", label: "← Back", value: "__back__", description: "" };
 
 const createMessage = (
   type: ChatMessage["type"],
@@ -50,8 +49,11 @@ const INITIAL_STATE: ChatState = {
 
 export const useChatFlow = () => {
   const { getFreshToken, logout } = useAuth();
+  const { t } = useTranslation();
   const [state, setState] = useState<ChatState>(INITIAL_STATE);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const BACK_OPTION = { id: "back", label: t("chat.back"), value: "__back__", description: "" };
 
   const addMessages = useCallback(
     (msgs: ChatMessage[], step?: ChatStep) => {
@@ -75,20 +77,20 @@ export const useChatFlow = () => {
       ...INITIAL_STATE,
       step: "select_language",
       messages: [
-        createMessage("bot", "👋 Welcome to Nyota Translation Center!"),
+        createMessage("bot", t("chat.welcome")),
         createMessage(
           "bot",
-          "I'll help you translate your academic document into English. First, what type of document do you have?",
-          { options: LANGUAGE_OPTIONS }
+          t("chat.selectDocType"),
+          { options: getLanguageOptions(t) }
         ),
       ],
     });
-  }, []);
+  }, [t]);
 
   // ── Step 2: Select Language / Region ─────────────────────
   const selectLanguage = useCallback(
     (langValue: string) => {
-      const selected = LANGUAGE_OPTIONS.find((o) => o.value === langValue);
+      const selected = getLanguageOptions(t).find((o) => o.value === langValue);
       const label = selected?.label || langValue;
 
       if (langValue === "drc") {
@@ -101,8 +103,8 @@ export const useChatFlow = () => {
             createMessage("user", label),
             createMessage(
               "bot",
-              "Which type of DRC document do you want to translate?",
-              { options: [...DRC_TEMPLATE_OPTIONS, BACK_OPTION] }
+              t("chat.selectDrcTemplate"),
+              { options: [...getDrcTemplateOptions(t), BACK_OPTION] }
             ),
           ],
         }));
@@ -116,7 +118,7 @@ export const useChatFlow = () => {
           messages: [
             ...prev.messages,
             createMessage("user", label),
-            createMessage("bot", "Great choice! Now upload your document. You can take a photo or select a file.", {
+            createMessage("bot", t("chat.uploadPrompt"), {
               component: "upload",
               options: [BACK_OPTION],
             }),
@@ -124,13 +126,13 @@ export const useChatFlow = () => {
         }));
       }
     },
-    []
+    [t, BACK_OPTION]
   );
 
   // ── Step 2b: Select DRC Template ─────────────────────────
   const selectDrcTemplate = useCallback(
     (formType: string) => {
-      const selected = DRC_TEMPLATE_OPTIONS.find((o) => o.value === formType);
+      const selected = getDrcTemplateOptions(t).find((o) => o.value === formType);
       const label = selected?.label || formType;
 
       setState((prev) => ({
@@ -140,14 +142,14 @@ export const useChatFlow = () => {
         messages: [
           ...prev.messages,
           createMessage("user", label),
-          createMessage("bot", "Now upload your document. You can take a photo or select a file.", {
+          createMessage("bot", t("chat.uploadPromptShort"), {
             component: "upload",
             options: [BACK_OPTION],
           }),
         ],
       }));
     },
-    []
+    [t, BACK_OPTION]
   );
 
   // ── Step 3: Upload Document ──────────────────────────────
@@ -160,7 +162,7 @@ export const useChatFlow = () => {
         messages: [
           ...prev.messages,
           createMessage("user", `📎 ${file.name}`),
-          createMessage("system", "Uploading and analyzing your document..."),
+          createMessage("system", t("chat.uploading")),
         ],
       }));
 
@@ -202,7 +204,7 @@ export const useChatFlow = () => {
             ...prev.messages.filter((m) => m.type !== "system"),
             createMessage(
               "bot",
-              `✅ Document processed! I found a document for **${studentName}**. Here's your AI-generated draft preview.`,
+              t("chat.documentProcessed", { name: studentName }),
               { component: "preview" }
             ),
           ],
@@ -217,8 +219,8 @@ export const useChatFlow = () => {
               ...prev.messages,
               createMessage(
                 "bot",
-                "What would you like to do with this translation?",
-                { options: [...ACTION_OPTIONS, BACK_OPTION] }
+                t("chat.selectAction"),
+                { options: [...getActionOptions(t), BACK_OPTION] }
               ),
             ],
           }));
@@ -248,11 +250,11 @@ export const useChatFlow = () => {
             ...prev.messages.filter((m) => m.type !== "system"),
             createMessage(
               "bot",
-              `❌ Sorry, I couldn't process your document: ${errorMsg}.`,
+              t("chat.errorUpload", { error: errorMsg }),
               {
                 options: [
-                  { id: "retry_upload", label: "🔄 Try Again", value: "retry_upload" },
-                  { id: "restart", label: "🏠 Start Over", value: "restart" },
+                  { id: "retry_upload", label: t("chat.tryAgain"), value: "retry_upload" },
+                  { id: "restart", label: t("chat.startOver"), value: "restart" },
                 ],
               }
             ),
@@ -266,13 +268,13 @@ export const useChatFlow = () => {
   // ── Step 4: Select Action ────────────────────────────────
   const selectAction = useCallback(
     async (actionValue: string) => {
-      const selected = ACTION_OPTIONS.find((o) => o.value === actionValue);
+      const selected = getActionOptions(t).find((o) => o.value === actionValue);
       addMessages([createMessage("user", selected?.label || actionValue)]);
 
       if (actionValue === "view_draft") {
         if (!state.draftPreview?.firestoreId) {
-          addMessages([createMessage("bot", "❌ Missing document data. Please try uploading again.", {
-            options: [{ id: "restart", label: "🏠 Start Over", value: "restart" }],
+          addMessages([createMessage("bot", t("chat.errorMissingData"), {
+            options: [{ id: "restart", label: t("chat.startOver"), value: "restart" }],
           })], "error");
           return;
         }
@@ -287,8 +289,8 @@ export const useChatFlow = () => {
               ...prev.messages,
               createMessage(
                 "bot",
-                "📄 Your draft PDF has been opened in a new tab! What would you like to do next?",
-                { options: [...ACTION_OPTIONS, BACK_OPTION] }
+                t("chat.pdfOpened"),
+                { options: [...getActionOptions(t), BACK_OPTION] }
               ),
             ],
           }));
@@ -298,7 +300,7 @@ export const useChatFlow = () => {
         // Open tab synchronously (within user gesture) to avoid popup blocker
         const newTab = window.open("about:blank", "_blank");
         if (newTab) {
-          newTab.document.write('<html><head><title>Generating PDF...</title><style>body{margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh;background:#f8fafc;font-family:system-ui,-apple-system,sans-serif;color:#334155}div{text-align:center}.spinner{width:48px;height:48px;border:4px solid #e2e8f0;border-top-color:#3b82f6;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 24px}@keyframes spin{to{transform:rotate(360deg)}}h2{font-size:1.25rem;font-weight:600;margin:0 0 8px}p{font-size:.875rem;color:#64748b;margin:0}</style></head><body><div><div class="spinner"></div><h2>Generating your PDF draft...</h2><p>This may take a moment. The document will appear here automatically.</p></div></body></html>');
+          newTab.document.write(`<html><head><title>${t("chat.pdfGenerating")}</title><style>body{margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh;background:#f8fafc;font-family:system-ui,-apple-system,sans-serif;color:#334155}div{text-align:center}.spinner{width:48px;height:48px;border:4px solid #e2e8f0;border-top-color:#3b82f6;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 24px}@keyframes spin{to{transform:rotate(360deg)}}h2{font-size:1.25rem;font-weight:600;margin:0 0 8px}p{font-size:.875rem;color:#64748b;margin:0}</style></head><body><div><div class="spinner"></div><h2>${t("chat.pdfGenerating")}</h2><p>${t("chat.pdfGeneratingDesc")}</p></div></body></html>`);
           newTab.document.close();
         }
 
@@ -325,8 +327,8 @@ export const useChatFlow = () => {
               ...prev.messages,
               createMessage(
                 "bot",
-                "📄 Your draft PDF has been opened in a new tab! What would you like to do next?",
-                { options: [...ACTION_OPTIONS, BACK_OPTION] }
+                t("chat.pdfOpened"),
+                { options: [...getActionOptions(t), BACK_OPTION] }
               ),
             ],
           }));
@@ -342,11 +344,11 @@ export const useChatFlow = () => {
               ...prev.messages,
               createMessage(
                 "bot",
-                `❌ Failed to generate PDF preview: ${errorMsg}`,
+                t("chat.errorPdfFailed", { error: errorMsg }),
                 {
                   options: [
-                    { id: "retry_view", label: "🔄 Try Again", value: "view_draft" },
-                    { id: "restart", label: "🏠 Start Over", value: "restart" },
+                    { id: "retry_view", label: t("chat.tryAgain"), value: "view_draft" },
+                    { id: "restart", label: t("chat.startOver"), value: "restart" },
                   ],
                 }
               ),
@@ -359,8 +361,8 @@ export const useChatFlow = () => {
           [
             createMessage(
               "bot",
-              "How quickly do you need your certified translation?",
-              { options: [...SPEED_TIER_OPTIONS, BACK_OPTION] }
+              t("chat.selectSpeed"),
+              { options: [...getSpeedTierOptions(t), BACK_OPTION] }
             ),
           ],
           "select_speed_tier"
@@ -373,7 +375,7 @@ export const useChatFlow = () => {
   // ── Step 5: Select Speed Tier → Create Cert Doc → Show Payment ────
   const selectSpeedTier = useCallback(
     async (tierValue: string) => {
-      const selected = SPEED_TIER_OPTIONS.find((o) => o.value === tierValue);
+      const selected = getSpeedTierOptions(t).find((o) => o.value === tierValue);
       addMessages([createMessage("user", selected?.label || tierValue)]);
 
       setState((prev) => ({
@@ -383,7 +385,7 @@ export const useChatFlow = () => {
         messages: [
           ...prev.messages.slice(0, -1),
           prev.messages[prev.messages.length - 1],
-          createMessage("system", "Preparing your order..."),
+          createMessage("system", t("chat.preparingOrder")),
         ],
       }));
 
@@ -429,7 +431,7 @@ export const useChatFlow = () => {
             ...prev.messages.filter((m) => m.type !== "system"),
             createMessage(
               "bot",
-              `💳 Please complete your payment to submit your document for **${selected?.label || tierValue}** certified translation.`
+              t("chat.paymentPrompt", { tier: selected?.label || tierValue })
             ),
           ],
         }));
@@ -447,8 +449,8 @@ export const useChatFlow = () => {
               `❌ ${errorMsg}.`,
               {
                 options: [
-                  { id: "retry_tier", label: "🔄 Try Again", value: "__retry_submit__" },
-                  { id: "restart", label: "🏠 Start Over", value: "restart" },
+                  { id: "retry_tier", label: t("chat.tryAgain"), value: "__retry_submit__" },
+                  { id: "restart", label: t("chat.startOver"), value: "restart" },
                 ],
               }
             ),
@@ -467,7 +469,7 @@ export const useChatFlow = () => {
         step: "submitting" as ChatStep,
         messages: [
           ...prev.messages,
-          createMessage("system", "Payment successful! Submitting for review..."),
+          createMessage("system", t("chat.processingSubmission")),
         ],
       }));
 
@@ -491,7 +493,7 @@ export const useChatFlow = () => {
           throw new Error(submitResult.error || "Submission failed");
         }
 
-        const selected = SPEED_TIER_OPTIONS.find((o) => o.value === tierValue);
+        const selected = getSpeedTierOptions(t).find((o) => o.value === tierValue);
 
         setState((prev) => ({
           ...prev,
@@ -501,21 +503,21 @@ export const useChatFlow = () => {
             ...prev.messages.filter((m) => m.type !== "system"),
             createMessage(
               "bot",
-              `🎉 Payment confirmed and your document has been submitted for **${selected?.label || tierValue}** certified translation! A professional translator will review it. You'll receive an email when it's ready.`
+              t("chat.paymentSuccess", { tier: selected?.label || tierValue })
             ),
             createMessage(
               "bot",
-              "You can check your document status and payment history from your dashboard. Would you like to translate another document?",
+              t("chat.paymentSuccessNext"),
               {
                 options: [
                   {
                     id: "new",
-                    label: "📄 Translate Another",
+                    label: t("chat.translateAnother"),
                     value: "restart",
                   },
                   {
                     id: "dashboard",
-                    label: "📊 Go to Dashboard",
+                    label: t("chat.goToDashboard"),
                     value: "dashboard",
                   },
                 ],
@@ -534,11 +536,11 @@ export const useChatFlow = () => {
             ...prev.messages.filter((m) => m.type !== "system"),
             createMessage(
               "bot",
-              `⚠️ Your payment was processed but submission failed: ${errorMsg}. Don't worry — your payment is safe. Please try submitting again or contact support.`,
+              t("chat.paymentFailedSubmit", { error: errorMsg }),
               {
                 options: [
-                  { id: "retry_submit", label: "🔄 Retry Submission", value: "__retry_submit_after_payment__" },
-                  { id: "restart", label: "🏠 Start Over", value: "restart" },
+                  { id: "retry_submit", label: t("chat.retrySubmission"), value: "__retry_submit_after_payment__" },
+                  { id: "restart", label: t("chat.startOver"), value: "restart" },
                 ],
               }
             ),
@@ -546,7 +548,7 @@ export const useChatFlow = () => {
         }));
       }
     },
-    [getFreshToken, state.certDocId, state.selectedTier]
+    [getFreshToken, state.certDocId, state.selectedTier, t]
   );
 
   // ── Step 6b: Payment Failure → Show error & allow retry ──
@@ -560,19 +562,19 @@ export const useChatFlow = () => {
           ...prev.messages,
           createMessage(
             "bot",
-            `❌ Payment failed: ${error}. Your document has not been submitted. You can try again with a different card.`,
+            t("chat.paymentFailed", { error }),
             {
               options: [
-                { id: "retry_payment", label: "💳 Try Again", value: "__retry_payment__" },
-                { id: "back_tier", label: "← Change Plan", value: "__back_to_tier__" },
-                { id: "restart", label: "🏠 Start Over", value: "restart" },
+                { id: "retry_payment", label: t("chat.retryPayment"), value: "__retry_payment__" },
+                { id: "back_tier", label: t("chat.changePlan"), value: "__back_to_tier__" },
+                { id: "restart", label: t("chat.startOver"), value: "restart" },
               ],
             }
           ),
         ],
       }));
     },
-    []
+    [t]
   );
 
   // ── Payment Cancel → Back to speed tier selection ────────
@@ -585,12 +587,12 @@ export const useChatFlow = () => {
         ...prev.messages,
         createMessage(
           "bot",
-          "No problem! Would you like to choose a different plan or go back?",
-          { options: [...SPEED_TIER_OPTIONS, BACK_OPTION] }
+          t("chat.paymentCancel"),
+          { options: [...getSpeedTierOptions(t), BACK_OPTION] }
         ),
       ],
     }));
-  }, []);
+  }, [t, BACK_OPTION]);
 
   // ── Go Back — reverse to the previous step ──────────────
   const goBack = useCallback(() => {
@@ -605,8 +607,8 @@ export const useChatFlow = () => {
             step: "select_language" as ChatStep,
             messages: [
               ...prev.messages,
-              createMessage("bot", "No problem! What type of document do you have?", {
-                options: LANGUAGE_OPTIONS,
+              createMessage("bot", t("chat.goBackPrompt"), {
+                options: getLanguageOptions(t),
               }),
             ],
           };
@@ -619,8 +621,8 @@ export const useChatFlow = () => {
               step: "select_drc_template" as ChatStep,
               messages: [
                 ...prev.messages,
-                createMessage("bot", "Which type of DRC document do you want to translate?", {
-                  options: [...DRC_TEMPLATE_OPTIONS, BACK_OPTION],
+                createMessage("bot", t("chat.selectDrcTemplate"), {
+                  options: [...getDrcTemplateOptions(t), BACK_OPTION],
                 }),
               ],
             };
@@ -633,8 +635,8 @@ export const useChatFlow = () => {
             step: "select_language" as ChatStep,
             messages: [
               ...prev.messages,
-              createMessage("bot", "What type of document do you have?", {
-                options: LANGUAGE_OPTIONS,
+              createMessage("bot", t("chat.selectDocType"), {
+                options: getLanguageOptions(t),
               }),
             ],
           };
@@ -645,8 +647,8 @@ export const useChatFlow = () => {
             step: "select_language",
             messages: [
               ...prev.messages,
-              createMessage("bot", "No problem! Let's start fresh. What type of document do you have?", {
-                options: LANGUAGE_OPTIONS,
+              createMessage("bot", t("chat.goBackFresh"), {
+                options: getLanguageOptions(t),
               }),
             ],
           };
@@ -657,8 +659,8 @@ export const useChatFlow = () => {
             step: "select_action" as ChatStep,
             messages: [
               ...prev.messages,
-              createMessage("bot", "What would you like to do with this translation?", {
-                options: [...ACTION_OPTIONS, BACK_OPTION],
+              createMessage("bot", t("chat.selectAction"), {
+                options: [...getActionOptions(t), BACK_OPTION],
               }),
             ],
           };
@@ -670,8 +672,8 @@ export const useChatFlow = () => {
             paymentData: null,
             messages: [
               ...prev.messages,
-              createMessage("bot", "How quickly do you need your certified translation?", {
-                options: [...SPEED_TIER_OPTIONS, BACK_OPTION],
+              createMessage("bot", t("chat.selectSpeed"), {
+                options: [...getSpeedTierOptions(t), BACK_OPTION],
               }),
             ],
           };
@@ -684,7 +686,7 @@ export const useChatFlow = () => {
               error: null,
               messages: [
                 ...prev.messages,
-                createMessage("bot", "Let's try again. Upload your document below.", {
+                createMessage("bot", t("chat.uploadRetry"), {
                   component: "upload",
                   options: [BACK_OPTION],
                 }),
@@ -694,7 +696,7 @@ export const useChatFlow = () => {
           return prev;
       }
     });
-  }, []);
+  }, [t, BACK_OPTION]);
 
   // ── Navigation / Reset ───────────────────────────────────
   const restart = useCallback(() => {
@@ -708,12 +710,12 @@ export const useChatFlow = () => {
       error: null,
       messages: [
         ...prev.messages,
-        createMessage("bot", "Let's try again. Upload your document below.", {
+        createMessage("bot", t("chat.uploadRetry"), {
           component: "upload",
         }),
       ],
     }));
-  }, []);
+  }, [t]);
 
   // ── Resume Draft — load an existing bulletin from Firestore ──
   const resumeDraft = useCallback(
@@ -723,8 +725,8 @@ export const useChatFlow = () => {
         ...INITIAL_STATE,
         step: "processing" as ChatStep,
         messages: [
-          createMessage("bot", "👋 Welcome back!"),
-          createMessage("system", "Loading your document..."),
+          createMessage("bot", t("chat.welcomeBack")),
+          createMessage("system", t("chat.loadingDocument")),
         ],
       });
 
@@ -762,32 +764,32 @@ export const useChatFlow = () => {
         const submission = submissionResult.submission;
 
         let actionMessage: string;
-        let actionOptions: typeof ACTION_OPTIONS;
+        let actionOptions: ReturnType<typeof getActionOptions>;
 
         if (hasSubmission && submission) {
           const statusLabels: Record<string, string> = {
-            pending_review: "⏳ Pending Review",
-            in_review: "🔍 Under Review",
-            certified: "✅ Certified",
-            rejected: "❌ Rejected",
+            pending_review: t("chat.statusPending"),
+            in_review: t("chat.statusInReview"),
+            certified: t("chat.statusCertified"),
+            rejected: t("chat.statusRejected"),
           };
           const statusLabel = statusLabels[submission.status] || submission.status;
 
           if (submission.status === "certified") {
-            actionMessage = `Your document for **${studentName}** has been **certified** (${submission.certificationId || ""}).\n\nYou can download the certified PDF from the **My Translations** tab. You can still view the free draft below.`;
-            actionOptions = [ACTION_OPTIONS[0]]; // Only "View Free Draft"
+            actionMessage = t("chat.resumeCertified", { name: studentName, certId: submission.certificationId || "" });
+            actionOptions = [getActionOptions(t)[0]]; // Only "View Free Draft"
           } else if (submission.status === "rejected") {
-            const reason = submission.rejectionReason ? `\n\n**Reason:** ${submission.rejectionReason}` : "";
-            actionMessage = `Your document for **${studentName}** was **rejected** by the reviewer.${reason}\n\nYou can re-upload a clearer image from the **My Translations** tab. You can still view the free draft below.`;
-            actionOptions = [ACTION_OPTIONS[0]]; // Only "View Free Draft"
+            const reason = submission.rejectionReason ? t("chat.rejectionReason", { reason: submission.rejectionReason }) : "";
+            actionMessage = t("chat.resumeRejected", { name: studentName, reason });
+            actionOptions = [getActionOptions(t)[0]]; // Only "View Free Draft"
           } else {
             // pending_review or in_review
-            actionMessage = `Your document for **${studentName}** is currently **${statusLabel}**. A translator is working on it.\n\nYou can still view the free draft while you wait.`;
-            actionOptions = [ACTION_OPTIONS[0]]; // Only "View Free Draft"
+            actionMessage = t("chat.resumeInProgress", { name: studentName, status: statusLabel });
+            actionOptions = [getActionOptions(t)[0]]; // Only "View Free Draft"
           }
         } else {
-          actionMessage = "What would you like to do with this translation?";
-          actionOptions = [...ACTION_OPTIONS]; // Both options: View Draft + Get Certified
+          actionMessage = t("chat.selectAction");
+          actionOptions = [...getActionOptions(t)]; // Both options: View Draft + Get Certified
         }
 
         setState({
@@ -806,10 +808,10 @@ export const useChatFlow = () => {
           },
           draftPreview: preview,
           messages: [
-            createMessage("bot", "👋 Welcome back!"),
+            createMessage("bot", t("chat.welcomeBack")),
             createMessage(
               "bot",
-              `I found your document for **${studentName}**. Here's your AI-generated draft preview.`,
+              t("chat.resumeDocument", { name: studentName }),
               { component: "preview" }
             ),
             createMessage(
@@ -841,13 +843,13 @@ export const useChatFlow = () => {
           step: "error" as ChatStep,
           error: errorMsg,
           messages: [
-            createMessage("bot", "👋 Welcome back!"),
+            createMessage("bot", t("chat.welcomeBack")),
             createMessage(
               "bot",
-              `❌ Sorry, I couldn't load your document: ${errorMsg}`,
+              t("chat.errorLoadDoc", { error: errorMsg }),
               {
                 options: [
-                  { id: "restart", label: "🏠 Start Over", value: "restart" },
+                  { id: "restart", label: t("chat.startOver"), value: "restart" },
                 ],
               }
             ),
@@ -855,7 +857,7 @@ export const useChatFlow = () => {
         });
       }
     },
-    [getFreshToken, logout]
+    [getFreshToken, logout, t, BACK_OPTION]
   );
 
   return {

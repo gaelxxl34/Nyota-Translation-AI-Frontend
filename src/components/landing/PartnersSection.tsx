@@ -16,6 +16,14 @@ const PartnersSection: React.FC = () => {
       description: t('partners.bora.description', 'Technology partner powering secure payment processing and platform infrastructure.'),
       website: 'https://boratechnology.com',
     },
+    {
+      id: 'cri-pgla',
+      name: 'CRI-PGLA',
+      shortName: 'CRI-PGLA',
+      logo: 'https://cri-pgla.vercel.app/images/logo.png',
+      description: t('partners.criPgla.description', 'Centre de Recherche Interdisciplinaire de Grands Lacs en Afrique, promoting peace and sustainable development in the Great Lakes region.'),
+      website: 'https://cri-pgla.vercel.app/',
+    },
     // Add more partners here as they come
     // {
     //   id: 'partner2',

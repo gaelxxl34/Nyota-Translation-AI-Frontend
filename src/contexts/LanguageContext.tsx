@@ -20,6 +20,9 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
 
   const changeLanguage = (lng: string) => {
     i18n.changeLanguage(lng);
+    // Set document direction for RTL languages (Arabic)
+    document.documentElement.dir = lng === 'ar' ? 'rtl' : 'ltr';
+    document.documentElement.lang = lng;
   };
 
   const value = {

@@ -2,6 +2,7 @@
 // Shows a miniature watermarked preview of the AI-translated document
 
 import React, { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import type { DraftPreview } from "../../types/chat";
 import type { GeneralDocumentData, ContentBlock } from "../templates/GeneralDocumentTemplate";
 
@@ -28,21 +29,22 @@ const getSnippet = (data: Record<string, unknown>): string => {
   return joined.length > 120 ? joined.slice(0, 117) + "…" : joined;
 };
 
-const LANG_LABELS: Record<string, string> = {
-  fr: "French",
-  ar: "Arabic",
-  es: "Spanish",
-  en: "English",
-  auto: "Auto-detected",
-};
-
 const DraftPreviewCard: React.FC<DraftPreviewCardProps> = ({ preview }) => {
+  const { t } = useTranslation();
   const docData = preview.data as GeneralDocumentData;
   const snippet = useMemo(() => getSnippet(preview.data), [preview.data]);
 
+  const LANG_LABELS: Record<string, string> = {
+    fr: t("chat.preview.langFrench"),
+    ar: t("chat.preview.langArabic"),
+    es: t("chat.preview.langSpanish"),
+    en: t("chat.preview.langEnglish"),
+    auto: t("chat.preview.langAutoDetected"),
+  };
+
   const pageCount =
     (docData.pages?.length ?? docData.totalPages) || 1;
-  const title = docData.documentTitle || "Translated Document";
+  const title = docData.documentTitle || t("chat.preview.translatedDocument");
   const subtitle = docData.documentSubtitle;
   const sourceLabel =
     LANG_LABELS[preview.sourceLanguage] || preview.sourceLanguage;
@@ -69,7 +71,7 @@ const DraftPreviewCard: React.FC<DraftPreviewCardProps> = ({ preview }) => {
                 opacity: 0.35,
               }}
             >
-              AI DRAFT
+              {t("chat.preview.aiDraft")}
             </span>
           </div>
           {/* Document title */}
@@ -101,7 +103,7 @@ const DraftPreviewCard: React.FC<DraftPreviewCardProps> = ({ preview }) => {
             </span>
             <span className="text-gray-400">·</span>
             <span className="text-gray-500">
-              {pageCount} {pageCount === 1 ? "page" : "pages"}
+              {pageCount} {pageCount === 1 ? t("chat.preview.page") : t("chat.preview.pages")}
             </span>
           </div>
 
@@ -111,13 +113,13 @@ const DraftPreviewCard: React.FC<DraftPreviewCardProps> = ({ preview }) => {
               <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-gray-500">
                 {academicInfo.studentName && (
                   <span>
-                    <strong className="text-gray-600">Student:</strong>{" "}
+                    <strong className="text-gray-600">{t("chat.preview.student")}</strong>{" "}
                     {academicInfo.studentName}
                   </span>
                 )}
                 {academicInfo.institution && (
                   <span>
-                    <strong className="text-gray-600">School:</strong>{" "}
+                    <strong className="text-gray-600">{t("chat.preview.school")}</strong>{" "}
                     {academicInfo.institution}
                   </span>
                 )}
@@ -139,7 +141,7 @@ const DraftPreviewCard: React.FC<DraftPreviewCardProps> = ({ preview }) => {
                 d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
               />
             </svg>
-            AI-generated draft preview
+            {t("chat.preview.disclaimer")}
           </p>
         </div>
       </div>

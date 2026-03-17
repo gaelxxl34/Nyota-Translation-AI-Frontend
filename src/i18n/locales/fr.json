@@ -144,8 +144,12 @@
     "becomePartner": "Intéressé à devenir partenaire?",
     "contactUs": "Contactez-Nous",
     "iuea": {
-      "description": "Partenaire académique fournissant expertise éducative et validation."
-    }
+      "description": "Partenaire académique fournissant expertise éducative et validation."    },
+    "bora": {
+      "description": "Partenaire technologique assurant le traitement sécurisé des paiements et l'infrastructure de la plateforme."
+    },
+    "criPgla": {
+      "description": "Centre de Recherche Interdisciplinaire de Grands Lacs en Afrique, promouvoir la paix et le développement durable dans la région des Grands Lacs."    }
   },
   "templates": {
     "sectionTitle": "Modèles de Documents",
@@ -400,6 +404,10 @@
       "title": "Document Vérifié",
       "description": "Ce document a été vérifié avec succès et est authentique."
     },
+    "draft": {
+      "title": "Brouillon Généré par IA",
+      "description": "Ce document a été généré par l'IA et n'a PAS été révisé ni certifié par un traducteur professionnel. Il ne doit pas être utilisé comme traduction officielle."
+    },
     "documentInfo": {
       "title": "Informations du Document",
       "studentName": "Nom de l'Étudiant",
@@ -480,5 +488,119 @@
   "common": {
     "language": "Langue",
     "back": "Retour"
+  },
+  "chat": {
+    "welcome": "👋 Bienvenue au Centre de Traduction Nyota!",
+    "welcomeBack": "👋 Bon retour!",
+    "selectDocType": "Je vais vous aider à traduire votre document académique en anglais. D'abord, quel type de document avez-vous?",
+    "selectDrcTemplate": "Quel type de document congolais souhaitez-vous traduire?",
+    "uploadPrompt": "Excellent choix! Téléchargez maintenant votre document. Vous pouvez prendre une photo ou sélectionner un fichier.",
+    "uploadPromptShort": "Téléchargez maintenant votre document. Vous pouvez prendre une photo ou sélectionner un fichier.",
+    "uploadRetry": "Réessayons. Téléchargez votre document ci-dessous.",
+    "uploading": "Téléchargement et analyse de votre document...",
+    "documentProcessed": "✅ Document traité! J'ai trouvé un document pour **{{name}}**. Voici votre aperçu de brouillon généré par l'IA.",
+    "resumeDocument": "J'ai trouvé votre document pour **{{name}}**. Voici votre aperçu de brouillon généré par l'IA.",
+    "selectAction": "Que souhaitez-vous faire avec cette traduction?",
+    "selectSpeed": "À quelle vitesse avez-vous besoin de votre traduction certifiée?",
+    "paymentPrompt": "💳 Veuillez compléter votre paiement pour soumettre votre document pour une traduction certifiée **{{tier}}**.",
+    "paymentCancel": "Pas de problème! Souhaitez-vous choisir un autre plan ou revenir en arrière?",
+    "paymentSuccess": "🎉 Paiement confirmé et votre document a été soumis pour une traduction certifiée **{{tier}}**! Un traducteur professionnel va le réviser. Vous recevrez un email quand ce sera prêt.",
+    "paymentSuccessNext": "Vous pouvez vérifier le statut de votre document et l'historique des paiements depuis votre tableau de bord. Souhaitez-vous traduire un autre document?",
+    "paymentFailedSubmit": "⚠️ Votre paiement a été traité mais la soumission a échoué: {{error}}. Ne vous inquiétez pas — votre paiement est en sécurité. Veuillez réessayer ou contacter le support.",
+    "paymentFailed": "❌ Paiement échoué: {{error}}. Votre document n'a pas été soumis. Vous pouvez réessayer avec une autre carte.",
+    "processingSubmission": "Paiement réussi! Soumission pour révision...",
+    "preparingOrder": "Préparation de votre commande...",
+    "loadingDocument": "Chargement de votre document...",
+    "pdfOpened": "📄 Votre brouillon PDF a été ouvert dans un nouvel onglet! Que souhaitez-vous faire ensuite?",
+    "pdfGenerating": "Génération de votre brouillon PDF...",
+    "pdfGeneratingDesc": "Cela peut prendre un moment. Le document apparaîtra ici automatiquement.",
+    "errorUpload": "❌ Désolé, je n'ai pas pu traiter votre document: {{error}}.",
+    "errorLoadDoc": "❌ Désolé, je n'ai pas pu charger votre document: {{error}}",
+    "errorMissingData": "❌ Données du document manquantes. Veuillez réessayer le téléchargement.",
+    "errorPdfFailed": "❌ Échec de la génération de l'aperçu PDF: {{error}}",
+    "goBackPrompt": "Pas de problème! Quel type de document avez-vous?",
+    "goBackFresh": "Pas de problème! Recommençons. Quel type de document avez-vous?",
+    "statusPending": "⏳ En attente de révision",
+    "statusInReview": "🔍 En cours de révision",
+    "statusCertified": "✅ Certifié",
+    "statusRejected": "❌ Rejeté",
+    "resumeCertified": "Votre document pour **{{name}}** a été **certifié** ({{certId}}).\n\nVous pouvez télécharger le PDF certifié depuis l'onglet **Mes Traductions**. Vous pouvez toujours voir le brouillon gratuit ci-dessous.",
+    "resumeRejected": "Votre document pour **{{name}}** a été **rejeté** par le réviseur.{{reason}}\n\nVous pouvez re-télécharger une image plus claire depuis l'onglet **Mes Traductions**. Vous pouvez toujours voir le brouillon gratuit ci-dessous.",
+    "resumeInProgress": "Votre document pour **{{name}}** est actuellement **{{status}}**. Un traducteur travaille dessus.\n\nVous pouvez toujours voir le brouillon gratuit en attendant.",
+    "rejectionReason": "\n\n**Raison:** {{reason}}",
+    "back": "← Retour",
+    "tryAgain": "🔄 Réessayer",
+    "startOver": "🏠 Recommencer",
+    "translateAnother": "📄 Traduire un Autre",
+    "goToDashboard": "📊 Tableau de Bord",
+    "retrySubmission": "🔄 Réessayer la Soumission",
+    "retryPayment": "💳 Réessayer",
+    "changePlan": "← Changer de Plan",
+    "options": {
+      "drc": "🇨🇩 Format RDC",
+      "drcDesc": "Congo — Documents académiques français",
+      "french": "🇫🇷 Français",
+      "frenchDesc": "Français",
+      "arabic": "🇸🇦 Arabe",
+      "arabicDesc": "العربية",
+      "spanish": "🇪🇸 Espagnol",
+      "spanishDesc": "Español",
+      "autoDetect": "🔍 Détection automatique",
+      "autoDetectDesc": "Laissez l'IA détecter la langue",
+      "form4": "📝 Bulletin Form 4",
+      "form4Desc": "Bulletin Scolaire, 4ème Secondaire",
+      "form6": "📝 Bulletin Form 6",
+      "form6Desc": "Bulletin Scolaire, 6ème Secondaire",
+      "stateDiploma": "🎓 Diplôme d'État",
+      "stateDiplomaDesc": "Diplôme d'État",
+      "stateExamAttestation": "📋 Attestation d'Examen d'État",
+      "stateExamAttestationDesc": "Attestation de Réussite",
+      "bachelorDiploma": "🎓 Diplôme de Licence",
+      "bachelorDiplomaDesc": "Diplôme de Licence / Graduat",
+      "collegeTranscript": "📊 Relevé de Notes",
+      "collegeTranscriptDesc": "Relevé de Notes Universitaire",
+      "collegeAttestation": "📋 Attestation Universitaire",
+      "collegeAttestationDesc": "Attestation de Fréquentation",
+      "highSchoolAttestation": "📋 Attestation de Scolarité",
+      "highSchoolAttestationDesc": "Attestation de Scolarité",
+      "otherDrc": "📄 Autre Document RDC",
+      "otherDrcDesc": "Autre document congolais",
+      "viewDraft": "👁 Voir le Brouillon Gratuit",
+      "viewDraftDesc": "Aperçu du brouillon IA dans le navigateur",
+      "certify": "✅ Obtenir une Traduction Certifiée",
+      "certifyDesc": "Révisée par un agent, infalsifiable",
+      "express": "🚀 Express — 45$",
+      "expressDesc": "1–5 heures",
+      "rush": "⚡ Urgent — 35$",
+      "rushDesc": "Jusqu'à 12 heures",
+      "standard": "📋 Standard — 30$",
+      "standardDesc": "Jusqu'à 24 heures"
+    },
+    "upload": {
+      "dropPrompt": "Déposez votre document ici ou appuyez pour parcourir",
+      "formats": "PNG, JPG, WEBP, ou PDF — jusqu'à {{size}}Mo",
+      "invalidType": "Veuillez télécharger une image (PNG, JPG, WEBP) ou un fichier PDF.",
+      "tooLarge": "Le fichier doit faire moins de {{size}}Mo."
+    },
+    "preview": {
+      "translatedDocument": "Document Traduit",
+      "aiDraft": "BROUILLON IA",
+      "page": "page",
+      "pages": "pages",
+      "student": "Étudiant:",
+      "school": "École:",
+      "disclaimer": "Aperçu de brouillon généré par l'IA",
+      "langFrench": "Français",
+      "langArabic": "Arabe",
+      "langSpanish": "Espagnol",
+      "langEnglish": "Anglais",
+      "langAutoDetected": "Détecté automatiquement"
+    },
+    "pdfModal": {
+      "draftPreview": "Aperçu du Brouillon",
+      "download": "Télécharger",
+      "closePreview": "Fermer l'aperçu",
+      "iframeTitle": "Aperçu du Brouillon PDF"
+    }
   }
 }
