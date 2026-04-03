@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../AuthProvider';
-import { getMyCertifiedDocuments, getMyBulletins, deleteBulletin, getBulletinDeleteInfo, reuploadDocument, exportCertifiedPdf, exportDraftPdf } from '../../services/chatService';
+import { getMyCertifiedDocuments, getMyBulletins, deleteBulletin, getBulletinDeleteInfo, reuploadDocument, exportCertifiedPdf, exportDraftPdf, retryProcessing } from '../../services/chatService';
 
 interface CertifiedDoc {
   id: string;
@@ -48,6 +48,8 @@ interface BulletinDoc {
 const STATUS_CONFIG: Record<string, { label: string; labelFr: string; color: string; icon: string }> = {
   processed: { label: 'Draft', labelFr: 'Brouillon', color: 'bg-amber-100 text-amber-800', icon: '📝' },
   draft: { label: 'Draft', labelFr: 'Brouillon', color: 'bg-gray-100 text-gray-700', icon: '📝' },
+  processing_failed: { label: 'Processing Failed', labelFr: 'Échec du traitement', color: 'bg-red-100 text-red-800', icon: '⚠️' },
+  failed: { label: 'Processing Failed', labelFr: 'Échec du traitement', color: 'bg-red-100 text-red-800', icon: '⚠️' },
   pending_review: { label: 'Pending Review', labelFr: 'En attente de révision', color: 'bg-yellow-100 text-yellow-800', icon: '⏳' },
   in_review: { label: 'In Review', labelFr: 'En cours de révision', color: 'bg-blue-100 text-blue-800', icon: '🔍' },
   certified: { label: 'Certified', labelFr: 'Certifié', color: 'bg-green-100 text-green-800', icon: '✅' },
@@ -76,6 +78,7 @@ const MySubmissions: React.FC<MySubmissionsProps> = ({ onNavigate, onContinueDra
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [viewingId, setViewingId] = useState<string | null>(null);
   const [reuploadingId, setReuploadingId] = useState<string | null>(null);
+  const [retryingId, setRetryingId] = useState<string | null>(null);
   const [expandedDocId, setExpandedDocId] = useState<string | null>(null);
   const [deleteDialog, setDeleteDialog] = useState<{
     bulletinId: string;
@@ -248,6 +251,28 @@ const MySubmissions: React.FC<MySubmissionsProps> = ({ onNavigate, onContinueDra
     }
   };
 
+  const handleRetryProcessing = async (bulletinId: string) => {
+    if (!currentUser) return;
+    try {
+      setRetryingId(bulletinId);
+      setError(null);
+      const idToken = await currentUser.getIdToken();
+      const result = await retryProcessing(idToken, bulletinId);
+      if (result.success) {
+        await loadDocuments();
+        if (result.firestoreId && onContinueDraft) {
+          onContinueDraft(result.firestoreId);
+        }
+      } else {
+        setError(result.error || 'Retry failed');
+      }
+    } catch {
+      setError('Failed to retry processing');
+    } finally {
+      setRetryingId(null);
+    }
+  };
+
   const isFr = i18n.language === 'fr';
 
   const getStatusBadge = (status: string) => {
@@ -393,6 +418,25 @@ const MySubmissions: React.FC<MySubmissionsProps> = ({ onNavigate, onContinueDra
                 {getStatusBadge(b.status)}
               </div>
               <div className="flex items-center gap-2 mt-2.5">
+                {(b.status === 'processing_failed' || b.status === 'failed') ? (
+                  <>
+                    <button
+                      onClick={() => handleRetryProcessing(b.id)}
+                      disabled={retryingId === b.id}
+                      className="inline-flex items-center gap-1 px-3 py-1.5 bg-orange-50 text-orange-700 rounded-lg text-xs font-medium hover:bg-orange-100 transition-colors disabled:opacity-50"
+                    >
+                      {retryingId === b.id ? (
+                        <div className="animate-spin h-3.5 w-3.5 border-2 border-orange-400 border-t-transparent rounded-full" />
+                      ) : (
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                      )}
+                      {retryingId === b.id ? (isFr ? 'Traitement...' : 'Processing...') : (isFr ? 'Réessayer le traitement' : 'Retry Processing')}
+                    </button>
+                  </>
+                ) : (
+                  <>
                 <button
                   onClick={() => handleViewDraft(b.id)}
                   disabled={viewingId === b.id}
@@ -415,6 +459,8 @@ const MySubmissions: React.FC<MySubmissionsProps> = ({ onNavigate, onContinueDra
                   >
                     ▶ {isFr ? 'Continuer' : 'Continue'}
                   </button>
+                )}
+                  </>
                 )}
                 <button
                   onClick={() => handleDeleteClick(b.id)}

@@ -419,3 +419,31 @@ export const checkBulletinSubmission = async (
     submission: result.submission,
   };
 };
+
+export const retryProcessing = async (
+  idToken: string,
+  bulletinId: string
+): Promise<{
+  success: boolean;
+  firestoreId?: string;
+  error?: string;
+}> => {
+  const response = await fetch(
+    `${API_BASE}/api/bulletins/${encodeURIComponent(bulletinId)}/retry`,
+    {
+      method: "POST",
+      headers: { Authorization: `Bearer ${idToken}` },
+    }
+  );
+
+  const result = await response.json();
+  if (!response.ok && response.status !== 206) {
+    return { success: false, error: result.error || "Retry failed" };
+  }
+
+  return {
+    success: result.success ?? false,
+    firestoreId: result.firestoreId,
+    error: result.error,
+  };
+};
